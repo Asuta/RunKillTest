@@ -8,8 +8,15 @@ public class PlayerMove : MonoBehaviour
     public float raycastDistance = 10f; // 射线检测距离
     public float decelerationSpeed = 5f; // 归零速度
     public float jumpForce = 10f; // 跳跃力度
-     
+    public float dashSpeed = 15f; // 冲刺速度
+    public float dashDuration = 0.3f; // 冲刺持续时间
+    public float dashCooldown = 1f; // 冲刺冷却时间
+      
     private bool isHittingBuilding = false; // 记录是否射中building层
+    private bool isDashing = false; // 是否正在冲刺
+    private float dashTimer = 0f; // 冲刺计时器
+    private float dashCooldownTimer = 0f; // 冲刺冷却计时器
+    private Vector3 dashDirection; // 冲刺方向
 
     public float extraGravity = 10f; // 额外重力
     
@@ -28,13 +35,15 @@ public class PlayerMove : MonoBehaviour
         CalculateMovement();
         CheckBuildingBelow();
         HandleJump();
+        HandleDash();
     }
     
     void FixedUpdate()
     {
         HandleMovement();
+        HandleDashMovement();
         // 应用额外重力
-        if (thisRb != null)
+        if (thisRb != null && !isDashing)
         {
             thisRb.AddForce(Vector3.down * extraGravity, ForceMode.Acceleration);
         }
@@ -122,11 +131,59 @@ public class PlayerMove : MonoBehaviour
     
     void HandleJump()
     {
-        if (Input.GetKeyDown(KeyCode.Space) && thisRb != null)
+        if (Input.GetKeyDown(KeyCode.Space) && thisRb != null && !isDashing)
         {
             // 给刚体一个向上的速度来实现跳跃
             Vector3 currentVelocity = thisRb.linearVelocity;
             thisRb.linearVelocity = new Vector3(currentVelocity.x, jumpForce, currentVelocity.z);
+        }
+    }
+
+    void HandleDash()
+    {
+        // 更新冷却计时器
+        if (dashCooldownTimer > 0f)
+        {
+            dashCooldownTimer -= Time.deltaTime;
+        }
+
+        // 检测冲刺输入（左Shift键）
+        if (Input.GetKeyDown(KeyCode.LeftShift) && dashCooldownTimer <= 0f && !isDashing && moveDirection != Vector3.zero)
+        {
+            StartDash();
+        }
+
+        // 更新冲刺计时器
+        if (isDashing)
+        {
+            dashTimer -= Time.deltaTime;
+            if (dashTimer <= 0f)
+            {
+                EndDash();
+            }
+        }
+    }
+
+    void StartDash()
+    {
+        isDashing = true;
+        dashTimer = dashDuration;
+        dashCooldownTimer = dashCooldown;
+        dashDirection = moveDirection.normalized;
+    }
+
+    void EndDash()
+    {
+        isDashing = false;
+    }
+
+    void HandleDashMovement()
+    {
+        if (isDashing && thisRb != null)
+        {
+            // 应用冲刺速度，只控制x和z轴，保持y轴速度不变
+            Vector3 dashVelocity = new Vector3(dashDirection.x * dashSpeed, thisRb.linearVelocity.y, dashDirection.z * dashSpeed);
+            thisRb.linearVelocity = dashVelocity;
         }
     }
 }

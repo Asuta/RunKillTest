@@ -651,6 +651,9 @@ MonoBehaviour:
   forwardTarget: {fileID: 50635731}
   moveSpeed: 5
   raycastDistance: 1.9
+  decelerationSpeed: 5
+  jumpForce: 10
+  extraGravity: 20
 --- !u!1 &1180128363
 GameObject:
   m_ObjectHideFlags: 0
