@@ -11,6 +11,7 @@ public class PlayerMove : MonoBehaviour
     public float raycastDistance = 10f; // 射线检测距离
     public float extraGravity = 10f; // 额外重力
     public Vector3 nowVelocity; // 当前速度（仅用于调试显示）
+    public string nowState; // 当前状态（仅用于调试显示）
     #endregion
 
     #region 跳跃设置
@@ -37,13 +38,17 @@ public class PlayerMove : MonoBehaviour
     private int buildingLayerMask;
 
     // 状态管理
-    private enum MovementState { Grounded, Jumping, Dashing, Falling }
+    private enum MovementState { Grounded, Jumping, Dashing, Falling, WallSliding }
     private MovementState currentState = MovementState.Grounded;
 
     // 冲刺相关
     private float dashTimer = 0f;
     private float dashCooldownTimer = 0f;
     private Vector3 dashDirection;
+
+    // 贴墙滑行相关
+    private Vector3 wallNormal; // 存储墙面法线
+    private float wallSlideTimer = 0f; // 贴墙计时器
     #endregion
 
     #region Unity生命周期
@@ -61,6 +66,10 @@ public class PlayerMove : MonoBehaviour
         HandleDash();
         HandleAttack();
         UpdateState();
+        HandleWallSliding();
+        
+        // 更新当前状态用于调试显示
+        UpdateNowState();
         
         // 绘制当前速度向量（Scene视图可见）
         DrawVelocityVector();
@@ -364,7 +373,19 @@ public class PlayerMove : MonoBehaviour
                     // 从碰撞点绘制投影向量（绿色）
                     Debug.DrawRay(contact.point, horizontalProjection, Color.green, 2f);
                 }
+
+                // 进入贴墙滑行状态
+                EnterWallSliding(normal);
             }
+        }
+    }
+
+    void OnCollisionExit(Collision collision)
+    {
+        // 离开墙体时退出贴墙滑行状态
+        if (collision.gameObject.CompareTag("Wall") && currentState == MovementState.WallSliding)
+        {
+            ExitWallSliding();
         }
     }
     #endregion
@@ -391,7 +412,106 @@ public class PlayerMove : MonoBehaviour
     void DrawVelocityVector()
     {
         // 从body当前位置绘制速度向量
-        Debug.DrawRay(transform.position, nowVelocity, Color.blue);
+        Debug.DrawRay(forwardTarget.position, nowVelocity, Color.blue);
+    }
+    void UpdateNowState()
+    {
+        // 将枚举状态转换为字符串用于调试显示
+        nowState = currentState.ToString();
+    }
+    #endregion
+
+    #region 贴墙滑行方法
+    void HandleWallSliding()
+    {
+        if (currentState == MovementState.WallSliding)
+        {
+            // 更新贴墙计时器
+            wallSlideTimer += Time.deltaTime;
+
+            // 持续检测是否还贴在墙上
+            CheckWallAttachment();
+
+            // 贴墙滑行时的特殊逻辑（例如减速等）
+            HandleWallSlideMovement();
+        }
+    }
+
+    void EnterWallSliding(Vector3 normal)
+    {
+        currentState = MovementState.WallSliding;
+        wallNormal = normal;
+        wallSlideTimer = 0f;
+        Debug.Log("进入贴墙滑行状态");
+    }
+
+    void ExitWallSliding()
+    {
+        if (currentState == MovementState.WallSliding)
+        {
+            // 根据当前是否在地面来决定下一个状态
+            if (IsGrounded())
+                currentState = MovementState.Grounded;
+            else
+                currentState = MovementState.Falling;
+            
+            Debug.Log("退出贴墙滑行状态");
+        }
+    }
+
+    void CheckWallAttachment()
+    {
+        if (forwardTarget == null)
+            return;
+
+        // 从forwardTarget位置向墙面法线的反方向发射黄色射线
+        Vector3 rayDirection = -wallNormal;
+        Ray ray = new Ray(forwardTarget.position, rayDirection);
+        RaycastHit hit;
+
+        // 绘制黄色射线
+        Color rayColor = Color.yellow;
+        // 使用RaycastAll检测所有碰撞，然后过滤出Wall tag的物体
+        RaycastHit[] hits = Physics.RaycastAll(ray, raycastDistance);
+        bool stillAttached = false;
+        
+        foreach (RaycastHit hitInfo in hits)
+        {
+            if (hitInfo.collider.CompareTag("Wall"))
+            {
+                stillAttached = true;
+                break;
+            }
+        }
+
+        if (!stillAttached)
+        {
+            Debug.LogError("贴墙滑行时未检测到墙体，退出贴墙状态"); 
+            // 如果射线没有检测到墙体，退出贴墙状态
+            ExitWallSliding();
+        }
+        else
+        {
+            // 如果检测到墙体，更新墙面法线
+            Debug.LogError("-------------"); 
+        }
+
+        // 在Scene视图中绘制射线，持续0.5秒
+        Debug.DrawRay(forwardTarget.position, rayDirection * raycastDistance, rayColor, 0.5f);
+    }
+
+    void HandleWallSlideMovement()
+    {
+        if (thisRb == null)
+            return;
+
+        // 贴墙滑行时的移动逻辑
+        // 可以在这里添加减速或其他特殊移动效果
+        Vector3 currentVelocity = thisRb.linearVelocity;
+        
+        // 示例：在墙上时减少水平速度
+        Vector3 horizontalVelocity = new Vector3(currentVelocity.x * 0.8f, currentVelocity.y, currentVelocity.z * 0.8f);
+        thisRb.linearVelocity = horizontalVelocity;
     }
     #endregion
 }
