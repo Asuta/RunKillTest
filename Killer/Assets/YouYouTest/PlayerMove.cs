@@ -5,6 +5,10 @@ public class PlayerMove : MonoBehaviour
     public Transform forwardTarget;
     private Rigidbody thisRb;
     public float moveSpeed = 5f;
+    public float raycastDistance = 10f; // 射线检测距离
+    public float decelerationSpeed = 5f; // 归零速度
+    
+    private bool isHittingBuilding = false; // 记录是否射中building层
     
     
     // Start is called once before the first execution of Update after the MonoBehaviour is created
@@ -19,6 +23,7 @@ public class PlayerMove : MonoBehaviour
     void Update()
     {
         CalculateMovement();
+        CheckBuildingBelow();
     }
     
     void FixedUpdate()
@@ -46,11 +51,62 @@ public class PlayerMove : MonoBehaviour
     
     void HandleMovement()
     {
-        if (thisRb == null || moveDirection == Vector3.zero)
+        if (thisRb == null)
             return;
             
-        // 归一化并应用速度到刚体
-        Vector3 normalizedDirection = moveDirection.normalized;
-        thisRb.linearVelocity = normalizedDirection * moveSpeed;
+        // 检查是否有WASD按键按下
+        bool isWASDPressed = Input.GetKey(KeyCode.W) || Input.GetKey(KeyCode.A) ||
+                            Input.GetKey(KeyCode.S) || Input.GetKey(KeyCode.D);
+        
+        if (isHittingBuilding && !isWASDPressed)
+        {
+            // 如果射中building层且没有WASD按键按下，让x轴和z轴速度渐渐归零
+            Vector3 currentVelocity = thisRb.linearVelocity;
+            Vector3 targetVelocity = new Vector3(0, currentVelocity.y, 0); // 只保留y轴速度
+            
+            // 使用Lerp逐渐减速
+            thisRb.linearVelocity = Vector3.Lerp(currentVelocity, targetVelocity, decelerationSpeed * Time.fixedDeltaTime);
+        }
+        else if (moveDirection != Vector3.zero)
+        {
+            // 归一化并应用速度到刚体
+            Vector3 normalizedDirection = moveDirection.normalized;
+            thisRb.linearVelocity = normalizedDirection * moveSpeed;
+        }
+    }
+    
+    void CheckBuildingBelow()
+    {
+        if (forwardTarget == null)
+            return;
+            
+        // 从 forwardTarget 位置向下发射射线
+        Ray ray = new Ray(forwardTarget.position, Vector3.down);
+        RaycastHit hit;
+        
+        // 检测 "building" 层
+        int buildingLayer = LayerMask.GetMask("Building");
+        
+        // 绘制射线（红色表示未命中，绿色表示命中）
+        Color rayColor = Color.red;
+        bool hitBuilding = false;
+        
+        if (Physics.Raycast(ray, out hit, raycastDistance, buildingLayer))
+        {
+            rayColor = Color.green;
+            hitBuilding = true;
+        }
+        
+        // 更新射中状态
+        isHittingBuilding = hitBuilding;
+        
+        // 在Scene视图中绘制射线
+        Debug.DrawRay(forwardTarget.position, Vector3.down * raycastDistance, rayColor);
+    }
+    
+    // 获取当前是否射中building层的状态
+    public bool IsHittingBuilding()
+    {
+        return isHittingBuilding;
     }
 }
