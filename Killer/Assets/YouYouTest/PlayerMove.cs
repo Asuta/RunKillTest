@@ -7,8 +7,11 @@ public class PlayerMove : MonoBehaviour
     public float moveSpeed = 5f;
     public float raycastDistance = 10f; // 射线检测距离
     public float decelerationSpeed = 5f; // 归零速度
-    
+    public float jumpForce = 10f; // 跳跃力度
+     
     private bool isHittingBuilding = false; // 记录是否射中building层
+
+    public float extraGravity = 10f; // 额外重力
     
     
     // Start is called once before the first execution of Update after the MonoBehaviour is created
@@ -24,11 +27,17 @@ public class PlayerMove : MonoBehaviour
     {
         CalculateMovement();
         CheckBuildingBelow();
+        HandleJump();
     }
     
     void FixedUpdate()
     {
         HandleMovement();
+        // 应用额外重力
+        if (thisRb != null)
+        {
+            thisRb.AddForce(Vector3.down * extraGravity, ForceMode.Acceleration);
+        }
     }
     
     void CalculateMovement()
@@ -66,12 +75,13 @@ public class PlayerMove : MonoBehaviour
             
             // 使用Lerp逐渐减速
             thisRb.linearVelocity = Vector3.Lerp(currentVelocity, targetVelocity, decelerationSpeed * Time.fixedDeltaTime);
-        }
+        } 
         else if (moveDirection != Vector3.zero)
         {
-            // 归一化并应用速度到刚体
+            // 归一化并应用速度到刚体，只控制x和z轴，保持y轴速度不变
             Vector3 normalizedDirection = moveDirection.normalized;
-            thisRb.linearVelocity = normalizedDirection * moveSpeed;
+            Vector3 horizontalVelocity = new Vector3(normalizedDirection.x * moveSpeed, thisRb.linearVelocity.y, normalizedDirection.z * moveSpeed);
+            thisRb.linearVelocity = horizontalVelocity;
         }
     }
     
@@ -108,5 +118,15 @@ public class PlayerMove : MonoBehaviour
     public bool IsHittingBuilding()
     {
         return isHittingBuilding;
+    }
+    
+    void HandleJump()
+    {
+        if (Input.GetKeyDown(KeyCode.Space) && thisRb != null)
+        {
+            // 给刚体一个向上的速度来实现跳跃
+            Vector3 currentVelocity = thisRb.linearVelocity;
+            thisRb.linearVelocity = new Vector3(currentVelocity.x, jumpForce, currentVelocity.z);
+        }
     }
 }
