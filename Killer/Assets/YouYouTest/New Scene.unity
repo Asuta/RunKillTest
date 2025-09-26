@@ -529,7 +529,7 @@ MeshRenderer:
   m_RenderingLayerMask: 1
   m_RendererPriority: 0
   m_Materials:
-  - {fileID: 2100000, guid: 720ea100b5a5ea741a0e79cfb3ab65c6, type: 2}
+  - {fileID: 2100000, guid: a459023871c8b4241b88c51d8ab759d7, type: 2}
   m_StaticBatchInfo:
     firstSubMesh: 0
     subMeshCount: 0
@@ -650,10 +650,13 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   forwardTarget: {fileID: 50635731}
   moveSpeed: 5
-  raycastDistance: 1.9
   decelerationSpeed: 5
-  jumpForce: 10
+  raycastDistance: 1.9
   extraGravity: 20
+  jumpForce: 10
+  dashSpeed: 15
+  dashDuration: 0.3
+  dashCooldown: 1
 --- !u!1 &1180128363
 GameObject:
   m_ObjectHideFlags: 0

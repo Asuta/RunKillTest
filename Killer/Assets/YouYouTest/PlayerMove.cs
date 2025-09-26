@@ -2,53 +2,67 @@ using UnityEngine;
 
 public class PlayerMove : MonoBehaviour
 {
+    #region 移动设置
+    [Header("移动设置")]
     public Transform forwardTarget;
-    private Rigidbody thisRb;
     public float moveSpeed = 5f;
-    public float raycastDistance = 10f; // 射线检测距离
     public float decelerationSpeed = 5f; // 归零速度
+    public float raycastDistance = 10f; // 射线检测距离
+    public float extraGravity = 10f; // 额外重力
+    #endregion
+
+    #region 跳跃设置
+    [Header("跳跃设置")]
     public float jumpForce = 10f; // 跳跃力度
+    #endregion
+
+    #region 冲刺设置
+    [Header("冲刺设置")]
     public float dashSpeed = 15f; // 冲刺速度
     public float dashDuration = 0.3f; // 冲刺持续时间
     public float dashCooldown = 1f; // 冲刺冷却时间
-      
-    private bool isHittingBuilding = false; // 记录是否射中building层
-    private bool isDashing = false; // 是否正在冲刺
-    private float dashTimer = 0f; // 冲刺计时器
-    private float dashCooldownTimer = 0f; // 冲刺冷却计时器
-    private Vector3 dashDirection; // 冲刺方向
+    #endregion
 
-    public float extraGravity = 10f; // 额外重力
+    #region 私有字段
+    private Rigidbody thisRb;
+    private Vector3 moveDirection;
+    private int buildingLayerMask;
     
+    // 状态管理
+    private enum MovementState { Grounded, Jumping, Dashing, Falling }
+    private MovementState currentState = MovementState.Grounded;
     
-    // Start is called once before the first execution of Update after the MonoBehaviour is created
+    // 冲刺相关
+    private float dashTimer = 0f;
+    private float dashCooldownTimer = 0f;
+    private Vector3 dashDirection;
+    #endregion
+
+    #region Unity生命周期
     void Start()
     {
         thisRb = GetComponent<Rigidbody>();
+        buildingLayerMask = LayerMask.GetMask("Building");
     }
 
-    private Vector3 moveDirection;
-    
-    // Update is called once per frame
     void Update()
     {
         CalculateMovement();
         CheckBuildingBelow();
         HandleJump();
         HandleDash();
+        UpdateState();
     }
     
     void FixedUpdate()
     {
         HandleMovement();
         HandleDashMovement();
-        // 应用额外重力
-        if (thisRb != null && !isDashing)
-        {
-            thisRb.AddForce(Vector3.down * extraGravity, ForceMode.Acceleration);
-        }
+        ApplyExtraGravity();
     }
-    
+    #endregion
+
+    #region 移动方法
     void CalculateMovement()
     {
         if (forwardTarget == null)
@@ -76,16 +90,16 @@ public class PlayerMove : MonoBehaviour
         bool isWASDPressed = Input.GetKey(KeyCode.W) || Input.GetKey(KeyCode.A) ||
                             Input.GetKey(KeyCode.S) || Input.GetKey(KeyCode.D);
         
-        if (isHittingBuilding && !isWASDPressed)
+        if (IsGrounded() && !isWASDPressed)
         {
-            // 如果射中building层且没有WASD按键按下，让x轴和z轴速度渐渐归零
+            // 如果在地面上且没有WASD按键按下，让x轴和z轴速度渐渐归零
             Vector3 currentVelocity = thisRb.linearVelocity;
             Vector3 targetVelocity = new Vector3(0, currentVelocity.y, 0); // 只保留y轴速度
             
             // 使用Lerp逐渐减速
             thisRb.linearVelocity = Vector3.Lerp(currentVelocity, targetVelocity, decelerationSpeed * Time.fixedDeltaTime);
-        } 
-        else if (moveDirection != Vector3.zero)
+        }
+        else if (moveDirection != Vector3.zero && currentState != MovementState.Dashing)
         {
             // 归一化并应用速度到刚体，只控制x和z轴，保持y轴速度不变
             Vector3 normalizedDirection = moveDirection.normalized;
@@ -93,7 +107,9 @@ public class PlayerMove : MonoBehaviour
             thisRb.linearVelocity = horizontalVelocity;
         }
     }
-    
+    #endregion
+
+    #region 建筑检测
     void CheckBuildingBelow()
     {
         if (forwardTarget == null)
@@ -103,42 +119,64 @@ public class PlayerMove : MonoBehaviour
         Ray ray = new Ray(forwardTarget.position, Vector3.down);
         RaycastHit hit;
         
-        // 检测 "building" 层
-        int buildingLayer = LayerMask.GetMask("Building");
-        
         // 绘制射线（红色表示未命中，绿色表示命中）
         Color rayColor = Color.red;
         bool hitBuilding = false;
         
-        if (Physics.Raycast(ray, out hit, raycastDistance, buildingLayer))
+        if (Physics.Raycast(ray, out hit, raycastDistance, buildingLayerMask))
         {
             rayColor = Color.green;
             hitBuilding = true;
         }
         
-        // 更新射中状态
-        isHittingBuilding = hitBuilding;
+        // 更新状态（冲刺状态下不更新地面状态）
+        if (currentState != MovementState.Dashing)
+        {
+            if (hitBuilding)
+                currentState = MovementState.Grounded;
+            else if (currentState == MovementState.Grounded)
+                currentState = MovementState.Falling;
+        }
         
         // 在Scene视图中绘制射线
         Debug.DrawRay(forwardTarget.position, Vector3.down * raycastDistance, rayColor);
     }
     
-    // 获取当前是否射中building层的状态
     public bool IsHittingBuilding()
     {
-        return isHittingBuilding;
+        return currentState == MovementState.Grounded;
     }
     
+    private bool IsGrounded()
+    {
+        return currentState == MovementState.Grounded;
+    }
+    #endregion
+
+    #region 跳跃方法
     void HandleJump()
     {
-        if (Input.GetKeyDown(KeyCode.Space) && thisRb != null && !isDashing)
+        if (Input.GetKeyDown(KeyCode.Space) && thisRb != null && CanJump())
         {
-            // 给刚体一个向上的速度来实现跳跃
-            Vector3 currentVelocity = thisRb.linearVelocity;
-            thisRb.linearVelocity = new Vector3(currentVelocity.x, jumpForce, currentVelocity.z);
+            PerformJump();
         }
     }
+    
+    private bool CanJump()
+    {
+        return IsGrounded() && currentState != MovementState.Dashing;
+    }
+    
+    private void PerformJump()
+    {
+        // 给刚体一个向上的速度来实现跳跃
+        Vector3 currentVelocity = thisRb.linearVelocity;
+        thisRb.linearVelocity = new Vector3(currentVelocity.x, jumpForce, currentVelocity.z);
+        currentState = MovementState.Jumping;
+    }
+    #endregion
 
+    #region 冲刺方法
     void HandleDash()
     {
         // 更新冷却计时器
@@ -148,13 +186,13 @@ public class PlayerMove : MonoBehaviour
         }
 
         // 检测冲刺输入（左Shift键）
-        if (Input.GetKeyDown(KeyCode.LeftShift) && dashCooldownTimer <= 0f && !isDashing && moveDirection != Vector3.zero)
+        if (Input.GetKeyDown(KeyCode.LeftShift) && CanDash())
         {
             StartDash();
         }
 
         // 更新冲刺计时器
-        if (isDashing)
+        if (currentState == MovementState.Dashing)
         {
             dashTimer -= Time.deltaTime;
             if (dashTimer <= 0f)
@@ -163,10 +201,17 @@ public class PlayerMove : MonoBehaviour
             }
         }
     }
+    
+    private bool CanDash()
+    {
+        return dashCooldownTimer <= 0f &&
+               currentState != MovementState.Dashing &&
+               moveDirection != Vector3.zero;
+    }
 
     void StartDash()
     {
-        isDashing = true;
+        currentState = MovementState.Dashing;
         dashTimer = dashDuration;
         dashCooldownTimer = dashCooldown;
         dashDirection = moveDirection.normalized;
@@ -174,16 +219,40 @@ public class PlayerMove : MonoBehaviour
 
     void EndDash()
     {
-        isDashing = false;
+        if (IsGrounded())
+            currentState = MovementState.Grounded;
+        else
+            currentState = MovementState.Falling;
     }
 
     void HandleDashMovement()
     {
-        if (isDashing && thisRb != null)
+        if (currentState == MovementState.Dashing && thisRb != null)
         {
             // 应用冲刺速度，只控制x和z轴，保持y轴速度不变
             Vector3 dashVelocity = new Vector3(dashDirection.x * dashSpeed, thisRb.linearVelocity.y, dashDirection.z * dashSpeed);
             thisRb.linearVelocity = dashVelocity;
         }
     }
+    #endregion
+
+    #region 工具方法
+    void UpdateState()
+    {
+        // 从跳跃状态回到地面状态
+        if (currentState == MovementState.Jumping && thisRb.linearVelocity.y <= 0)
+        {
+            currentState = MovementState.Falling;
+        }
+    }
+    
+    void ApplyExtraGravity()
+    {
+        // 应用额外重力
+        if (thisRb != null && currentState != MovementState.Dashing)
+        {
+            thisRb.AddForce(Vector3.down * extraGravity, ForceMode.Acceleration);
+        }
+    }
+    #endregion
 }
