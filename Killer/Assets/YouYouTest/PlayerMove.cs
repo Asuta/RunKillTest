@@ -49,6 +49,7 @@ public class PlayerMove : MonoBehaviour
     // 贴墙滑行相关
     private Vector3 wallNormal; // 存储墙面法线
     private float wallSlideTimer = 0f; // 贴墙计时器
+    private Vector3 wallSlideDirection; // 存储贴墙滑行方向（投影向量）
     #endregion
 
     #region Unity生命周期
@@ -126,12 +127,18 @@ public class PlayerMove : MonoBehaviour
             // 使用Lerp逐渐减速
             thisRb.linearVelocity = Vector3.Lerp(currentVelocity, targetVelocity, decelerationSpeed * Time.fixedDeltaTime);
         }
-        else if (moveDirection != Vector3.zero && currentState != MovementState.Dashing)
+        else if (moveDirection != Vector3.zero && currentState != MovementState.Dashing && currentState != MovementState.WallSliding)
         {
             // 归一化并应用速度到刚体，只控制x和z轴，保持y轴速度不变
             Vector3 normalizedDirection = moveDirection.normalized;
             Vector3 horizontalVelocity = new Vector3(normalizedDirection.x * moveSpeed, thisRb.linearVelocity.y, normalizedDirection.z * moveSpeed);
             thisRb.linearVelocity = horizontalVelocity;
+        }
+        else if (currentState == MovementState.WallSliding)
+        {
+            // 贴墙滑行状态：按照投影向量方向自动滑行，WASD不起作用
+            Vector3 wallSlideVelocity = new Vector3(wallSlideDirection.x * moveSpeed, thisRb.linearVelocity.y, wallSlideDirection.z * moveSpeed);
+            thisRb.linearVelocity = wallSlideVelocity;
         }
     }
     #endregion
@@ -372,6 +379,9 @@ public class PlayerMove : MonoBehaviour
                     
                     // 从碰撞点绘制投影向量（绿色）
                     Debug.DrawRay(contact.point, horizontalProjection, Color.green, 2f);
+
+                    // 保存投影向量用于贴墙滑行
+                    wallSlideDirection = horizontalProjection;
                 }
 
                 // 进入贴墙滑行状态
