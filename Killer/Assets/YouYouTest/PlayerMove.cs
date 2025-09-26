@@ -1,4 +1,5 @@
 using UnityEngine;
+using System.Collections;
 
 public class PlayerMove : MonoBehaviour
 {
@@ -265,6 +266,9 @@ public class PlayerMove : MonoBehaviour
             return;
         }
         
+        // 显示攻击触发器0.1秒
+        StartCoroutine(ShowHitBoxTemporarily());
+        
         // 获取攻击触发器的位置和尺寸
         Vector3 center = hitBoxTrigger.position;
         Vector3 halfExtents = hitBoxTrigger.lossyScale / 2f;
@@ -288,6 +292,23 @@ public class PlayerMove : MonoBehaviour
                     Debug.LogWarning("敌人没有实现 ICanBeHit 接口，无法造成伤害");
                 }
             }
+        }
+    }
+    
+    private IEnumerator ShowHitBoxTemporarily()
+    {
+        // 获取MeshRenderer组件
+        MeshRenderer meshRenderer = hitBoxTrigger.GetComponent<MeshRenderer>();
+        if (meshRenderer != null)
+        {
+            // 开启MeshRenderer
+            meshRenderer.enabled = true;
+            
+            // 等待0.1秒
+            yield return new WaitForSeconds(0.1f);
+            
+            // 关闭MeshRenderer
+            meshRenderer.enabled = false;
         }
     }
     #endregion
