@@ -51,6 +51,7 @@ public class PlayerMove : MonoBehaviour
         CheckBuildingBelow();
         HandleJump();
         HandleDash();
+        HandleAttack();
         UpdateState();
     }
     
@@ -233,6 +234,23 @@ public class PlayerMove : MonoBehaviour
             Vector3 dashVelocity = new Vector3(dashDirection.x * dashSpeed, thisRb.linearVelocity.y, dashDirection.z * dashSpeed);
             thisRb.linearVelocity = dashVelocity;
         }
+    }
+    #endregion
+
+    #region 攻击方法
+    void HandleAttack()
+    {
+        // 检测鼠标左键点击
+        if (Input.GetMouseButtonDown(0))
+        {
+            PerformAttack();
+        }
+    }
+    
+    private void PerformAttack()
+    {
+        // 执行攻击动作，这里简单记录日志
+        Debug.Log("开始攻击");
     }
     #endregion
 
