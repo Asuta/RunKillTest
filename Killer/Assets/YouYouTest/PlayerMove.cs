@@ -136,8 +136,8 @@ public class PlayerMove : MonoBehaviour
         }
         else if (currentState == MovementState.WallSliding)
         {
-            // 贴墙滑行状态：按照投影向量方向自动滑行，WASD不起作用
-            Vector3 wallSlideVelocity = new Vector3(wallSlideDirection.x * moveSpeed, thisRb.linearVelocity.y, wallSlideDirection.z * moveSpeed);
+            // 贴墙滑行状态：按照投影向量方向自动滑行，WASD不起作用，Y轴速度为0
+            Vector3 wallSlideVelocity = new Vector3(wallSlideDirection.x * moveSpeed, 0, wallSlideDirection.z * moveSpeed);
             thisRb.linearVelocity = wallSlideVelocity;
         }
     }
@@ -412,8 +412,8 @@ public class PlayerMove : MonoBehaviour
 
     void ApplyExtraGravity()
     {
-        // 应用额外重力
-        if (thisRb != null && currentState != MovementState.Dashing)
+        // 应用额外重力（贴墙状态和冲刺状态下不应用重力）
+        if (thisRb != null && currentState != MovementState.Dashing && currentState != MovementState.WallSliding)
         {
             thisRb.AddForce(Vector3.down * extraGravity, ForceMode.Acceleration);
         }
@@ -452,6 +452,13 @@ public class PlayerMove : MonoBehaviour
         currentState = MovementState.WallSliding;
         wallNormal = normal;
         wallSlideTimer = 0f;
+        
+        // 禁用刚体重力
+        if (thisRb != null)
+        {
+            thisRb.useGravity = false;
+        }
+        
         Debug.Log("进入贴墙滑行状态");
     }
 
@@ -459,6 +466,12 @@ public class PlayerMove : MonoBehaviour
     {
         if (currentState == MovementState.WallSliding)
         {
+            // 重新启用刚体重力
+            if (thisRb != null)
+            {
+                thisRb.useGravity = true;
+            }
+            
             // 根据当前是否在地面来决定下一个状态
             if (IsGrounded())
                 currentState = MovementState.Grounded;
@@ -503,7 +516,7 @@ public class PlayerMove : MonoBehaviour
         else
         {
             // 如果检测到墙体，更新墙面法线
-            Debug.LogError("-------------"); 
+            // Debug.LogError("-------------"); 
         }
 
         // 在Scene视图中绘制射线，持续0.5秒
