@@ -380,12 +380,20 @@ public class PlayerMove : MonoBehaviour
                     // 从碰撞点绘制投影向量（绿色）
                     Debug.DrawRay(contact.point, horizontalProjection, Color.green, 2f);
 
-                    // 保存投影向量用于贴墙滑行
-                    wallSlideDirection = horizontalProjection;
+                    // 检查投影向量是否为垂直方向（没有水平分量）
+                    if (horizontalProjection != Vector3.zero)
+                    {
+                        // 保存投影向量用于贴墙滑行
+                        wallSlideDirection = horizontalProjection;
+                        
+                        // 进入贴墙滑行状态
+                        EnterWallSliding(normal);
+                    }
+                    else
+                    {
+                        Debug.Log("投影向量为垂直方向，不进入滑行状态");
+                    }
                 }
-
-                // 进入贴墙滑行状态
-                EnterWallSliding(normal);
             }
         }
     }
