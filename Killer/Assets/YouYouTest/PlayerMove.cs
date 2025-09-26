@@ -26,6 +26,7 @@ public class PlayerMove : MonoBehaviour
     #region 攻击设置
     [Header("攻击设置")]
     public Transform hitBoxTrigger; // 攻击触发器
+    public int attackDamage = 10; // 攻击伤害值
     #endregion
 
     #region 私有字段
@@ -276,7 +277,16 @@ public class PlayerMove : MonoBehaviour
             if (collider.CompareTag("Enemy"))
             {
                 Debug.Log("击中！");
-                break; // 找到一个敌人就停止检测
+                // 对敌人造成伤害
+                ICanBeHit enemy = collider.GetComponent<ICanBeHit>();
+                if (enemy != null)
+                {
+                    enemy.TakeDamage(attackDamage);
+                }
+                else
+                {
+                    Debug.LogWarning("敌人没有实现 ICanBeHit 接口，无法造成伤害");
+                }
             }
         }
     }
