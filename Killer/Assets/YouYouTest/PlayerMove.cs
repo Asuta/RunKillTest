@@ -10,6 +10,7 @@ public class PlayerMove : MonoBehaviour
     public float decelerationSpeed = 5f; // 归零速度
     public float raycastDistance = 10f; // 射线检测距离
     public float extraGravity = 10f; // 额外重力
+    public Vector3 nowVelocity; // 当前速度（仅用于调试显示）
     #endregion
 
     #region 跳跃设置
@@ -60,6 +61,9 @@ public class PlayerMove : MonoBehaviour
         HandleDash();
         HandleAttack();
         UpdateState();
+        
+        // 绘制当前速度向量（Scene视图可见）
+        DrawVelocityVector();
     }
 
     void FixedUpdate()
@@ -67,6 +71,12 @@ public class PlayerMove : MonoBehaviour
         HandleMovement();
         HandleDashMovement();
         ApplyExtraGravity();
+        
+        // 更新当前速度用于调试显示
+        if (thisRb != null)
+        {
+            nowVelocity = thisRb.linearVelocity;
+        }
     }
     #endregion
 
@@ -313,6 +323,52 @@ public class PlayerMove : MonoBehaviour
     }
     #endregion
 
+    #region 碰撞检测
+    void OnCollisionEnter(Collision collision)
+    {
+        // 检测碰撞物体是否为Wall
+        if (collision.gameObject.CompareTag("Wall"))
+        {
+            Debug.Log("hahaha");
+            
+            // 获取第一个接触点的法线
+            if (collision.contactCount > 0)
+            {
+                ContactPoint contact = collision.GetContact(0);
+                Vector3 normal = contact.normal;
+                
+                // 输出法线信息
+                Debug.Log($"碰撞点法线: {normal}");
+                
+                // 从碰撞点绘制法线（红色）
+                Debug.DrawRay(contact.point, normal * 2f, Color.red, 2f);
+                
+                // 计算速度在法线平面上的投影向量
+                if (thisRb != null)
+                {
+                    Vector3 velocity = thisRb.linearVelocity;
+                    Vector3 projection = Vector3.ProjectOnPlane(velocity, normal);
+                    
+                    // Y轴归零，变成水平向量
+                    Vector3 horizontalProjection = new Vector3(projection.x, 0, projection.z);
+                    
+                    // 长度重置为1
+                    if (horizontalProjection != Vector3.zero)
+                    {
+                        horizontalProjection = horizontalProjection.normalized;
+                    }
+                    
+                    // 输出投影向量信息
+                    Debug.Log($"速度在法线平面上的投影向量 (Y轴归零, 长度1): {horizontalProjection}");
+                    
+                    // 从碰撞点绘制投影向量（绿色）
+                    Debug.DrawRay(contact.point, horizontalProjection, Color.green, 2f);
+                }
+            }
+        }
+    }
+    #endregion
+
     #region 工具方法
     void UpdateState()
     {
@@ -330,6 +386,12 @@ public class PlayerMove : MonoBehaviour
         {
             thisRb.AddForce(Vector3.down * extraGravity, ForceMode.Acceleration);
         }
+    }
+    
+    void DrawVelocityVector()
+    {
+        // 从body当前位置绘制速度向量
+        Debug.DrawRay(transform.position, nowVelocity, Color.blue);
     }
     #endregion
 }
