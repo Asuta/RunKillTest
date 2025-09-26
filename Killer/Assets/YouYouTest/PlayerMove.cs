@@ -23,15 +23,20 @@ public class PlayerMove : MonoBehaviour
     public float dashCooldown = 1f; // 冲刺冷却时间
     #endregion
 
+    #region 攻击设置
+    [Header("攻击设置")]
+    public Transform hitBoxTrigger; // 攻击触发器
+    #endregion
+
     #region 私有字段
     private Rigidbody thisRb;
     private Vector3 moveDirection;
     private int buildingLayerMask;
-    
+
     // 状态管理
     private enum MovementState { Grounded, Jumping, Dashing, Falling }
     private MovementState currentState = MovementState.Grounded;
-    
+
     // 冲刺相关
     private float dashTimer = 0f;
     private float dashCooldownTimer = 0f;
@@ -54,7 +59,7 @@ public class PlayerMove : MonoBehaviour
         HandleAttack();
         UpdateState();
     }
-    
+
     void FixedUpdate()
     {
         HandleMovement();
@@ -68,9 +73,9 @@ public class PlayerMove : MonoBehaviour
     {
         if (forwardTarget == null)
             return;
-            
+
         moveDirection = Vector3.zero;
-        
+
         // 基于 forwardTarget 的方向计算移动
         if (Input.GetKey(KeyCode.W))
             moveDirection += forwardTarget.forward;
@@ -81,22 +86,22 @@ public class PlayerMove : MonoBehaviour
         if (Input.GetKey(KeyCode.D))
             moveDirection += forwardTarget.right;
     }
-    
+
     void HandleMovement()
     {
         if (thisRb == null)
             return;
-            
+
         // 检查是否有WASD按键按下
         bool isWASDPressed = Input.GetKey(KeyCode.W) || Input.GetKey(KeyCode.A) ||
                             Input.GetKey(KeyCode.S) || Input.GetKey(KeyCode.D);
-        
+
         if (IsGrounded() && !isWASDPressed)
         {
             // 如果在地面上且没有WASD按键按下，让x轴和z轴速度渐渐归零
             Vector3 currentVelocity = thisRb.linearVelocity;
             Vector3 targetVelocity = new Vector3(0, currentVelocity.y, 0); // 只保留y轴速度
-            
+
             // 使用Lerp逐渐减速
             thisRb.linearVelocity = Vector3.Lerp(currentVelocity, targetVelocity, decelerationSpeed * Time.fixedDeltaTime);
         }
@@ -115,21 +120,21 @@ public class PlayerMove : MonoBehaviour
     {
         if (forwardTarget == null)
             return;
-            
+
         // 从 forwardTarget 位置向下发射射线
         Ray ray = new Ray(forwardTarget.position, Vector3.down);
         RaycastHit hit;
-        
+
         // 绘制射线（红色表示未命中，绿色表示命中）
         Color rayColor = Color.red;
         bool hitBuilding = false;
-        
+
         if (Physics.Raycast(ray, out hit, raycastDistance, buildingLayerMask))
         {
             rayColor = Color.green;
             hitBuilding = true;
         }
-        
+
         // 更新状态（冲刺状态下不更新地面状态）
         if (currentState != MovementState.Dashing)
         {
@@ -138,16 +143,16 @@ public class PlayerMove : MonoBehaviour
             else if (currentState == MovementState.Grounded)
                 currentState = MovementState.Falling;
         }
-        
+
         // 在Scene视图中绘制射线
         Debug.DrawRay(forwardTarget.position, Vector3.down * raycastDistance, rayColor);
     }
-    
+
     public bool IsHittingBuilding()
     {
         return currentState == MovementState.Grounded;
     }
-    
+
     private bool IsGrounded()
     {
         return currentState == MovementState.Grounded;
@@ -162,12 +167,12 @@ public class PlayerMove : MonoBehaviour
             PerformJump();
         }
     }
-    
+
     private bool CanJump()
     {
         return IsGrounded() && currentState != MovementState.Dashing;
     }
-    
+
     private void PerformJump()
     {
         // 给刚体一个向上的速度来实现跳跃
@@ -202,7 +207,7 @@ public class PlayerMove : MonoBehaviour
             }
         }
     }
-    
+
     private bool CanDash()
     {
         return dashCooldownTimer <= 0f &&
@@ -246,11 +251,34 @@ public class PlayerMove : MonoBehaviour
             PerformAttack();
         }
     }
-    
+
     private void PerformAttack()
     {
         // 执行攻击动作，这里简单记录日志
         Debug.Log("开始攻击");
+        
+        // 检查是否有攻击触发器
+        if (hitBoxTrigger == null)
+        {
+            Debug.LogWarning("hitBoxTrigger 未设置，无法进行攻击检测");
+            return;
+        }
+        
+        // 获取攻击触发器的位置和尺寸
+        Vector3 center = hitBoxTrigger.position;
+        Vector3 halfExtents = hitBoxTrigger.lossyScale / 2f;
+        
+        // 进行Box范围检测，查找tag为"enemy"的物体
+        Collider[] hitColliders = Physics.OverlapBox(center, halfExtents, hitBoxTrigger.rotation);
+        
+        foreach (Collider collider in hitColliders)
+        {
+            if (collider.CompareTag("Enemy"))
+            {
+                Debug.Log("击中！");
+                break; // 找到一个敌人就停止检测
+            }
+        }
     }
     #endregion
 
@@ -263,7 +291,7 @@ public class PlayerMove : MonoBehaviour
             currentState = MovementState.Falling;
         }
     }
-    
+
     void ApplyExtraGravity()
     {
         // 应用额外重力
