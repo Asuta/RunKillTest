@@ -198,11 +198,17 @@ public class PlayerMove : MonoBehaviour
 
     private bool CanJump()
     {
-        return IsGrounded() && currentState != MovementState.Dashing;
+        return (IsGrounded() || currentState == MovementState.WallSliding) && currentState != MovementState.Dashing;
     }
 
     private void PerformJump()
     {
+        // 如果当前是贴墙滑行状态，先退出滑行状态
+        if (currentState == MovementState.WallSliding)
+        {
+            ExitWallSliding();
+        }
+        
         // 给刚体一个向上的速度来实现跳跃
         Vector3 currentVelocity = thisRb.linearVelocity;
         thisRb.linearVelocity = new Vector3(currentVelocity.x, jumpForce, currentVelocity.z);
