@@ -50,6 +50,9 @@ public class PlayerMove : MonoBehaviour
     private Vector3 wallNormal; // 存储墙面法线
     private float wallSlideTimer = 0f; // 贴墙计时器
     private Vector3 wallSlideDirection; // 存储贴墙滑行方向（投影向量）
+
+    // log setting
+    public bool needLog = false;
     #endregion
 
     #region Unity生命周期
@@ -206,6 +209,7 @@ public class PlayerMove : MonoBehaviour
         // 如果当前是贴墙滑行状态，先退出滑行状态
         if (currentState == MovementState.WallSliding)
         {
+            CustomLog.Log(needLog, "跳跃退出滑行");
             ExitWallSliding();
         }
         
@@ -289,12 +293,12 @@ public class PlayerMove : MonoBehaviour
     private void PerformAttack()
     {
         // 执行攻击动作，这里简单记录日志
-        Debug.Log("开始攻击");
+        CustomLog.Log(needLog, "开始攻击");
         
         // 检查是否有攻击触发器
         if (hitBoxTrigger == null)
         {
-            Debug.LogWarning("hitBoxTrigger 未设置，无法进行攻击检测");
+            CustomLog.LogWarning(needLog, "hitBoxTrigger 未设置，无法进行攻击检测");
             return;
         }
         
@@ -312,7 +316,7 @@ public class PlayerMove : MonoBehaviour
         {
             if (collider.CompareTag("Enemy"))
             {
-                Debug.Log("击中！");
+                CustomLog.Log(needLog, "击中！");
                 // 对敌人造成伤害
                 ICanBeHit enemy = collider.GetComponent<ICanBeHit>();
                 if (enemy != null)
@@ -321,7 +325,7 @@ public class PlayerMove : MonoBehaviour
                 }
                 else
                 {
-                    Debug.LogWarning("敌人没有实现 ICanBeHit 接口，无法造成伤害");
+                    CustomLog.LogWarning(needLog, "敌人没有实现 ICanBeHit 接口，无法造成伤害");
                 }
             }
         }
@@ -351,7 +355,7 @@ public class PlayerMove : MonoBehaviour
         // 检测碰撞物体是否为Wall
         if (collision.gameObject.CompareTag("Wall"))
         {
-            Debug.Log("hahaha");
+            CustomLog.Log(needLog, "hahaha");
             
             // 获取第一个接触点的法线
             if (collision.contactCount > 0)
@@ -360,7 +364,7 @@ public class PlayerMove : MonoBehaviour
                 Vector3 normal = contact.normal;
                 
                 // 输出法线信息
-                Debug.Log($"碰撞点法线: {normal}");
+                CustomLog.Log(needLog, $"碰撞点法线: {normal}");
                 
                 // 从碰撞点绘制法线（红色）
                 Debug.DrawRay(contact.point, normal * 2f, Color.red, 2f);
@@ -381,7 +385,7 @@ public class PlayerMove : MonoBehaviour
                     }
                     
                     // 输出投影向量信息
-                    Debug.Log($"速度在法线平面上的投影向量 (Y轴归零, 长度1): {horizontalProjection}");
+                    CustomLog.Log(needLog, $"速度在法线平面上的投影向量 (Y轴归零, 长度1): {horizontalProjection}");
                     
                     // 从碰撞点绘制投影向量（绿色）
                     Debug.DrawRay(contact.point, horizontalProjection, Color.green, 2f);
@@ -397,7 +401,7 @@ public class PlayerMove : MonoBehaviour
                     }
                     else
                     {
-                        Debug.Log("投影向量为垂直方向，不进入滑行状态");
+                        CustomLog.Log(needLog, "投影向量为垂直方向，不进入滑行状态");
                     }
                 }
             }
@@ -409,6 +413,7 @@ public class PlayerMove : MonoBehaviour
         // 离开墙体时退出贴墙滑行状态
         if (collision.gameObject.CompareTag("Wall") && currentState == MovementState.WallSliding)
         {
+            CustomLog.Log(needLog, "离开墙体时退出贴墙滑行状态");
             ExitWallSliding();
         }
     }
@@ -473,7 +478,7 @@ public class PlayerMove : MonoBehaviour
             thisRb.useGravity = false;
         }
         
-        Debug.Log("进入贴墙滑行状态");
+        CustomLog.Log(needLog, "进入贴墙滑行状态");
     }
 
     void ExitWallSliding()
@@ -492,7 +497,7 @@ public class PlayerMove : MonoBehaviour
             else
                 currentState = MovementState.Falling;
             
-            Debug.Log("退出贴墙滑行状态");
+            CustomLog.Log(needLog, "退出贴墙滑行状态");
         }
     }
 
@@ -523,7 +528,7 @@ public class PlayerMove : MonoBehaviour
 
         if (!stillAttached)
         {
-            Debug.LogError("贴墙滑行时未检测到墙体，退出贴墙状态"); 
+            CustomLog.LogError(needLog, "贴墙滑行时未检测到墙体，退出贴墙状态");
             // 如果射线没有检测到墙体，退出贴墙状态
             ExitWallSliding();
         }
