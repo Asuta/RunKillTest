@@ -1,4 +1,5 @@
 using UnityEngine;
+using System.Collections.Generic;
 
 public class GameManager : MonoBehaviour
 {
@@ -58,6 +59,33 @@ public class GameManager : MonoBehaviour
             {
                 Debug.Log("Player camera set in GameManager");
             }
+        }
+    }
+
+    // 存储绿色状态的Hook Transform列表
+    [SerializeField]
+    private List<Transform> _greenHooks = new List<Transform>();
+
+    // 公开的绿色Hook列表访问器（只读）
+    public IReadOnlyList<Transform> GreenHooks => _greenHooks;
+
+    // 注册绿色Hook
+    public void RegisterGreenHook(Transform hookTransform)
+    {
+        if (hookTransform != null && !_greenHooks.Contains(hookTransform))
+        {
+            _greenHooks.Add(hookTransform);
+            Debug.Log($"Green hook registered: {hookTransform.name}");
+        }
+    }
+
+    // 注销绿色Hook
+    public void UnregisterGreenHook(Transform hookTransform)
+    {
+        if (hookTransform != null && _greenHooks.Contains(hookTransform))
+        {
+            _greenHooks.Remove(hookTransform);
+            Debug.Log($"Green hook unregistered: {hookTransform.name}");
         }
     }
 

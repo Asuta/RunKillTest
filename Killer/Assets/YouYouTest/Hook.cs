@@ -3,6 +3,7 @@ using UnityEngine;
 public class Hook : MonoBehaviour
 {
     private Transform playerCameraT; // 缓存相机引用
+    private bool _isGreen = false;   // 当前是否为绿色状态
 
     public float lightDistance = 5f;
 
@@ -39,15 +40,48 @@ public class Hook : MonoBehaviour
             {
                 // 距离范围内：设置为绿色
                 shortSign.material.color = Color.green;
+                
+                // 如果之前不是绿色状态，注册到GameManager
+                if (!_isGreen)
+                {
+                    _isGreen = true;
+                    GameManager.Instance.RegisterGreenHook(transform);
+                }
             }
             else
             {
                 // 距离范围外：设置为红色
                 shortSign.material.color = Color.red;
+                
+                // 如果之前是绿色状态，从GameManager注销
+                if (_isGreen)
+                {
+                    _isGreen = false;
+                    GameManager.Instance.UnregisterGreenHook(transform);
+                }
             }
         }
 
 
+    }
+
+    // 当对象被禁用或销毁时，确保从列表中移除
+    void OnDisable()
+    {
+        if (_isGreen)
+        {
+            _isGreen = false;
+            GameManager.Instance.UnregisterGreenHook(transform);
+        }
+    }
+
+    void OnDestroy()
+    {
+        if (_isGreen)
+        {
+            _isGreen = false;
+            GameManager.Instance.UnregisterGreenHook(transform);
+        }
     }
 
     // 在Scene视图中绘制Gizmos
