@@ -35,6 +35,19 @@ public class Hook : MonoBehaviour
             float sqrDistance = (transform.position - playerCameraT.position).sqrMagnitude;
             float sqrLightDistance = lightDistance * lightDistance;
 
+            // Check if this hook is the closest one
+            if (GameManager.Instance.ClosestAngleHook == transform)
+            {
+                // If it's the closest, GameManager will handle the blue color.
+                // We just need to ensure it's registered as green.
+                if (!_isGreen)
+                {
+                    _isGreen = true;
+                    GameManager.Instance.RegisterGreenHook(transform);
+                }
+                return; // Skip the rest of the color logic
+            }
+
             // 根据平方距离改变MeshRenderer的颜色
             if (sqrDistance < sqrLightDistance)
             {

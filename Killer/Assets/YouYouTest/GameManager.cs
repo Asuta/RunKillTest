@@ -135,11 +135,31 @@ public class GameManager : MonoBehaviour
             }
         }
 
-        _closestAngleHook = closestHook;
-        
-        if (_closestAngleHook != null)
+        // Check if the closest hook has changed
+        if (_closestAngleHook != closestHook)
         {
-            Debug.Log($"Closest angle hook: {_closestAngleHook.name}, angle: {minAngle:F1} degrees");
+            // Revert the old closest hook back to green
+            if (_closestAngleHook != null)
+            {
+                var oldHook = _closestAngleHook.GetComponent<Hook>();
+                if (oldHook != null && oldHook.shortSign != null)
+                {
+                    oldHook.shortSign.material.color = Color.green;
+                }
+            }
+
+            // Set the new closest hook to blue
+            if (closestHook != null)
+            {
+                var newHook = closestHook.GetComponent<Hook>();
+                if (newHook != null && newHook.shortSign != null)
+                {
+                    newHook.shortSign.material.color = Color.blue;
+                }
+                Debug.Log($"New closest angle hook: {closestHook.name}, angle: {minAngle:F1} degrees");
+            }
+
+            _closestAngleHook = closestHook;
         }
     }
 
