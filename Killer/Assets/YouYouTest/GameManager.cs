@@ -3,6 +3,7 @@ using System.Collections.Generic;
 
 public class GameManager : MonoBehaviour
 {
+    public bool needLog;
     // 单例实例
     private static GameManager _instance;
 
@@ -48,7 +49,7 @@ public class GameManager : MonoBehaviour
         {
             if (_playerCameraT == null)
             {
-                Debug.LogError("Player camera is not assigned! Make sure PlayerSetting component sets the camera reference.");
+                CustomLog.LogError(needLog, "玩家相机未分配！请确保PlayerSetting组件设置了相机引用。");
             }
             return _playerCameraT;
         }
@@ -57,7 +58,7 @@ public class GameManager : MonoBehaviour
             _playerCameraT = value;
             if (_playerCameraT != null)
             {
-                Debug.Log("Player camera set in GameManager");
+                CustomLog.Log(needLog, "玩家相机已在GameManager中设置");
             }
         }
     }
@@ -80,7 +81,7 @@ public class GameManager : MonoBehaviour
         if (hookTransform != null && !_greenHooks.Contains(hookTransform))
         {
             _greenHooks.Add(hookTransform);
-            Debug.Log($"Green hook registered: {hookTransform.name}");
+            CustomLog.Log(needLog, $"绿色钩子已注册: {hookTransform.name}");
         }
     }
 
@@ -90,7 +91,7 @@ public class GameManager : MonoBehaviour
         if (hookTransform != null && _greenHooks.Contains(hookTransform))
         {
             _greenHooks.Remove(hookTransform);
-            Debug.Log($"Green hook unregistered: {hookTransform.name}");
+            CustomLog.Log(needLog, $"绿色钩子已注销: {hookTransform.name}");
             
             // 如果移除的是当前最小夹角的Hook，需要重新计算
             if (hookTransform == _closestAngleHook)
@@ -156,7 +157,7 @@ public class GameManager : MonoBehaviour
                 {
                     newHook.shortSign.material.color = Color.blue;
                 }
-                Debug.Log($"New closest angle hook: {closestHook.name}, angle: {minAngle:F1} degrees");
+                CustomLog.Log(needLog, $"新的最近角度钩子: {closestHook.name}, 角度: {minAngle:F1} 度");
             }
 
             _closestAngleHook = closestHook;
@@ -169,7 +170,7 @@ public class GameManager : MonoBehaviour
         // 不再进行严格的null检查，因为相机可能在之后设置
         if (_playerCameraT == null)
         {
-            Debug.LogWarning("Player camera is not assigned yet. It might be set later.");
+            CustomLog.LogWarning(needLog, "玩家相机尚未分配，可能会在稍后设置。");
         }
     }
 

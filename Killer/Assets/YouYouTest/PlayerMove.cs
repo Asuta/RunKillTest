@@ -38,7 +38,7 @@ public class PlayerMove : MonoBehaviour
     private int buildingLayerMask;
 
     // 状态管理
-    private enum MovementState { Grounded, Jumping, Dashing, Falling, WallSliding }
+    private enum MovementState { Grounded, Jumping, Dashing, Falling, WallSliding, HookDashing }
     private MovementState currentState = MovementState.Grounded;
 
     // 冲刺相关
@@ -50,6 +50,12 @@ public class PlayerMove : MonoBehaviour
     private Vector3 wallNormal; // 存储墙面法线
     private float wallSlideTimer = 0f; // 贴墙计时器
     private Vector3 wallSlideDirection; // 存储贴墙滑行方向（投影向量）
+
+    // hook冲刺相关
+    private Transform hookTarget; // 目标hook的Transform
+    private float hookDashTimer = 0f; // hook冲刺计时器
+    private float hookDashDuration = 0.3f; // hook冲刺持续时间
+    private Vector3 hookDashDirection; // hook冲刺方向
 
     // log setting
     public bool needLog = false;
@@ -68,6 +74,7 @@ public class PlayerMove : MonoBehaviour
         CheckBuildingBelow();
         HandleJump();
         HandleDash();
+        HandleHookDash(); // 处理hook冲刺
         HandleAttack();
         UpdateState();
         HandleWallSliding();
@@ -83,6 +90,7 @@ public class PlayerMove : MonoBehaviour
     {
         HandleMovement();
         HandleDashMovement();
+        HandleHookDashMovement(); // 处理hook冲刺移动
         ApplyExtraGravity();
         
         // 更新当前速度用于调试显示
@@ -130,7 +138,7 @@ public class PlayerMove : MonoBehaviour
             // 使用Lerp逐渐减速
             thisRb.linearVelocity = Vector3.Lerp(currentVelocity, targetVelocity, decelerationSpeed * Time.fixedDeltaTime);
         }
-        else if (moveDirection != Vector3.zero && currentState != MovementState.Dashing && currentState != MovementState.WallSliding && IsGrounded())
+        else if (moveDirection != Vector3.zero && currentState != MovementState.Dashing && currentState != MovementState.WallSliding && currentState != MovementState.HookDashing && IsGrounded())
         {
             // 归一化并应用速度到刚体，只控制x和z轴，保持y轴速度不变
             Vector3 normalizedDirection = moveDirection.normalized;
@@ -201,7 +209,9 @@ public class PlayerMove : MonoBehaviour
 
     private bool CanJump()
     {
-        return (IsGrounded() || currentState == MovementState.WallSliding) && currentState != MovementState.Dashing;
+        return (IsGrounded() || currentState == MovementState.WallSliding) &&
+               currentState != MovementState.Dashing &&
+               currentState != MovementState.HookDashing; // hook冲刺状态下不能跳跃
     }
 
     private void PerformJump()
@@ -250,6 +260,7 @@ public class PlayerMove : MonoBehaviour
     {
         return dashCooldownTimer <= 0f &&
                currentState != MovementState.Dashing &&
+               currentState != MovementState.HookDashing && // 可以在hook冲刺状态下使用冲刺打断
                moveDirection != Vector3.zero;
     }
 
@@ -276,6 +287,78 @@ public class PlayerMove : MonoBehaviour
             // 应用冲刺速度，只控制x和z轴，保持y轴速度不变
             Vector3 dashVelocity = new Vector3(dashDirection.x * dashSpeed, thisRb.linearVelocity.y, dashDirection.z * dashSpeed);
             thisRb.linearVelocity = dashVelocity;
+        }
+    }
+    #endregion
+
+    #region hook冲刺方法
+    void HandleHookDash()
+    {
+        // 检测鼠标右键点击
+        if (Input.GetMouseButtonDown(1) && CanHookDash())
+        {
+            CustomLog.Log(needLog, "试图开始hook冲刺");
+            StartHookDash(); 
+        }
+        else
+        {
+            CustomLog.Log(needLog, "无法开始hook冲刺");
+        }
+
+        // 更新hook冲刺计时器
+        if (currentState == MovementState.HookDashing)
+        {
+            hookDashTimer -= Time.deltaTime;
+            if (hookDashTimer <= 0f)
+            {
+                EndHookDash();
+            }
+        }
+    }
+
+    private bool CanHookDash()
+    {
+        // 检查GameManager中是否有ClosestAngleHook，并且当前不在hook冲刺状态
+        return GameManager.Instance.ClosestAngleHook != null &&
+               currentState != MovementState.HookDashing;
+    }
+
+    void StartHookDash()
+    {
+        currentState = MovementState.HookDashing;
+        hookDashTimer = hookDashDuration;
+        hookTarget = GameManager.Instance.ClosestAngleHook;
+        
+        // 计算冲向hook的方向
+        if (hookTarget != null)
+        {
+            hookDashDirection = (hookTarget.position - transform.position).normalized;
+        }
+        
+        CustomLog.Log(needLog, "开始hook冲刺");
+    }
+
+    void EndHookDash()
+    {
+        // 到达hook位置后进入浮空状态
+        currentState = MovementState.Falling;
+        CustomLog.Log(needLog, "结束hook冲刺，进入浮空状态");
+    }
+
+    void HandleHookDashMovement()
+    {
+        if (currentState == MovementState.HookDashing && thisRb != null && hookTarget != null)
+        {
+            // 以冲刺速度冲向hook目标位置
+            Vector3 hookDashVelocity = new Vector3(hookDashDirection.x * dashSpeed, thisRb.linearVelocity.y, hookDashDirection.z * dashSpeed);
+            thisRb.linearVelocity = hookDashVelocity;
+            
+            // 检查是否到达hook位置附近
+            float distanceToHook = Vector3.Distance(transform.position, hookTarget.position);
+            if (distanceToHook < 1f) // 到达目标附近
+            {
+                EndHookDash();
+            }
         }
     }
     #endregion
@@ -431,8 +514,8 @@ public class PlayerMove : MonoBehaviour
 
     void ApplyExtraGravity()
     {
-        // 应用额外重力（贴墙状态和冲刺状态下不应用重力）
-        if (thisRb != null && currentState != MovementState.Dashing && currentState != MovementState.WallSliding)
+        // 应用额外重力（贴墙状态、冲刺状态和hook冲刺状态下不应用重力）
+        if (thisRb != null && currentState != MovementState.Dashing && currentState != MovementState.WallSliding && currentState != MovementState.HookDashing)
         {
             thisRb.AddForce(Vector3.down * extraGravity, ForceMode.Acceleration);
         }
