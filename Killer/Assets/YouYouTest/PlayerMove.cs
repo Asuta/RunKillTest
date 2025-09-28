@@ -509,7 +509,7 @@ public class PlayerMove : MonoBehaviour
         // 从forwardTarget位置向墙面法线的反方向发射黄色射线
         Vector3 rayDirection = -wallNormal;
         Ray ray = new Ray(forwardTarget.position, rayDirection);
-        RaycastHit hit;
+        // RaycastHit hit;
 
         // 绘制黄色射线
         Color rayColor = Color.yellow;
