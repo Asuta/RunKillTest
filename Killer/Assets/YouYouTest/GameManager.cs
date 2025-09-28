@@ -69,6 +69,11 @@ public class GameManager : MonoBehaviour
     // 公开的绿色Hook列表访问器（只读）
     public IReadOnlyList<Transform> GreenHooks => _greenHooks;
 
+    // 存储夹角最小的Hook Transform
+    [SerializeField]
+    private Transform _closestAngleHook;
+    public Transform ClosestAngleHook => _closestAngleHook;
+
     // 注册绿色Hook
     public void RegisterGreenHook(Transform hookTransform)
     {
@@ -86,6 +91,55 @@ public class GameManager : MonoBehaviour
         {
             _greenHooks.Remove(hookTransform);
             Debug.Log($"Green hook unregistered: {hookTransform.name}");
+            
+            // 如果移除的是当前最小夹角的Hook，需要重新计算
+            if (hookTransform == _closestAngleHook)
+            {
+                _closestAngleHook = null;
+            }
+        }
+    }
+
+    // 计算与相机forward方向的夹角（度）
+    private float CalculateAngleToCamera(Transform hookTransform)
+    {
+        if (_playerCameraT == null || hookTransform == null)
+            return float.MaxValue;
+
+        Vector3 toHook = (hookTransform.position - _playerCameraT.position).normalized;
+        float angle = Vector3.Angle(_playerCameraT.forward, toHook);
+        return angle;
+    }
+
+    // 找到与相机forward方向夹角最小的Hook
+    private void FindClosestAngleHook()
+    {
+        if (_playerCameraT == null || _greenHooks.Count == 0)
+        {
+            _closestAngleHook = null;
+            return;
+        }
+
+        Transform closestHook = null;
+        float minAngle = float.MaxValue;
+
+        foreach (var hook in _greenHooks)
+        {
+            if (hook == null) continue;
+            
+            float angle = CalculateAngleToCamera(hook);
+            if (angle < minAngle)
+            {
+                minAngle = angle;
+                closestHook = hook;
+            }
+        }
+
+        _closestAngleHook = closestHook;
+        
+        if (_closestAngleHook != null)
+        {
+            Debug.Log($"Closest angle hook: {_closestAngleHook.name}, angle: {minAngle:F1} degrees");
         }
     }
 
@@ -102,6 +156,7 @@ public class GameManager : MonoBehaviour
     // Update is called once per frame
     void Update()
     {
-
+        // 每帧更新最小夹角的Hook
+        FindClosestAngleHook();
     }
 }
