@@ -130,7 +130,7 @@ public class PlayerMove : MonoBehaviour
             // 使用Lerp逐渐减速
             thisRb.linearVelocity = Vector3.Lerp(currentVelocity, targetVelocity, decelerationSpeed * Time.fixedDeltaTime);
         }
-        else if (moveDirection != Vector3.zero && currentState != MovementState.Dashing && currentState != MovementState.WallSliding)
+        else if (moveDirection != Vector3.zero && currentState != MovementState.Dashing && currentState != MovementState.WallSliding && IsGrounded())
         {
             // 归一化并应用速度到刚体，只控制x和z轴，保持y轴速度不变
             Vector3 normalizedDirection = moveDirection.normalized;
