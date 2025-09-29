@@ -429,14 +429,22 @@ public class PlayerMove : MonoBehaviour
             {
                 CustomLog.Log(needLog, "击中！");
                 // 对敌人造成伤害
-                ICanBeHit enemy = collider.GetComponent<ICanBeHit>();
-                if (enemy != null)
+                Rigidbody enemyRb = collider.attachedRigidbody;
+                if (enemyRb != null)
                 {
-                    enemy.TakeDamage(attackDamage);
+                    ICanBeHit enemy = enemyRb.GetComponent<ICanBeHit>();
+                    if (enemy != null)
+                    {
+                        enemy.TakeDamage(attackDamage);
+                    }
+                    else
+                    {
+                        CustomLog.LogWarning(needLog, "敌人没有实现 ICanBeHit 接口，无法造成伤害");
+                    }
                 }
                 else
                 {
-                    CustomLog.LogWarning(needLog, "敌人没有实现 ICanBeHit 接口，无法造成伤害");
+                    CustomLog.LogWarning(needLog, "敌人没有刚体组件，无法造成伤害");
                 }
             }
         }
