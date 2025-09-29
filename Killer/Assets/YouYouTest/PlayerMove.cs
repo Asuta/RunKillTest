@@ -318,7 +318,7 @@ public class PlayerMove : MonoBehaviour
         }
         else
         {
-            CustomLog.Log(needLog, "无法开始hook冲刺");
+            // CustomLog.Log(needLog, "无法开始hook冲刺");
         }
 
         // 更新hook冲刺计时器
