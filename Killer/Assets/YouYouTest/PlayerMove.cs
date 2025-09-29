@@ -174,8 +174,8 @@ public class PlayerMove : MonoBehaviour
             hitBuilding = true;
         }
 
-        // 更新状态（冲刺状态下不更新地面状态）
-        if (currentState != MovementState.Dashing)
+        // 更新状态（冲刺状态和hook冲刺状态下不更新地面状态）
+        if (currentState != MovementState.Dashing && currentState != MovementState.HookDashing)
         {
             if (hitBuilding)
                 currentState = MovementState.Grounded;
@@ -349,6 +349,7 @@ public class PlayerMove : MonoBehaviour
     {
         if (currentState == MovementState.HookDashing && thisRb != null && hookTarget != null)
         {
+            Debug.Log("Hook冲刺中");
             // 以冲刺速度冲向hook目标位置
             Vector3 hookDashVelocity = new Vector3(hookDashDirection.x * dashSpeed, thisRb.linearVelocity.y, hookDashDirection.z * dashSpeed);
             thisRb.linearVelocity = hookDashVelocity;
@@ -359,6 +360,13 @@ public class PlayerMove : MonoBehaviour
             {
                 EndHookDash();
             }
+        }
+        else
+        {
+            // log state信息
+            Debug.Log($"当前状态: {currentState}, hookTarget: {(hookTarget != null ? hookTarget.name : "null")}");
+
+            
         }
     }
     #endregion
