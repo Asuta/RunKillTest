@@ -5,6 +5,7 @@ using UnityEngine;
 public class Enemy : MonoBehaviour, ICanBeHit
 {
     public int health = 100;
+    public Transform target;
 
     public void TakeDamage(int damage)
     {
@@ -22,4 +23,9 @@ public class Enemy : MonoBehaviour, ICanBeHit
         // 在这里添加敌人死亡的逻辑，比如播放动画、掉落物品等
         Destroy(gameObject);
     }
+
+    public void SetTarget( Transform PlayerHead)
+    {
+        target = PlayerHead;   
+    }   
 }
