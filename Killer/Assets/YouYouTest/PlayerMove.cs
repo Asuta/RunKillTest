@@ -274,6 +274,12 @@ public class PlayerMove : MonoBehaviour
 
     void EndDash()
     {
+        // 冲刺结束时速度归零
+        if (thisRb != null)
+        {
+            thisRb.linearVelocity = Vector3.zero;
+        }
+        
         if (IsGrounded())
             currentState = MovementState.Grounded;
         else
@@ -340,9 +346,13 @@ public class PlayerMove : MonoBehaviour
 
     void EndHookDash()
     {
-        // 到达hook位置后进入浮空状态
+        // 到达hook位置后进入浮空状态，并归零速度
         currentState = MovementState.Falling;
-        CustomLog.Log(needLog, "结束hook冲刺，进入浮空状态");
+        if (thisRb != null)
+        {
+            thisRb.linearVelocity = thisRb.linearVelocity.normalized*6f;
+        }
+        CustomLog.Log(needLog, "结束hook冲刺，速度归零，进入浮空状态");
     }
 
     void HandleHookDashMovement()
