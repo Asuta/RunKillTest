@@ -2392,6 +2392,9 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   health: 1
   target: {fileID: 0}
+  lineStart: {fileID: 2064841388}
+  lineMaterial: {fileID: 2100000, guid: d0653562e5a5053468d9a58ae508e8fa, type: 2}
+  sphereMaterial: {fileID: 2100001, guid: 2ec66658b9de135428647d5bb59c198f, type: 2}
 --- !u!54 &1820088919
 Rigidbody:
   m_ObjectHideFlags: 0
