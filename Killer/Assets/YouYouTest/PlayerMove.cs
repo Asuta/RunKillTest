@@ -350,8 +350,8 @@ public class PlayerMove : MonoBehaviour
         if (currentState == MovementState.HookDashing && thisRb != null && hookTarget != null)
         {
             Debug.Log("Hook冲刺中");
-            // 以冲刺速度冲向hook目标位置
-            Vector3 hookDashVelocity = new Vector3(hookDashDirection.x * dashSpeed, thisRb.linearVelocity.y, hookDashDirection.z * dashSpeed);
+            // 以冲刺速度冲向hook目标位置（使用立体的实际方向，包含Y轴分量）
+            Vector3 hookDashVelocity = hookDashDirection * dashSpeed;
             thisRb.linearVelocity = hookDashVelocity;
             
             // 检查是否到达hook位置附近
