@@ -68,7 +68,7 @@ public class Enemy : MonoBehaviour, ICanBeHit
         if (lineMaterial == null) return;
 
         // 创建线的网格
-        Mesh lineMesh = CreateLineMesh(start, end, 0.05f);
+        Mesh lineMesh = CreateLineMesh(start, end, 0.02f);
         Graphics.DrawMesh(lineMesh, Vector3.zero, Quaternion.identity, lineMaterial, 0);
     }
 
