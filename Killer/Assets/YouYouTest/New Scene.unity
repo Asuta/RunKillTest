@@ -1075,6 +1075,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   forwardTarget: {fileID: 50635731}
+  playerHead: {fileID: 175304114}
   moveSpeed: 5
   decelerationSpeed: 5
   raycastDistance: 1.9

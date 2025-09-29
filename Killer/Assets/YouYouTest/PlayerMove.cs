@@ -261,8 +261,7 @@ public class PlayerMove : MonoBehaviour
     {
         return dashCooldownTimer <= 0f &&
                currentState != MovementState.Dashing &&
-               currentState != MovementState.HookDashing && // 可以在hook冲刺状态下使用冲刺打断
-               moveDirection != Vector3.zero;
+               currentState != MovementState.HookDashing; // 可以在hook冲刺状态下使用冲刺打断
     }
 
     void StartDash()
@@ -270,7 +269,17 @@ public class PlayerMove : MonoBehaviour
         currentState = MovementState.Dashing;
         dashTimer = dashDuration;
         dashCooldownTimer = dashCooldown;
-        dashDirection = moveDirection.normalized;
+        
+        // 如果当前没有移动方向，则使用forwardTarget的前方作为冲刺方向
+        if (moveDirection != Vector3.zero)
+        {
+            dashDirection = moveDirection.normalized;
+        }
+        else
+        {
+            // 使用forwardTarget的前方作为默认冲刺方向
+            dashDirection = forwardTarget.forward.normalized;
+        }
     }
 
     void EndDash()
