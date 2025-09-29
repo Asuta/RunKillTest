@@ -136,6 +136,13 @@ public class GameManager : MonoBehaviour
             }
         }
 
+        // 检查最小夹角是否大于45度，如果大于45度则不作为最近钩子
+        if (minAngle > 25f)
+        {
+            closestHook = null;
+            minAngle = float.MaxValue;
+        }
+
         // Check if the closest hook has changed
         if (_closestAngleHook != closestHook)
         {

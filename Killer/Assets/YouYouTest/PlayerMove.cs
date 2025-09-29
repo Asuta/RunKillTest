@@ -6,6 +6,7 @@ public class PlayerMove : MonoBehaviour
     #region 移动设置
     [Header("移动设置")]
     public Transform forwardTarget;
+    public Transform playerHead;
     public float moveSpeed = 5f;
     public float decelerationSpeed = 5f; // 归零速度
     public float raycastDistance = 10f; // 射线检测距离
