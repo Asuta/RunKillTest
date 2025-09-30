@@ -1,4 +1,5 @@
 using UnityEngine;
+using UnityEngine.SceneManagement;
 
 public class Player : MonoBehaviour, ICanBeHit
 {
@@ -51,5 +52,8 @@ public class Player : MonoBehaviour, ICanBeHit
         // 恢复生命值
         health = 1;
         Debug.Log("Player respawned at initial position!");
+
+        //重新加载当前场景
+        SceneManager.LoadScene(SceneManager.GetActiveScene().name);
     }
 }

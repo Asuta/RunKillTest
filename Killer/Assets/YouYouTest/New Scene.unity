@@ -1300,15 +1300,15 @@ Transform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 921729345}
   serializedVersion: 2
-  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: -1.7213603, y: 1.5317297, z: 2.6833868}
+  m_LocalRotation: {x: -0, y: 0.70710677, z: -0, w: 0.7071068}
+  m_LocalPosition: {x: -2.796494, y: 1.5317297, z: 1.5583421}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children:
   - {fileID: 175304114}
   - {fileID: 50635731}
   m_Father: {fileID: 0}
-  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+  m_LocalEulerAnglesHint: {x: 0, y: 90, z: 0}
 --- !u!114 &921729348
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -1323,14 +1323,14 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   forwardTarget: {fileID: 50635731}
   playerHead: {fileID: 175304114}
-  moveSpeed: 5
-  decelerationSpeed: 5
+  moveSpeed: 10
+  decelerationSpeed: 10
   raycastDistance: 1.9
   extraGravity: 20
   nowVelocity: {x: 0, y: 0, z: 0}
   nowState: 
   jumpForce: 10
-  dashSpeed: 50
+  dashSpeed: 70
   dashDuration: 0.15
   dashCooldown: 1
   hitBoxTrigger: {fileID: 1540144550}
@@ -1538,7 +1538,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 1
+  m_IsActive: 0
 --- !u!4 &1092646499
 Transform:
   m_ObjectHideFlags: 0

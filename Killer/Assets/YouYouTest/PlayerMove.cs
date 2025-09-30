@@ -153,7 +153,7 @@ public class PlayerMove : MonoBehaviour
         else if (currentState == MovementState.WallSliding)
         {
             // 贴墙滑行状态：按照投影向量方向自动滑行，WASD不起作用，Y轴速度为0
-            Vector3 wallSlideVelocity = new Vector3(wallSlideDirection.x * moveSpeed, 0, wallSlideDirection.z * moveSpeed);
+            Vector3 wallSlideVelocity = new Vector3(wallSlideDirection.x * moveSpeed * 1.2f, 0, wallSlideDirection.z * moveSpeed * 1.2f);
             thisRb.linearVelocity = wallSlideVelocity;
         }
     }
