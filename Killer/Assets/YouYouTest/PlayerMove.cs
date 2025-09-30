@@ -221,16 +221,31 @@ public class PlayerMove : MonoBehaviour
 
     private void PerformJump()
     {
-        // 如果当前是贴墙滑行状态，先退出滑行状态
+        // 如果当前是贴墙滑行状态，先退出滑行状态并添加横向速度
         if (currentState == MovementState.WallSliding)
         {
             CustomLog.Log(needLog, "跳跃退出滑行");
+            
+            // 计算贴墙跳跃的横向速度：当前滑行方向模 + 墙法线方向模，长度设置为moveSpeed
+            Vector3 slideDirectionNormalized = wallSlideDirection.normalized;
+            Vector3 wallNormalNormalized = wallNormal.normalized;
+            
+            // 两个方向向量相加并归一化，然后乘以moveSpeed
+            Vector3 combinedDirection = (slideDirectionNormalized + wallNormalNormalized).normalized;
+            Vector3 horizontalVelocity = combinedDirection * moveSpeed;
+            
+            // 给刚体一个向上的速度和横向速度来实现贴墙跳跃
+            thisRb.linearVelocity = new Vector3(horizontalVelocity.x, jumpForce, horizontalVelocity.z);
+            
             ExitWallSliding();
         }
-
-        // 给刚体一个向上的速度来实现跳跃
-        Vector3 currentVelocity = thisRb.linearVelocity;
-        thisRb.linearVelocity = new Vector3(currentVelocity.x, jumpForce, currentVelocity.z);
+        else
+        {
+            // 普通跳跃：给刚体一个向上的速度来实现跳跃
+            Vector3 currentVelocity = thisRb.linearVelocity;
+            thisRb.linearVelocity = new Vector3(currentVelocity.x, jumpForce, currentVelocity.z);
+        }
+        
         currentState = MovementState.Jumping;
     }
     #endregion
