@@ -311,7 +311,7 @@ public class PlayerMove : MonoBehaviour
     void HandleHookDash()
     {
         // 检测鼠标右键点击
-        if (Input.GetMouseButtonDown(1) && CanHookDash())
+        if (Input.GetKeyDown(KeyCode.E) && CanHookDash())
         {
             CustomLog.Log(needLog, "试图开始hook冲刺");
             StartHookDash(); 
