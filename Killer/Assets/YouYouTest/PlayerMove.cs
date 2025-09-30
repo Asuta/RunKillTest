@@ -321,13 +321,8 @@ public class PlayerMove : MonoBehaviour
         {
             CustomLog.Log(needLog, "跳跃退出滑行");
             
-            // 计算贴墙跳跃的横向速度：当前滑行方向模 + 墙法线方向模，长度设置为moveSpeed
-            Vector3 slideDirectionNormalized = wallSlideDirection.normalized;
-            Vector3 wallNormalNormalized = wallNormal.normalized;
-            
-            // 两个方向向量相加并归一化，然后乘以moveSpeed
-            Vector3 combinedDirection = (slideDirectionNormalized + wallNormalNormalized).normalized;
-            Vector3 horizontalVelocity = combinedDirection * moveSpeed;
+            // 使用forwardTarget的前方方向作为速度方向，保持速度大小不变
+            Vector3 horizontalVelocity = forwardTarget.forward.normalized * moveSpeed;
             
             // 给刚体一个向上的速度和横向速度来实现贴墙跳跃
             thisRb.linearVelocity = new Vector3(horizontalVelocity.x, jumpForce, horizontalVelocity.z);
