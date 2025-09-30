@@ -122,7 +122,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: ef2ca6bdd647ede47992a9359bc0548c, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  speed: 3
+  speed: 15
   target: {fileID: 0}
   createEnemy: {fileID: 0}
   isBack: 0
