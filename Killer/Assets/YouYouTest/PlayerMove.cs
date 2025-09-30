@@ -533,32 +533,25 @@ public class PlayerMove : MonoBehaviour
 
     private IEnumerator ShowHitBoxTemporarily()
     {
-        // 获取MeshRenderer组件
-        MeshRenderer meshRenderer = hitBoxTrigger.GetComponent<MeshRenderer>();
-        if (meshRenderer != null)
+        if (hitBoxTrigger != null)
         {
-            // 开启MeshRenderer
-            meshRenderer.enabled = true;
-            hitBoxTrigger.GetComponent<Collider>().enabled = true;
+            // 开启GameObject
+            hitBoxTrigger.gameObject.SetActive(true);
 
             // 等待0.1秒
             yield return new WaitForSeconds(0.1f);
 
-            // 关闭MeshRenderer
-            meshRenderer.enabled = false;
-            hitBoxTrigger.GetComponent<Collider>().enabled = false;
+            // 关闭GameObject
+            hitBoxTrigger.gameObject.SetActive(false);
         }
     }
 
     private void ShowDefenseBox(bool show)
     {
-        // 获取MeshRenderer组件
-        MeshRenderer meshRenderer = defenseBoxTrigger.GetComponent<MeshRenderer>();
-        if (meshRenderer != null)
+        if (defenseBoxTrigger != null)
         {
-            // 开启或关闭MeshRenderer
-            meshRenderer.enabled = show;
-            defenseBoxTrigger.GetComponent<Collider>().enabled = show;
+            // 开启或关闭GameObject
+            defenseBoxTrigger.gameObject.SetActive(show);
         }
     }
 
