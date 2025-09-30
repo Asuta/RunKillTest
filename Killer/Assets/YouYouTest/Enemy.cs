@@ -11,6 +11,12 @@ public class Enemy : MonoBehaviour, ICanBeHit
     public Material lineMaterial;
     public Material sphereMaterial;
     private Mesh sphereMesh;
+    public GameObject bulletPrefab;
+
+    // 射击计时器
+    private float aimingTime = 0f;
+    private float lastFireTime = 0f;
+    private bool hasFiredFirstShot = false;
     #endregion
 
     #region 伤害处理
@@ -52,6 +58,15 @@ public class Enemy : MonoBehaviour, ICanBeHit
         if (target != null && EnemyBody != null)
         {
             DrawTargetVisualization();
+            
+            // 瞄准计时和射击逻辑
+            HandleShooting();
+        }
+        else
+        {
+            // 重置瞄准计时器
+            aimingTime = 0f;
+            hasFiredFirstShot = false;
         }
     }
     #endregion
@@ -62,6 +77,52 @@ public class Enemy : MonoBehaviour, ICanBeHit
         TakeDamage(20);
     }
 
+    private void HandleShooting()
+    {
+        // 累计瞄准时间
+        aimingTime += Time.deltaTime;
+
+        if (!hasFiredFirstShot)
+        {
+            // 第一次发射：瞄准2秒后
+            if (aimingTime >= 2f)
+            {
+                Fire();
+                hasFiredFirstShot = true;
+                lastFireTime = Time.time;
+            }
+        }
+        else
+        {
+            // 后续发射：每隔5秒发射一次
+            if (Time.time - lastFireTime >= 5f)
+            {
+                Fire();
+                lastFireTime = Time.time;
+            }
+        }
+    }
+
+    private void Fire()
+    {
+        if (bulletPrefab == null || target == null || EnemyBody == null)
+        {
+            Debug.LogWarning("Cannot fire: missing bulletPrefab, target, or EnemyBody");
+            return;
+        }
+
+        // 创建子弹实例
+        GameObject bullet = Instantiate(bulletPrefab, EnemyBody.position, Quaternion.identity);
+        EnemyBullet enemyBullet = bullet.GetComponent<EnemyBullet>();
+        
+        if (enemyBullet != null)
+        {
+            enemyBullet.target = target;
+            enemyBullet.createEnemy = this;
+        }
+
+        Debug.Log("Enemy fired a bullet!");
+    }
     #endregion
 
     #region 可视化绘制
