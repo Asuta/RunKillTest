@@ -23,6 +23,11 @@ public class EnemyBullet : MonoBehaviour
             Vector3 direction = (target.position - transform.position).normalized;
             transform.position += direction * speed * Time.deltaTime;
         }
+        else if (isBack || target == null)
+        {
+            // no target, destroy self
+            Destroy(gameObject);
+        }
     }
 
     void OnTriggerEnter(Collider other)
@@ -34,7 +39,7 @@ public class EnemyBullet : MonoBehaviour
             {
                 other.attachedRigidbody.GetComponent<Enemy>().OnHitByBullet();
                 Destroy(gameObject);
-                 
+
             }
         }
         else
@@ -45,7 +50,16 @@ public class EnemyBullet : MonoBehaviour
                 // hit the player
                 Debug.Log("Enemy Bullet plaer hit");
                 isBack = true;
-                target = createEnemy.EnemyBody;
+                //让自己的mesh 变成绿色
+                GetComponent<MeshRenderer>().material.color = Color.green;
+                if (createEnemy.EnemyBody != null)
+                {
+                    target = createEnemy.EnemyBody;
+                }
+                else
+                {
+                    Destroy(gameObject);
+                }
             }
 
             if (other.gameObject.name == "PlayerDefense")
