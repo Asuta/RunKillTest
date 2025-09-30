@@ -48,7 +48,7 @@ public class EnemyBullet : MonoBehaviour
                 target = createEnemy.EnemyBody;
             }
 
-            if (other.gameObject.name == "Defense")
+            if (other.gameObject.name == "PlayerDefense")
             {
                 // hit the player
                 Debug.Log("Enemy Bullet Hit Defense");

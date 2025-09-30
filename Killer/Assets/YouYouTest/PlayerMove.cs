@@ -30,6 +30,7 @@ public class PlayerMove : MonoBehaviour
     #region 攻击设置
     [Header("攻击设置")]
     public Transform hitBoxTrigger; // 攻击触发器
+    public Transform defenseBoxTrigger; // 防御触发器
     public int attackDamage = 10; // 攻击伤害值
     #endregion
 
@@ -60,6 +61,9 @@ public class PlayerMove : MonoBehaviour
 
     // log setting
     public bool needLog = false;
+
+    // 防御相关
+    private bool isDefending = false;
     #endregion
 
     #region Unity生命周期
@@ -79,10 +83,10 @@ public class PlayerMove : MonoBehaviour
         HandleAttack();
         UpdateState();
         HandleWallSliding();
-        
+
         // 更新当前状态用于调试显示
         UpdateNowState();
-        
+
         // 绘制当前速度向量（Scene视图可见）
         DrawVelocityVector();
     }
@@ -93,7 +97,7 @@ public class PlayerMove : MonoBehaviour
         HandleDashMovement();
         HandleHookDashMovement(); // 处理hook冲刺移动
         ApplyExtraGravity();
-        
+
         // 更新当前速度用于调试显示
         if (thisRb != null)
         {
@@ -223,7 +227,7 @@ public class PlayerMove : MonoBehaviour
             CustomLog.Log(needLog, "跳跃退出滑行");
             ExitWallSliding();
         }
-        
+
         // 给刚体一个向上的速度来实现跳跃
         Vector3 currentVelocity = thisRb.linearVelocity;
         thisRb.linearVelocity = new Vector3(currentVelocity.x, jumpForce, currentVelocity.z);
@@ -269,7 +273,7 @@ public class PlayerMove : MonoBehaviour
         currentState = MovementState.Dashing;
         dashTimer = dashDuration;
         dashCooldownTimer = dashCooldown;
-        
+
         // 如果当前没有移动方向，则使用forwardTarget的前方作为冲刺方向
         if (moveDirection != Vector3.zero)
         {
@@ -289,7 +293,7 @@ public class PlayerMove : MonoBehaviour
         {
             thisRb.linearVelocity = Vector3.zero;
         }
-        
+
         if (IsGrounded())
             currentState = MovementState.Grounded;
         else
@@ -314,7 +318,7 @@ public class PlayerMove : MonoBehaviour
         if (Input.GetKeyDown(KeyCode.E) && CanHookDash())
         {
             CustomLog.Log(needLog, "试图开始hook冲刺");
-            StartHookDash(); 
+            StartHookDash();
         }
         else
         {
@@ -344,13 +348,13 @@ public class PlayerMove : MonoBehaviour
         currentState = MovementState.HookDashing;
         hookDashTimer = hookDashDuration;
         hookTarget = GameManager.Instance.ClosestAngleHook;
-        
+
         // 计算冲向hook的方向
         if (hookTarget != null)
         {
             hookDashDirection = (hookTarget.position - transform.position).normalized;
         }
-        
+
         CustomLog.Log(needLog, "开始hook冲刺");
     }
 
@@ -360,7 +364,7 @@ public class PlayerMove : MonoBehaviour
         currentState = MovementState.Falling;
         if (thisRb != null)
         {
-            thisRb.linearVelocity = thisRb.linearVelocity.normalized*6f;
+            thisRb.linearVelocity = thisRb.linearVelocity.normalized * 6f;
         }
         CustomLog.Log(needLog, "结束hook冲刺，速度归零，进入浮空状态");
     }
@@ -373,7 +377,7 @@ public class PlayerMove : MonoBehaviour
             // 以冲刺速度冲向hook目标位置（使用立体的实际方向，包含Y轴分量）
             Vector3 hookDashVelocity = hookDashDirection * dashSpeed;
             thisRb.linearVelocity = hookDashVelocity;
-            
+
             // 检查是否到达hook位置附近
             float distanceToHook = Vector3.Distance(transform.position, hookTarget.position);
             if (distanceToHook < 1f) // 到达目标附近
@@ -386,7 +390,7 @@ public class PlayerMove : MonoBehaviour
             // log state信息
             Debug.Log($"当前状态: {currentState}, hookTarget: {(hookTarget != null ? hookTarget.name : "null")}");
 
-            
+
         }
     }
     #endregion
@@ -399,30 +403,46 @@ public class PlayerMove : MonoBehaviour
         {
             PerformAttack();
         }
+
+        // 检测鼠标右键按下和释放
+        if (Input.GetMouseButtonDown(1))
+        {
+            StartDefense();
+        }
+        else if (Input.GetMouseButtonUp(1))
+        {
+            EndDefense();
+        }
+
+        // 持续防御检测
+        if (isDefending)
+        {
+            PerformDefense();
+        }
     }
 
     private void PerformAttack()
     {
         // 执行攻击动作，这里简单记录日志
         CustomLog.Log(needLog, "开始攻击");
-        
+
         // 检查是否有攻击触发器
         if (hitBoxTrigger == null)
         {
             CustomLog.LogWarning(needLog, "hitBoxTrigger 未设置，无法进行攻击检测");
             return;
         }
-        
+
         // 显示攻击触发器0.1秒
         StartCoroutine(ShowHitBoxTemporarily());
-        
+
         // 获取攻击触发器的位置和尺寸
         Vector3 center = hitBoxTrigger.position;
         Vector3 halfExtents = hitBoxTrigger.lossyScale / 2f;
-        
+
         // 进行Box范围检测，查找tag为"enemy"的物体
         Collider[] hitColliders = Physics.OverlapBox(center, halfExtents, hitBoxTrigger.rotation);
-        
+
         foreach (Collider collider in hitColliders)
         {
             if (collider.CompareTag("Enemy"))
@@ -449,23 +469,115 @@ public class PlayerMove : MonoBehaviour
             }
         }
     }
-    
+
+
+    private void StartDefense()
+    {
+        isDefending = true;
+        CustomLog.Log(needLog, "开始持续防御");
+
+        // 检查是否有防御触发器
+        if (defenseBoxTrigger == null)
+        {
+            CustomLog.LogWarning(needLog, "defenseBoxTrigger 未设置，无法进行防御检测");
+            return;
+        }
+
+        // 显示防御触发器
+        ShowDefenseBox(true);
+    }
+
+    private void EndDefense()
+    {
+        isDefending = false;
+        CustomLog.Log(needLog, "结束防御");
+
+        // 隐藏防御触发器
+        ShowDefenseBox(false);
+    }
+
+    private void PerformDefense()
+    {
+        // 执行防御动作，这里简单记录日志
+        CustomLog.Log(needLog, "持续防御中");
+
+        // 检查是否有防御触发器
+        if (defenseBoxTrigger == null)
+        {
+            CustomLog.LogWarning(needLog, "defenseBoxTrigger 未设置，无法进行防御检测");
+            return;
+        }
+
+        // 获取防御触发器的位置和尺寸
+        Vector3 center = defenseBoxTrigger.position;
+        Vector3 halfExtents = defenseBoxTrigger.lossyScale / 2f;
+
+        // 进行Box范围检测，查找tag为"EnemyBullet"的物体
+        Collider[] hitColliders = Physics.OverlapBox(center, halfExtents, defenseBoxTrigger.rotation);
+
+        foreach (Collider collider in hitColliders)
+        {
+            if (collider.CompareTag("EnemyBullet"))
+            {
+                CustomLog.Log(needLog, "格挡！");
+                // 对子弹进行防御处理（例如销毁子弹或反弹）
+                EnemyBullet bullet = collider.GetComponent<EnemyBullet>();
+                if (bullet != null)
+                {
+                    // 这里可以添加子弹防御逻辑，比如销毁子弹或改变其方向
+                    Destroy(bullet.gameObject);
+                }
+            }
+        }
+    }
+
     private IEnumerator ShowHitBoxTemporarily()
     {
         // 获取MeshRenderer组件
         MeshRenderer meshRenderer = hitBoxTrigger.GetComponent<MeshRenderer>();
         if (meshRenderer != null)
         {
-            // 开启MeshRenderer 
+            // 开启MeshRenderer
             meshRenderer.enabled = true;
             hitBoxTrigger.GetComponent<Collider>().enabled = true;
-            
+
             // 等待0.1秒
             yield return new WaitForSeconds(0.1f);
-            
+
             // 关闭MeshRenderer
             meshRenderer.enabled = false;
             hitBoxTrigger.GetComponent<Collider>().enabled = false;
+        }
+    }
+
+    private void ShowDefenseBox(bool show)
+    {
+        // 获取MeshRenderer组件
+        MeshRenderer meshRenderer = defenseBoxTrigger.GetComponent<MeshRenderer>();
+        if (meshRenderer != null)
+        {
+            // 开启或关闭MeshRenderer
+            meshRenderer.enabled = show;
+            defenseBoxTrigger.GetComponent<Collider>().enabled = show;
+        }
+    }
+
+    private IEnumerator ShowDefenseBoxTemporarily()
+    {
+        // 获取MeshRenderer组件
+        MeshRenderer meshRenderer = defenseBoxTrigger.GetComponent<MeshRenderer>();
+        if (meshRenderer != null)
+        {
+            // 开启MeshRenderer
+            meshRenderer.enabled = true;
+            defenseBoxTrigger.GetComponent<Collider>().enabled = true;
+
+            // 等待0.1秒
+            yield return new WaitForSeconds(1f);
+
+            // 关闭MeshRenderer
+            meshRenderer.enabled = false;
+            defenseBoxTrigger.GetComponent<Collider>().enabled = false;
         }
     }
     #endregion
@@ -477,37 +589,37 @@ public class PlayerMove : MonoBehaviour
         if (collision.gameObject.CompareTag("Wall"))
         {
             CustomLog.Log(needLog, "hahaha");
-            
+
             // 获取第一个接触点的法线
             if (collision.contactCount > 0)
             {
                 ContactPoint contact = collision.GetContact(0);
                 Vector3 normal = contact.normal;
-                
+
                 // 输出法线信息
                 CustomLog.Log(needLog, $"碰撞点法线: {normal}");
-                
+
                 // 从碰撞点绘制法线（红色）
                 Debug.DrawRay(contact.point, normal * 2f, Color.red, 2f);
-                
+
                 // 计算速度在法线平面上的投影向量
                 if (thisRb != null)
                 {
                     Vector3 velocity = thisRb.linearVelocity;
                     Vector3 projection = Vector3.ProjectOnPlane(velocity, normal);
-                    
+
                     // Y轴归零，变成水平向量
                     Vector3 horizontalProjection = new Vector3(projection.x, 0, projection.z);
-                    
+
                     // 长度重置为1
                     if (horizontalProjection != Vector3.zero)
                     {
                         horizontalProjection = horizontalProjection.normalized;
                     }
-                    
+
                     // 输出投影向量信息
                     CustomLog.Log(needLog, $"速度在法线平面上的投影向量 (Y轴归零, 长度1): {horizontalProjection}");
-                    
+
                     // 从碰撞点绘制投影向量（绿色）
                     Debug.DrawRay(contact.point, horizontalProjection, Color.green, 2f);
 
@@ -516,7 +628,7 @@ public class PlayerMove : MonoBehaviour
                     {
                         // 保存投影向量用于贴墙滑行
                         wallSlideDirection = horizontalProjection;
-                        
+
                         // 进入贴墙滑行状态
                         EnterWallSliding(normal);
                     }
@@ -558,7 +670,7 @@ public class PlayerMove : MonoBehaviour
             thisRb.AddForce(Vector3.down * extraGravity, ForceMode.Acceleration);
         }
     }
-    
+
     void DrawVelocityVector()
     {
         // 从body当前位置绘制速度向量
@@ -592,13 +704,13 @@ public class PlayerMove : MonoBehaviour
         currentState = MovementState.WallSliding;
         wallNormal = normal;
         wallSlideTimer = 0f;
-        
+
         // 禁用刚体重力
         if (thisRb != null)
         {
             thisRb.useGravity = false;
         }
-        
+
         CustomLog.Log(needLog, "进入贴墙滑行状态");
     }
 
@@ -611,13 +723,13 @@ public class PlayerMove : MonoBehaviour
             {
                 thisRb.useGravity = true;
             }
-            
+
             // 根据当前是否在地面来决定下一个状态
             if (IsGrounded())
                 currentState = MovementState.Grounded;
             else
                 currentState = MovementState.Falling;
-            
+
             CustomLog.Log(needLog, "退出贴墙滑行状态");
         }
     }
@@ -637,7 +749,7 @@ public class PlayerMove : MonoBehaviour
         // 使用RaycastAll检测所有碰撞，然后过滤出Wall tag的物体
         RaycastHit[] hits = Physics.RaycastAll(ray, raycastDistance);
         bool stillAttached = false;
-        
+
         foreach (RaycastHit hitInfo in hits)
         {
             if (hitInfo.collider.CompareTag("Wall"))
@@ -671,7 +783,7 @@ public class PlayerMove : MonoBehaviour
         // 贴墙滑行时的移动逻辑
         // 可以在这里添加减速或其他特殊移动效果
         Vector3 currentVelocity = thisRb.linearVelocity;
-        
+
         // 示例：在墙上时减少水平速度
         Vector3 horizontalVelocity = new Vector3(currentVelocity.x * 0.8f, currentVelocity.y, currentVelocity.z * 0.8f);
         thisRb.linearVelocity = horizontalVelocity;
