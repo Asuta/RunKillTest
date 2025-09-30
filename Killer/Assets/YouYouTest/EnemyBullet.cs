@@ -52,6 +52,7 @@ public class EnemyBullet : MonoBehaviour
             {
                 // hit the player
                 Debug.Log("Enemy Bullet Hit Defense");
+                Destroy(gameObject);
                 // createEnemy.OnHitDefense();
             }
 
@@ -59,8 +60,10 @@ public class EnemyBullet : MonoBehaviour
             {
                 // hit the player
                 Debug.Log("Enemy Bullet Player");
+                other.attachedRigidbody.GetComponent<ICanBeHit>().TakeDamage(20);
+
                 // destroy this bullet
-                // Destroy(gameObject);
+                Destroy(gameObject);
             }
 
         }
