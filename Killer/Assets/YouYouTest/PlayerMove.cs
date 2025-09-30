@@ -32,6 +32,7 @@ public class PlayerMove : MonoBehaviour
     public Transform hitBoxTrigger; // 攻击触发器
     public Transform defenseBoxTrigger; // 防御触发器
     public int attackDamage = 10; // 攻击伤害值
+    public GameObject hitEffect; // 防御特效
     #endregion
 
     #region 私有字段
@@ -548,10 +549,13 @@ public class PlayerMove : MonoBehaviour
         // 进行Box范围检测，查找tag为"enemy"的物体
         Collider[] hitColliders = Physics.OverlapBox(center, halfExtents, hitBoxTrigger.rotation);
 
+        bool hitEnemy = false;
+
         foreach (Collider collider in hitColliders)
         {
             if (collider.CompareTag("Enemy"))
             {
+                hitEnemy = true;
                 CustomLog.Log(needLog, "击中！");
                 // 对敌人造成伤害
                 Rigidbody enemyRb = collider.attachedRigidbody;
@@ -572,6 +576,21 @@ public class PlayerMove : MonoBehaviour
                     CustomLog.LogWarning(needLog, "敌人没有刚体组件，无法造成伤害");
                 }
             }
+        }
+
+        // 生成攻击特效（无论是否击中敌人）
+        if (hitEffect != null)
+        {
+            // 在攻击触发器位置生成特效
+            GameObject effect = Instantiate(hitEffect, hitBoxTrigger.position, hitBoxTrigger.rotation);
+            // 向前旋转90度（绕X轴旋转）
+            effect.transform.rotation = hitBoxTrigger.rotation * Quaternion.Euler(90f, 130f, 0f);
+            effect.transform.localScale *= 2;
+            // 特效会自动播放（如果包含粒子系统或动画）
+        }
+        else
+        {
+            CustomLog.LogWarning(needLog, "hitEffect 未设置，无法显示攻击特效");
         }
     }
 

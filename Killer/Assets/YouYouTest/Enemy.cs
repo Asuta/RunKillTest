@@ -18,6 +18,9 @@ public class Enemy : MonoBehaviour, ICanBeHit
     private float aimingTime = 0f;
     private float lastFireTime = 0f;
     private bool hasFiredFirstShot = false;
+
+    //特效
+    public GameObject deathEffect;
     #endregion
 
     #region 伤害处理
@@ -34,7 +37,22 @@ public class Enemy : MonoBehaviour, ICanBeHit
     private void Die()
     {
         Debug.Log("Enemy died!");
-        // 在这里添加敌人死亡的逻辑，比如播放动画、掉落物品等
+        //生成并 播放死亡特效
+        if (deathEffect != null)
+        {
+            // 在enemy body位置生成死亡特效
+            Vector3 spawnPosition = EnemyBody != null ? EnemyBody.position : transform.position;
+            GameObject effect = Instantiate(deathEffect, spawnPosition, Quaternion.identity);
+            // 可选：设置特效的旋转与敌人一致 
+            effect.transform.rotation = transform.rotation;
+            effect.transform.localScale *=2;
+            // 播放特效（如果特效有自带的粒子系统或动画，会自动播放）
+        }
+        else
+        {
+            Debug.LogWarning("Death effect prefab is not assigned!");
+        }
+        
         Destroy(gameObject);
     }
     #endregion

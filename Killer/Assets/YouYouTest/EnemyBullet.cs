@@ -1,4 +1,5 @@
 using UnityEditor;
+using UnityEditor.Animations;
 using UnityEngine;
 
 public class EnemyBullet : MonoBehaviour
@@ -6,12 +7,17 @@ public class EnemyBullet : MonoBehaviour
     public float speed = 10f;
     public Transform target;
     public Enemy createEnemy;
+    public GameObject greenEffect;
+    public GameObject redEffect;
     [SerializeField]
     private bool isBack;
+    private bool currentEffectState; // 跟踪当前效果状态
     // Start在MonoBehaviour创建后，在第一次执行Update之前被调用一次
     void Start()
     {
-
+        // 初始化效果状态
+        currentEffectState = isBack;
+        UpdateEffectState();
     }
 
     // Update每帧调用一次
@@ -50,6 +56,11 @@ public class EnemyBullet : MonoBehaviour
                 // 击中玩家
                 Debug.Log("敌人子弹击中玩家");
                 isBack = true;
+                // 只在状态改变时更新效果
+                if (currentEffectState != isBack)
+                {
+                    UpdateEffectState();
+                }
                 //让自己的mesh 变成绿色
                 GetComponent<MeshRenderer>().material.color = Color.green;
                 if (createEnemy.EnemyBody != null)
@@ -83,5 +94,27 @@ public class EnemyBullet : MonoBehaviour
         }
 
 
+    }
+
+    // 根据isBack状态更新效果显示
+    private void UpdateEffectState()
+    {
+        if (greenEffect != null && redEffect != null)
+        {
+            if (isBack)
+            {
+                // isBack为true时：关闭redEffect，打开greenEffect
+                redEffect.SetActive(false);
+                greenEffect.SetActive(true);
+            }
+            else
+            {
+                // isBack为false时：关闭greenEffect，打开redEffect
+                greenEffect.SetActive(false);
+                redEffect.SetActive(true);
+            }
+            // 更新当前状态跟踪
+            currentEffectState = isBack;
+        }
     }
 }
