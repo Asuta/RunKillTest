@@ -2,15 +2,18 @@ using UnityEngine;
 
 public class Enemy : MonoBehaviour, ICanBeHit
 {
+    #region 变量声明
     public int health = 100;
     public Transform target;
-    public Transform lineStart;
-    
+    public Transform EnemyBody;
+
     // 用于绘制的材质和网格
     public Material lineMaterial;
     public Material sphereMaterial;
     private Mesh sphereMesh;
+    #endregion
 
+    #region 伤害处理
     public void TakeDamage(int damage)
     {
         health -= damage;
@@ -27,12 +30,16 @@ public class Enemy : MonoBehaviour, ICanBeHit
         // 在这里添加敌人死亡的逻辑，比如播放动画、掉落物品等
         Destroy(gameObject);
     }
+    #endregion
 
-    public void SetTarget( Transform PlayerHead)
+    #region 目标设置
+    public void SetTarget(Transform PlayerHead)
     {
         target = PlayerHead;
     }
+    #endregion
 
+    #region Unity生命周期方法
     private void Start()
     {
         // 创建球体网格
@@ -42,22 +49,32 @@ public class Enemy : MonoBehaviour, ICanBeHit
     private void Update()
     {
         // 如果target不为null，绘制线和球
-        if (target != null && lineStart != null)
+        if (target != null && EnemyBody != null)
         {
             DrawTargetVisualization();
         }
     }
+    #endregion
 
+    #region 自有方法
+    public void OnHitByBullet()
+    {
+        TakeDamage(20);
+    }
+
+    #endregion
+
+    #region 可视化绘制
     private void DrawTargetVisualization()
     {
         // 计算终点位置（target位置减1）
         Vector3 targetPosition = target.position;
         targetPosition = targetPosition + Vector3.up * -0.5f; // 降低一些高度，避免与视线重合
-        Vector3 direction = (targetPosition - lineStart.position).normalized;
+        Vector3 direction = (targetPosition - EnemyBody.position).normalized;
         Vector3 endPoint = targetPosition - direction * 1f; // 减1个单位
 
         // 绘制线
-        DrawLine(lineStart.position, endPoint);
+        DrawLine(EnemyBody.position, endPoint);
 
         // 绘制球
         DrawSphere(endPoint);
@@ -78,7 +95,9 @@ public class Enemy : MonoBehaviour, ICanBeHit
 
         Graphics.DrawMesh(sphereMesh, position, Quaternion.identity, sphereMaterial, 0);
     }
+    #endregion
 
+    #region 网格创建
     private Mesh CreateLineMesh(Vector3 start, Vector3 end, float thickness)
     {
         Mesh mesh = new Mesh();
@@ -106,7 +125,7 @@ public class Enemy : MonoBehaviour, ICanBeHit
         // 创建一个简单的球体网格
         // 这里使用Unity内置的球体，但为了简单起见，我们创建一个简单的八面体
         Mesh mesh = new Mesh();
-        
+
         Vector3[] vertices = new Vector3[6]
         {
             new Vector3(0, radius, 0),
@@ -128,4 +147,5 @@ public class Enemy : MonoBehaviour, ICanBeHit
 
         return mesh;
     }
+    #endregion
 }

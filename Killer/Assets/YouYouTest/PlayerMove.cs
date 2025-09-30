@@ -456,14 +456,16 @@ public class PlayerMove : MonoBehaviour
         MeshRenderer meshRenderer = hitBoxTrigger.GetComponent<MeshRenderer>();
         if (meshRenderer != null)
         {
-            // 开启MeshRenderer
+            // 开启MeshRenderer 
             meshRenderer.enabled = true;
+            hitBoxTrigger.GetComponent<Collider>().enabled = true;
             
             // 等待0.1秒
             yield return new WaitForSeconds(0.1f);
             
             // 关闭MeshRenderer
             meshRenderer.enabled = false;
+            hitBoxTrigger.GetComponent<Collider>().enabled = false;
         }
     }
     #endregion
