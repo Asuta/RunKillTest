@@ -84,68 +84,24 @@ public class Enemy : MonoBehaviour, ICanBeHit
     {
         if (lineMaterial == null) return;
 
-        // 创建线的网格
-        Mesh lineMesh = CreateLineMesh(start, end, 0.02f);
-        Graphics.DrawMesh(lineMesh, Vector3.zero, Quaternion.identity, lineMaterial, 0);
+        // 使用工具类绘制线
+        MeshDrawUtility.DrawLine(start, end, lineMaterial, 0.02f);
     }
 
     private void DrawSphere(Vector3 position)
     {
         if (sphereMaterial == null || sphereMesh == null) return;
 
-        Graphics.DrawMesh(sphereMesh, position, Quaternion.identity, sphereMaterial, 0);
+        // 使用工具类绘制球体
+        MeshDrawUtility.DrawSphere(position, sphereMaterial, sphereMesh);
     }
     #endregion
 
     #region 网格创建
-    private Mesh CreateLineMesh(Vector3 start, Vector3 end, float thickness)
-    {
-        Mesh mesh = new Mesh();
-        Vector3 direction = (end - start).normalized;
-        Vector3 perpendicular = Vector3.Cross(direction, Vector3.up).normalized * thickness;
-
-        Vector3[] vertices = new Vector3[4]
-        {
-            start - perpendicular,
-            start + perpendicular,
-            end + perpendicular,
-            end - perpendicular
-        };
-
-        int[] triangles = new int[6] { 0, 1, 2, 0, 2, 3 };
-
-        mesh.vertices = vertices;
-        mesh.triangles = triangles;
-
-        return mesh;
-    }
-
     private Mesh CreateSphereMesh(float radius)
     {
-        // 创建一个简单的球体网格
-        // 这里使用Unity内置的球体，但为了简单起见，我们创建一个简单的八面体
-        Mesh mesh = new Mesh();
-
-        Vector3[] vertices = new Vector3[6]
-        {
-            new Vector3(0, radius, 0),
-            new Vector3(0, -radius, 0),
-            new Vector3(radius, 0, 0),
-            new Vector3(-radius, 0, 0),
-            new Vector3(0, 0, radius),
-            new Vector3(0, 0, -radius)
-        };
-
-        int[] triangles = new int[24]
-        {
-            0, 2, 4, 0, 4, 3, 0, 3, 5, 0, 5, 2,
-            1, 4, 2, 1, 2, 5, 1, 5, 3, 1, 3, 4
-        };
-
-        mesh.vertices = vertices;
-        mesh.triangles = triangles;
-
-        return mesh;
+        // 使用工具类创建球体网格
+        return MeshDrawUtility.CreateSphereMesh(radius);
     }
     #endregion
 }
