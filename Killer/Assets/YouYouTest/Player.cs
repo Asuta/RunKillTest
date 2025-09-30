@@ -50,7 +50,7 @@ public class Player : MonoBehaviour, ICanBeHit
         // 重置玩家到初始位置
         transform.position = initialPosition;
         transform.rotation = Quaternion.Euler(initialRotation);
-        this.GetComponent<Rigidbody>().velocity = Vector3.zero; // 重置速度
+        this.GetComponent<Rigidbody>().linearVelocity = Vector3.zero; // 重置速度
 
         // 隐藏红色面板
         deathRed.SetActive(false);

@@ -6,6 +6,7 @@ public class Enemy : MonoBehaviour, ICanBeHit
     public int health = 100;
     public Transform target;
     public Transform EnemyBody;
+    public GameObject EnemyCheckerBox;
 
     // 用于绘制的材质和网格
     public Material lineMaterial;
@@ -50,6 +51,7 @@ public class Enemy : MonoBehaviour, ICanBeHit
     {
         // 创建球体网格
         sphereMesh = CreateSphereMesh(0.1f);
+        EnemyCheckerBox.GetComponent<MeshRenderer>().enabled = false;
     }
 
     private void Update()
