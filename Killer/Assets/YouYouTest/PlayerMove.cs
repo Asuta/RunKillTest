@@ -159,21 +159,26 @@ public class PlayerMove : MonoBehaviour
     }
     #endregion
 
-    #region 建筑检测
+    #region 地面检测
     void CheckBuildingBelow()
     {
         if (forwardTarget == null)
             return;
 
-        // 从 forwardTarget 位置向下发射射线
-        Ray ray = new Ray(forwardTarget.position, Vector3.down);
+        // 使用CapsuleCast进行有厚度的地面检测
+        // 胶囊体参数：底部点、顶部点、半径
+        Vector3 bottomPoint = forwardTarget.position + Vector3.down * 0.1f; // 稍微向下偏移
+        Vector3 topPoint = forwardTarget.position + Vector3.up * 0.1f;      // 稍微向上偏移
+        float capsuleRadius = 0.9f; // 胶囊体半径，可以根据需要调整
         RaycastHit hit;
 
-        // 绘制射线（红色表示未命中，绿色表示命中）
+        // 绘制检测区域（红色表示未命中，绿色表示命中）
         Color rayColor = Color.red;
         bool hitBuilding = false;
 
-        if (Physics.Raycast(ray, out hit, raycastDistance, buildingLayerMask))
+        // 使用CapsuleCast进行体积检测
+        if (Physics.CapsuleCast(bottomPoint, topPoint, capsuleRadius, Vector3.down, out hit,
+                               raycastDistance, buildingLayerMask))
         {
             rayColor = Color.green;
             hitBuilding = true;
@@ -188,8 +193,98 @@ public class PlayerMove : MonoBehaviour
                 currentState = MovementState.Falling;
         }
 
-        // 在Scene视图中绘制射线
-        Debug.DrawRay(forwardTarget.position, Vector3.down * raycastDistance, rayColor);
+        // 在Scene视图中绘制CapsuleCast的检测区域
+        DrawCapsuleCastGizmo(bottomPoint, topPoint, capsuleRadius, Vector3.down * raycastDistance, rayColor);
+    }
+
+    // 辅助方法：绘制CapsuleCast的可视化区域
+    void DrawCapsuleCastGizmo(Vector3 point1, Vector3 point2, float radius, Vector3 direction, Color color)
+    {
+        // 绘制起始胶囊体
+        DrawWireCapsule(point1, point2, radius, color);
+        
+        // 绘制结束胶囊体
+        DrawWireCapsule(point1 + direction, point2 + direction, radius, color);
+        
+        // 绘制连接线（胶囊体的边缘）
+        Vector3 up = (point2 - point1).normalized;
+        Vector3 right = Vector3.Cross(up, Vector3.forward).normalized;
+        if (right == Vector3.zero) right = Vector3.Cross(up, Vector3.up).normalized;
+        Vector3 forward = Vector3.Cross(up, right).normalized;
+        
+        // 绘制4个方向的连接线
+        for (int i = 0; i < 4; i++)
+        {
+            float angle = i * 90f * Mathf.Deg2Rad;
+            Vector3 offset = right * Mathf.Cos(angle) * radius + forward * Mathf.Sin(angle) * radius;
+            
+            Debug.DrawLine(point1 + offset, point1 + direction + offset, color);
+            Debug.DrawLine(point2 + offset, point2 + direction + offset, color);
+        }
+    }
+
+    // 绘制线框胶囊体
+    void DrawWireCapsule(Vector3 point1, Vector3 point2, float radius, Color color)
+    {
+        Vector3 up = (point2 - point1).normalized;
+        Vector3 right = Vector3.Cross(up, Vector3.forward).normalized;
+        if (right == Vector3.zero) right = Vector3.Cross(up, Vector3.up).normalized;
+        Vector3 forward = Vector3.Cross(up, right).normalized;
+        
+        // 绘制顶部和底部的半球
+        DrawWireHemisphere(point1, -up, right, forward, radius, color);
+        DrawWireHemisphere(point2, up, right, forward, radius, color);
+        
+        // 绘制中间的圆柱部分
+        int segments = 12;
+        for (int i = 0; i < segments; i++)
+        {
+            float angle1 = i * 360f / segments * Mathf.Deg2Rad;
+            float angle2 = (i + 1) * 360f / segments * Mathf.Deg2Rad;
+            
+            Vector3 offset1 = right * Mathf.Cos(angle1) * radius + forward * Mathf.Sin(angle1) * radius;
+            Vector3 offset2 = right * Mathf.Cos(angle2) * radius + forward * Mathf.Sin(angle2) * radius;
+            
+            Debug.DrawLine(point1 + offset1, point2 + offset1, color);
+            Debug.DrawLine(point1 + offset1, point1 + offset2, color);
+            Debug.DrawLine(point2 + offset1, point2 + offset2, color);
+        }
+    }
+
+    // 绘制线框半球
+    void DrawWireHemisphere(Vector3 center, Vector3 normal, Vector3 right, Vector3 forward, float radius, Color color)
+    {
+        int segments = 12;
+        int rings = 3;
+        
+        for (int ring = 1; ring <= rings; ring++)
+        {
+            float ringAngle = ring * 90f / rings * Mathf.Deg2Rad;
+            float ringRadius = Mathf.Sin(ringAngle) * radius;
+            float ringHeight = Mathf.Cos(ringAngle) * radius;
+            
+            for (int i = 0; i < segments; i++)
+            {
+                float angle1 = i * 360f / segments * Mathf.Deg2Rad;
+                float angle2 = (i + 1) * 360f / segments * Mathf.Deg2Rad;
+                
+                Vector3 point1 = center + normal * ringHeight +
+                                right * Mathf.Cos(angle1) * ringRadius +
+                                forward * Mathf.Sin(angle1) * ringRadius;
+                
+                Vector3 point2 = center + normal * ringHeight +
+                                right * Mathf.Cos(angle2) * ringRadius +
+                                forward * Mathf.Sin(angle2) * ringRadius;
+                
+                Debug.DrawLine(point1, point2, color);
+                
+                // 绘制到中心的连接线
+                if (i % 3 == 0)
+                {
+                    Debug.DrawLine(center, point1, color);
+                }
+            }
+        }
     }
 
     public bool IsHittingBuilding()
