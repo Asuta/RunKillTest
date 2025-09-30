@@ -8,16 +8,16 @@ public class EnemyBullet : MonoBehaviour
     public Enemy createEnemy;
     [SerializeField]
     private bool isBack;
-    // Start is called once before the first execution of Update after the MonoBehaviour is created
+    // Start在MonoBehaviour创建后，在第一次执行Update之前被调用一次
     void Start()
     {
 
     }
 
-    // Update is called once per frame
+    // Update每帧调用一次
     void Update()
     {
-        // move towards target
+        // 向目标移动
         if (target != null)
         {
             Vector3 direction = (target.position - transform.position).normalized;
@@ -25,7 +25,7 @@ public class EnemyBullet : MonoBehaviour
         }
         else if (isBack || target == null)
         {
-            // no target, destroy self
+            // 没有目标，销毁自身
             Destroy(gameObject);
         }
     }
@@ -44,11 +44,11 @@ public class EnemyBullet : MonoBehaviour
         }
         else
         {
-            // Debug.Log("Enemy Bullet OnTriggerEnter:" + other.gameObject.name);
+            // Debug.Log("敌人子弹触发进入:" + other.gameObject.name);
             if (other.gameObject.name == "PlayerHit")
             {
-                // hit the player
-                Debug.Log("Enemy Bullet plaer hit");
+                // 击中玩家
+                Debug.Log("敌人子弹击中玩家");
                 isBack = true;
                 //让自己的mesh 变成绿色
                 GetComponent<MeshRenderer>().material.color = Color.green;
@@ -64,19 +64,19 @@ public class EnemyBullet : MonoBehaviour
 
             if (other.gameObject.name == "PlayerDefense")
             {
-                // hit the player
-                Debug.Log("Enemy Bullet Hit Defense");
+                // 击中玩家
+                Debug.Log("敌人子弹击中防御");
                 Destroy(gameObject);
                 // createEnemy.OnHitDefense();
             }
 
             if (other.gameObject.name == "CapsuleBody")
             {
-                // hit the player
-                Debug.Log("Enemy Bullet Player");
+                // 击中玩家
+                Debug.Log("敌人子弹击中玩家身体");
                 other.attachedRigidbody.GetComponent<ICanBeHit>().TakeDamage(20);
 
-                // destroy this bullet
+                // 销毁这颗子弹
                 Destroy(gameObject);
             }
 
