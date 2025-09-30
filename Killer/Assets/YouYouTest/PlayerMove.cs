@@ -396,7 +396,7 @@ public class PlayerMove : MonoBehaviour
         // 冲刺结束时速度归零
         if (thisRb != null)
         {
-            thisRb.linearVelocity = Vector3.zero;
+            thisRb.linearVelocity = forwardTarget.forward*moveSpeed;
         }
 
         if (IsGrounded())
