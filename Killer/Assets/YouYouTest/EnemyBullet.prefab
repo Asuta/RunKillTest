@@ -129,6 +129,7 @@ MonoBehaviour:
   createEnemy: {fileID: 0}
   greenEffect: {fileID: 5652809449961144091}
   redEffect: {fileID: 1785699272862439271}
+  changeEffect: {fileID: 1914024086683688, guid: e24939c1016afa144bce090cffb5a01b, type: 3}
   isBack: 0
 --- !u!54 &4202343395451113043
 Rigidbody:

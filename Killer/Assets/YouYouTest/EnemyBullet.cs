@@ -9,6 +9,7 @@ public class EnemyBullet : MonoBehaviour
     public Enemy createEnemy;
     public GameObject greenEffect;
     public GameObject redEffect;
+    public GameObject changeEffect;
     [SerializeField]
     private bool isBack;
     private bool currentEffectState; // 跟踪当前效果状态
@@ -106,6 +107,12 @@ public class EnemyBullet : MonoBehaviour
                 // isBack为true时：关闭redEffect，打开greenEffect
                 redEffect.SetActive(false);
                 greenEffect.SetActive(true);
+                
+                // 当从false切换到true时，生成changeEffect特效
+                if (!currentEffectState && changeEffect != null)
+                {
+                    Instantiate(changeEffect, transform.position, transform.rotation);
+                }
             }
             else
             {
