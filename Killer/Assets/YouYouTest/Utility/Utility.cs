@@ -18,7 +18,7 @@ public static class Utility
 
 
 
-public static class CustomLog
+public static class CustomLog 
 {
     // // define a enum
     // public enum LogLevel

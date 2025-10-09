@@ -14,7 +14,7 @@ public class Player : MonoBehaviour, ICanBeHit
     }
 
     public int health = 1;
-    public GameObject deathRed;
+    public GameObject deathRed; 
     private Vector3 initialPosition; // 存储初始位置
     private Vector3 initialRotation; // 存储初始旋转
 
