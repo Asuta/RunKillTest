@@ -19,7 +19,7 @@ public class VRPlayer : MonoBehaviour
     public LayerMask groundLayerMask; // 地面层级
     
     // 状态管理
-    private enum MovementState { Grounded, Jumping, Falling, Dashing, HookDashing }
+    private enum MovementState { Grounded, Jumping, Falling, Dashing, WallSliding, HookDashing }
     private MovementState currentState = MovementState.Grounded;
 
     [Header("冲刺设置")]
@@ -44,6 +44,11 @@ public class VRPlayer : MonoBehaviour
 
     // 转向相关
     private bool rotationArmed = true; // 只有回到中立区后才允许下一次触发
+
+    // 贴墙滑行相关
+    private Vector3 wallNormal; // 存储墙面法线
+    private float wallSlideTimer = 0f; // 贴墙计时器
+    private Vector3 wallSlideDirection; // 存储贴墙滑行方向（投影向量）
     
     // Start is called once before the first execution of Update after the MonoBehaviour is created
     void Start()
@@ -81,6 +86,9 @@ public class VRPlayer : MonoBehaviour
         // 处理转向输入
         HandleRotation();
 
+        // 处理贴墙滑行
+        HandleWallSliding();
+
         // 更新状态
         UpdateState();
     }
@@ -91,6 +99,7 @@ public class VRPlayer : MonoBehaviour
         HandleMovement();
         HandleDashMovement();
         HandleHookDashMovement(); // 处理hook冲刺移动
+        HandleWallSlideMovement(); // 处理贴墙滑行移动
     }
     
     /// <summary>
@@ -217,7 +226,9 @@ public class VRPlayer : MonoBehaviour
     /// <returns>是否可以跳跃</returns>
     private bool CanJump()
     {
-        return IsGrounded() && currentState != MovementState.Dashing && currentState != MovementState.HookDashing;
+        return (IsGrounded() || currentState == MovementState.WallSliding) &&
+               currentState != MovementState.Dashing &&
+               currentState != MovementState.HookDashing;
     }
     
     /// <summary>
@@ -228,9 +239,23 @@ public class VRPlayer : MonoBehaviour
         if (thisRb == null)
             return;
             
-        // 给刚体一个向上的速度来实现跳跃
-        Vector3 currentVelocity = thisRb.linearVelocity;
-        thisRb.linearVelocity = new Vector3(currentVelocity.x, jumpForce, currentVelocity.z);
+        // 如果当前是贴墙滑行状态，先退出滑行状态并添加横向速度
+        if (currentState == MovementState.WallSliding)
+        {
+            // 使用头部的前方方向作为速度方向，保持速度大小不变
+            Vector3 horizontalVelocity = head.forward.normalized * moveSpeed;
+            
+            // 给刚体一个向上的速度和横向速度来实现贴墙跳跃
+            thisRb.linearVelocity = new Vector3(horizontalVelocity.x, jumpForce, horizontalVelocity.z);
+            
+            ExitWallSliding();
+        }
+        else
+        {
+            // 普通跳跃：给刚体一个向上的速度来实现跳跃
+            Vector3 currentVelocity = thisRb.linearVelocity;
+            thisRb.linearVelocity = new Vector3(currentVelocity.x, jumpForce, currentVelocity.z);
+        }
         
         // 更新状态为跳跃
         currentState = MovementState.Jumping;
@@ -476,6 +501,159 @@ public class VRPlayer : MonoBehaviour
             {
                 EndHookDash();
             }
+        }
+    }
+    #endregion
+
+    #region 贴墙滑行方法
+    void HandleWallSliding()
+    {
+        if (currentState == MovementState.WallSliding)
+        {
+            // 更新贴墙计时器
+            wallSlideTimer += Time.deltaTime;
+
+            // 持续检测是否还贴在墙上
+            CheckWallAttachment();
+
+            // 贴墙滑行时的特殊逻辑（例如减速等）
+            HandleWallSlideMovement();
+        }
+    }
+
+    void EnterWallSliding(Vector3 normal)
+    {
+        currentState = MovementState.WallSliding;
+        wallNormal = normal;
+        wallSlideTimer = 0f;
+
+        // 禁用刚体重力
+        if (thisRb != null)
+        {
+            thisRb.useGravity = false;
+        }
+    }
+
+    void ExitWallSliding()
+    {
+        if (currentState == MovementState.WallSliding)
+        {
+            // 重新启用刚体重力
+            if (thisRb != null)
+            {
+                thisRb.useGravity = true;
+            }
+
+            // 根据当前是否在地面来决定下一个状态
+            if (IsGrounded())
+                currentState = MovementState.Grounded;
+            else
+                currentState = MovementState.Falling;
+        }
+    }
+
+    void CheckWallAttachment()
+    {
+        if (body == null)
+            return;
+
+        // 从body位置向墙面法线的反方向发射黄色射线
+        Vector3 rayDirection = -wallNormal;
+        Ray ray = new Ray(body.position, rayDirection);
+
+        // 绘制黄色射线
+        Color rayColor = Color.yellow;
+        // 使用RaycastAll检测所有碰撞，然后过滤出Wall tag的物体
+        RaycastHit[] hits = Physics.RaycastAll(ray, raycastDistance);
+        bool stillAttached = false;
+
+        foreach (RaycastHit hitInfo in hits)
+        {
+            if (hitInfo.collider.CompareTag("Wall"))
+            {
+                stillAttached = true;
+                break;
+            }
+        }
+
+        if (!stillAttached)
+        {
+            // 如果射线没有检测到墙体，退出贴墙状态
+            ExitWallSliding();
+        }
+
+        // 在Scene视图中绘制射线，持续0.5秒
+        Debug.DrawRay(body.position, rayDirection * raycastDistance, rayColor, 0.5f);
+    }
+
+    void HandleWallSlideMovement()
+    {
+        if (thisRb == null)
+            return;
+
+        // 贴墙滑行时的移动逻辑
+        // 可以在这里添加减速或其他特殊移动效果
+        Vector3 currentVelocity = thisRb.linearVelocity;
+
+        // 示例：在墙上时减少水平速度
+        Vector3 horizontalVelocity = new Vector3(currentVelocity.x * 0.8f, currentVelocity.y, currentVelocity.z * 0.8f);
+        thisRb.linearVelocity = horizontalVelocity;
+    }
+    #endregion
+
+    #region 碰撞检测
+    void OnCollisionEnter(Collision collision)
+    {
+        // 检测碰撞物体是否为Wall
+        if (collision.gameObject.CompareTag("Wall"))
+        {
+            // 获取第一个接触点的法线
+            if (collision.contactCount > 0)
+            {
+                ContactPoint contact = collision.GetContact(0);
+                Vector3 normal = contact.normal;
+
+                // 从碰撞点绘制法线（红色）
+                Debug.DrawRay(contact.point, normal * 2f, Color.red, 2f);
+
+                // 计算速度在法线平面上的投影向量
+                if (thisRb != null)
+                {
+                    Vector3 velocity = thisRb.linearVelocity;
+                    Vector3 projection = Vector3.ProjectOnPlane(velocity, normal);
+
+                    // Y轴归零，变成水平向量
+                    Vector3 horizontalProjection = new Vector3(projection.x, 0, projection.z);
+
+                    // 长度重置为1
+                    if (horizontalProjection != Vector3.zero)
+                    {
+                        horizontalProjection = horizontalProjection.normalized;
+                    }
+
+                    // 从碰撞点绘制投影向量（绿色）
+                    Debug.DrawRay(contact.point, horizontalProjection, Color.green, 2f);
+
+                    // 检查投影向量是否为垂直方向（没有水平分量）
+                    if (horizontalProjection != Vector3.zero)
+                    {
+                        // 保存投影向量用于贴墙滑行
+                        wallSlideDirection = horizontalProjection;
+
+                        // 进入贴墙滑行状态
+                        EnterWallSliding(normal);
+                    }
+                }
+            }
+        }
+    }
+
+    void OnCollisionExit(Collision collision)
+    {
+        // 离开墙体时退出贴墙滑行状态
+        if (collision.gameObject.CompareTag("Wall") && currentState == MovementState.WallSliding)
+        {
+            ExitWallSliding();
         }
     }
     #endregion
