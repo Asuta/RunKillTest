@@ -19,7 +19,7 @@ public class VRPlayer : MonoBehaviour
     public LayerMask groundLayerMask; // 地面层级
     
     // 状态管理
-    private enum MovementState { Grounded, Jumping, Falling, Dashing }
+    private enum MovementState { Grounded, Jumping, Falling, Dashing, HookDashing }
     private MovementState currentState = MovementState.Grounded;
 
     [Header("冲刺设置")]
@@ -31,6 +31,12 @@ public class VRPlayer : MonoBehaviour
     private float dashTimer = 0f;
     private float dashCooldownTimer = 0f;
     private Vector3 dashDirection;
+
+    // hook冲刺相关
+    private Transform hookTarget; // 目标hook的Transform
+    private float hookDashTimer = 0f; // hook冲刺计时器
+    private float hookDashDuration = 0.3f; // hook冲刺持续时间
+    private Vector3 hookDashDirection; // hook冲刺方向
 
     [Header("转向设置")]
     public float rotationAngle = 30f; // 每次转向的角度
@@ -69,6 +75,9 @@ public class VRPlayer : MonoBehaviour
         // 处理冲刺输入
         HandleDash();
 
+        // 处理hook冲刺输入
+        HandleHookDash();
+
         // 处理转向输入
         HandleRotation();
 
@@ -81,6 +90,7 @@ public class VRPlayer : MonoBehaviour
         // 在FixedUpdate中处理移动，确保物理计算的一致性
         HandleMovement();
         HandleDashMovement();
+        HandleHookDashMovement(); // 处理hook冲刺移动
     }
     
     /// <summary>
@@ -134,7 +144,7 @@ public class VRPlayer : MonoBehaviour
             // 使用Lerp逐渐减速
             thisRb.linearVelocity = Vector3.Lerp(currentVelocity, targetVelocity, decelerationSpeed * Time.fixedDeltaTime);
         }
-        else if (currentState != MovementState.Dashing)
+        else if (currentState != MovementState.Dashing && currentState != MovementState.HookDashing)
         {
             // 归一化移动方向并应用速度到刚体，只控制x和z轴，保持y轴速度不变
             Vector3 normalizedDirection = moveDirection.normalized;
@@ -170,8 +180,8 @@ public class VRPlayer : MonoBehaviour
             hitGround = true;
         }
 
-        // 更新状态（冲刺状态下不更新地面状态）
-        if (currentState != MovementState.Dashing)
+        // 更新状态（冲刺状态和hook冲刺状态下不更新地面状态）
+        if (currentState != MovementState.Dashing && currentState != MovementState.HookDashing)
         {
             if (hitGround && currentState == MovementState.Falling)
             {
@@ -207,7 +217,7 @@ public class VRPlayer : MonoBehaviour
     /// <returns>是否可以跳跃</returns>
     private bool CanJump()
     {
-        return IsGrounded() && currentState != MovementState.Dashing;
+        return IsGrounded() && currentState != MovementState.Dashing && currentState != MovementState.HookDashing;
     }
     
     /// <summary>
@@ -399,4 +409,74 @@ public class VRPlayer : MonoBehaviour
     {
         return currentState == MovementState.Grounded;
     }
+
+    #region hook冲刺方法
+    void HandleHookDash()
+    {
+        // 检测hook冲刺输入（使用右手柄的SecondaryButton，通常是B键）
+        bool hookDashInput = InputActionsManager.Actions.XRIRightInteraction.SecondaryButton.IsPressed();
+        
+        if (hookDashInput && CanHookDash())
+        {
+            StartHookDash();
+        }
+
+        // 更新hook冲刺计时器
+        if (currentState == MovementState.HookDashing)
+        {
+            hookDashTimer -= Time.deltaTime;
+            if (hookDashTimer <= 0f)
+            {
+                EndHookDash();
+            }
+        }
+    }
+
+    private bool CanHookDash()
+    {
+        // 检查GameManager中是否有ClosestAngleHook，并且当前不在hook冲刺状态
+        return GameManager.Instance.ClosestAngleHook != null &&
+               currentState != MovementState.HookDashing;
+    }
+
+    void StartHookDash()
+    {
+        currentState = MovementState.HookDashing;
+        hookDashTimer = hookDashDuration;
+        hookTarget = GameManager.Instance.ClosestAngleHook;
+
+        // 计算冲向hook的方向
+        if (hookTarget != null)
+        {
+            hookDashDirection = (hookTarget.position - transform.position).normalized;
+        }
+    }
+
+    void EndHookDash()
+    {
+        // 到达hook位置后进入浮空状态，并归零速度
+        currentState = MovementState.Falling;
+        if (thisRb != null)
+        {
+            thisRb.linearVelocity = thisRb.linearVelocity.normalized * 6f;
+        }
+    }
+
+    void HandleHookDashMovement()
+    {
+        if (currentState == MovementState.HookDashing && thisRb != null && hookTarget != null)
+        {
+            // 以冲刺速度冲向hook目标位置（使用立体的实际方向，包含Y轴分量）
+            Vector3 hookDashVelocity = hookDashDirection * dashSpeed;
+            thisRb.linearVelocity = hookDashVelocity;
+
+            // 检查是否到达hook位置附近
+            float distanceToHook = Vector3.Distance(transform.position, hookTarget.position);
+            if (distanceToHook < 1f) // 到达目标附近
+            {
+                EndHookDash();
+            }
+        }
+    }
+    #endregion
 }

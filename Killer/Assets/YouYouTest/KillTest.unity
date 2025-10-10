@@ -14461,6 +14461,7 @@ GameObject:
   - component: {fileID: 9158987136966061957}
   - component: {fileID: 9158987136966061958}
   - component: {fileID: 9158987136966061959}
+  - component: {fileID: 9158987136966061960}
   m_Layer: 0
   m_Name: VRPlayer
   m_TagString: Untagged
@@ -14867,7 +14868,6 @@ MonoBehaviour:
   dashDuration: 0.3
   dashCooldown: 1
   rotationAngle: 30
-  rotationCooldown: 0.3
   rotationDeadzone: 0.2
 --- !u!114 &9158987136966061959
 MonoBehaviour:
@@ -14881,6 +14881,19 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 2b264dab7b020fe43b471125d6376305, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+--- !u!114 &9158987136966061960
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 4959901384725437265}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: b2585163a8b90be49aa04ad4ca45a4a8, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  playerCameraT: {fileID: 3083084464679903826}
 --- !u!1660057539 &9223372036854775807
 SceneRoots:
   m_ObjectHideFlags: 0
