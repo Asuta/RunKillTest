@@ -26,11 +26,18 @@ public class VRPlayer : MonoBehaviour
     public float dashSpeed = 15f; // 冲刺速度
     public float dashDuration = 0.3f; // 冲刺持续时间
     public float dashCooldown = 1f; // 冲刺冷却时间
-    
+
     // 冲刺相关
     private float dashTimer = 0f;
     private float dashCooldownTimer = 0f;
     private Vector3 dashDirection;
+
+    [Header("转向设置")]
+    public float rotationAngle = 30f; // 每次转向的角度
+    public float rotationDeadzone = 0.2f; // 摇杆中立区，必须回到中立区后才可再次触发
+
+    // 转向相关
+    private bool rotationArmed = true; // 只有回到中立区后才允许下一次触发
     
     // Start is called once before the first execution of Update after the MonoBehaviour is created
     void Start()
@@ -49,19 +56,22 @@ public class VRPlayer : MonoBehaviour
     {
         // 直接使用强类型属性访问 actions
         Vector2 moveInput = InputActionsManager.Actions.XRILeftLocomotion.Move.ReadValue<Vector2>();
-        
+
         // 计算移动方向
         CalculateMovement(moveInput);
-        
+
         // 检测地面
         CheckGrounded();
-        
+
         // 处理跳跃输入
         HandleJump();
-        
+
         // 处理冲刺输入
         HandleDash();
-        
+
+        // 处理转向输入
+        HandleRotation();
+
         // 更新状态
         UpdateState();
     }
@@ -303,7 +313,72 @@ public class VRPlayer : MonoBehaviour
             thisRb.linearVelocity = dashVelocity;
         }
     }
-    
+
+    /// <summary>
+    /// 处理转向输入 - 右摇杆控制转向
+    /// </summary>
+    void HandleRotation()
+    {
+        // 读取右摇杆的输入
+        Vector2 rotationInput = InputActionsManager.Actions.XRIRightLocomotion.Move.ReadValue<Vector2>();
+        float x = rotationInput.x;
+
+        // 需要回到中立区后才允许再次触发，避免抖动导致的反向触发
+        if (Mathf.Abs(x) < rotationDeadzone)
+        {
+            rotationArmed = true;
+        }
+
+        if (rotationArmed)
+        {
+            if (x >= 0.5f)
+            {
+                RotateAroundHead(rotationAngle);
+                rotationArmed = false;
+            }
+            else if (x <= -0.5f)
+            {
+                RotateAroundHead(-rotationAngle);
+                rotationArmed = false;
+            }
+        }
+    }
+
+    /// <summary>
+    /// 以head为中心旋转this.transform
+    /// </summary>
+    /// <param name="angle">旋转角度（正数为顺时针，负数为逆时针）</param>
+    void RotateAroundHead(float angle)
+    {
+        if (head == null || thisRb == null)
+            return;
+
+        // 获取head的世界坐标位置
+        Vector3 headPosition = head.position;
+
+        // 计算旋转前后的位置和旋转差异
+        Vector3 currentPosition = transform.position;
+        Quaternion currentRotation = transform.rotation;
+
+        // 计算从当前位置到head的向量
+        Vector3 directionToHead = currentPosition - headPosition;
+
+        // 创建旋转四元数（绕Y轴旋转）
+        Quaternion rotation = Quaternion.Euler(0, angle, 0);
+
+        // 计算旋转后的新位置
+        Vector3 newDirection = rotation * directionToHead;
+        Vector3 newPosition = headPosition + newDirection;
+
+        // 计算新的旋转
+        Quaternion newRotation = rotation * currentRotation;
+
+        // 使用 Rigidbody.MovePosition 和 MoveRotation 来移动和旋转
+        // 这样不会和物理引擎冲突
+        thisRb.MovePosition(newPosition);
+        thisRb.MoveRotation(newRotation);
+    }
+
     /// <summary>
     /// 更新状态
     /// </summary>
@@ -315,7 +390,7 @@ public class VRPlayer : MonoBehaviour
             currentState = MovementState.Falling;
         }
     }
-    
+
     /// <summary>
     /// 检查是否在地面上
     /// </summary>
