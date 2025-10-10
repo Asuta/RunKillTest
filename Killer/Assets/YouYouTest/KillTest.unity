@@ -14858,6 +14858,11 @@ MonoBehaviour:
   moveSpeed: 3
   decelerationSpeed: 5
   moveDirection: {x: 0, y: 0, z: 0}
+  jumpForce: 8
+  raycastDistance: 0.46
+  groundLayerMask:
+    serializedVersion: 2
+    m_Bits: 0
 --- !u!114 &9158987136966061959
 MonoBehaviour:
   m_ObjectHideFlags: 0

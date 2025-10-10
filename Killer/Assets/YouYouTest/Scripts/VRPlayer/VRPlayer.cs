@@ -127,25 +127,132 @@ public class VRPlayer : MonoBehaviour
         if (body == null)
             return;
             
-        // 使用射线检测地面
-        Vector3 origin = body.position;
-        Vector3 direction = Vector3.down;
-        
-        // 在Scene视图中绘制射线，便于调试
-        Color rayColor = IsGrounded() ? Color.green : Color.red;
-        Debug.DrawRay(origin, direction * raycastDistance, rayColor);
-        
-        // 进行射线检测
-        bool isGrounded = Physics.Raycast(origin, direction, raycastDistance, groundLayerMask);
-        
+        // 使用CapsuleCast进行有厚度的地面检测，参考PlayerMove.cs的实现
+        // 胶囊体参数：底部点、顶部点、半径
+        Vector3 bottomPoint = body.position + Vector3.down * 0.1f; // 稍微向下偏移
+        Vector3 topPoint = body.position + Vector3.up * 0.1f;      // 稍微向上偏移
+        float capsuleRadius = 0.6f; // 胶囊体半径，可以根据需要调整
+        RaycastHit hit;
+
+        // 绘制检测区域（红色表示未命中，绿色表示命中）
+        Color rayColor = Color.red;
+        bool hitGround = false;
+
+        // 使用CapsuleCast进行体积检测
+        if (Physics.CapsuleCast(bottomPoint, topPoint, capsuleRadius, Vector3.down, out hit,
+                               raycastDistance, groundLayerMask))
+        {
+            rayColor = Color.green;
+            hitGround = true;
+        }
+
         // 更新状态
-        if (isGrounded && currentState == MovementState.Falling)
+        if (hitGround && currentState == MovementState.Falling)
         {
             currentState = MovementState.Grounded;
         }
-        else if (!isGrounded && currentState == MovementState.Grounded)
+        else if (!hitGround && currentState == MovementState.Grounded)
         {
             currentState = MovementState.Falling;
+        }
+
+        // 在Scene视图中绘制CapsuleCast的检测区域
+        DrawCapsuleCastGizmo(bottomPoint, topPoint, capsuleRadius, Vector3.down * raycastDistance, rayColor);
+    }
+    
+    /// <summary>
+    /// 辅助方法：绘制CapsuleCast的可视化区域，参考PlayerMove.cs的实现
+    /// </summary>
+    void DrawCapsuleCastGizmo(Vector3 point1, Vector3 point2, float radius, Vector3 direction, Color color)
+    {
+        // 绘制起始胶囊体
+        DrawWireCapsule(point1, point2, radius, color);
+        
+        // 绘制结束胶囊体
+        DrawWireCapsule(point1 + direction, point2 + direction, radius, color);
+        
+        // 绘制连接线（胶囊体的边缘）
+        Vector3 up = (point2 - point1).normalized;
+        Vector3 right = Vector3.Cross(up, Vector3.forward).normalized;
+        if (right == Vector3.zero) right = Vector3.Cross(up, Vector3.up).normalized;
+        Vector3 forward = Vector3.Cross(up, right).normalized;
+        
+        // 绘制4个方向的连接线
+        for (int i = 0; i < 4; i++)
+        {
+            float angle = i * 90f * Mathf.Deg2Rad;
+            Vector3 offset = right * Mathf.Cos(angle) * radius + forward * Mathf.Sin(angle) * radius;
+            
+            Debug.DrawLine(point1 + offset, point1 + direction + offset, color);
+            Debug.DrawLine(point2 + offset, point2 + direction + offset, color);
+        }
+    }
+
+    /// <summary>
+    /// 绘制线框胶囊体，参考PlayerMove.cs的实现
+    /// </summary>
+    void DrawWireCapsule(Vector3 point1, Vector3 point2, float radius, Color color)
+    {
+        Vector3 up = (point2 - point1).normalized;
+        Vector3 right = Vector3.Cross(up, Vector3.forward).normalized;
+        if (right == Vector3.zero) right = Vector3.Cross(up, Vector3.up).normalized;
+        Vector3 forward = Vector3.Cross(up, right).normalized;
+        
+        // 绘制顶部和底部的半球
+        DrawWireHemisphere(point1, -up, right, forward, radius, color);
+        DrawWireHemisphere(point2, up, right, forward, radius, color);
+        
+        // 绘制中间的圆柱部分
+        int segments = 12;
+        for (int i = 0; i < segments; i++)
+        {
+            float angle1 = i * 360f / segments * Mathf.Deg2Rad;
+            float angle2 = (i + 1) * 360f / segments * Mathf.Deg2Rad;
+            
+            Vector3 offset1 = right * Mathf.Cos(angle1) * radius + forward * Mathf.Sin(angle1) * radius;
+            Vector3 offset2 = right * Mathf.Cos(angle2) * radius + forward * Mathf.Sin(angle2) * radius;
+            
+            Debug.DrawLine(point1 + offset1, point2 + offset1, color);
+            Debug.DrawLine(point1 + offset1, point1 + offset2, color);
+            Debug.DrawLine(point2 + offset1, point2 + offset2, color);
+        }
+    }
+
+    /// <summary>
+    /// 绘制线框半球，参考PlayerMove.cs的实现
+    /// </summary>
+    void DrawWireHemisphere(Vector3 center, Vector3 normal, Vector3 right, Vector3 forward, float radius, Color color)
+    {
+        int segments = 12;
+        int rings = 3;
+        
+        for (int ring = 1; ring <= rings; ring++)
+        {
+            float ringAngle = ring * 90f / rings * Mathf.Deg2Rad;
+            float ringRadius = Mathf.Sin(ringAngle) * radius;
+            float ringHeight = Mathf.Cos(ringAngle) * radius;
+            
+            for (int i = 0; i < segments; i++)
+            {
+                float angle1 = i * 360f / segments * Mathf.Deg2Rad;
+                float angle2 = (i + 1) * 360f / segments * Mathf.Deg2Rad;
+                
+                Vector3 point1 = center + normal * ringHeight +
+                                right * Mathf.Cos(angle1) * ringRadius +
+                                forward * Mathf.Sin(angle1) * ringRadius;
+                
+                Vector3 point2 = center + normal * ringHeight +
+                                right * Mathf.Cos(angle2) * ringRadius +
+                                forward * Mathf.Sin(angle2) * ringRadius;
+                
+                Debug.DrawLine(point1, point2, color);
+                
+                // 绘制到中心的连接线
+                if (i % 3 == 0)
+                {
+                    Debug.DrawLine(center, point1, color);
+                }
+            }
         }
     }
     
