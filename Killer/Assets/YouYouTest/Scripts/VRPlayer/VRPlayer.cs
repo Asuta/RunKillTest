@@ -146,8 +146,8 @@ public class VRPlayer : MonoBehaviour, IPlayerHeadProvider
         if (moveInput.magnitude > 0.1f)
         {
             // 获取手柄的朝向，但只考虑水平方向的旋转
-            Vector3 handForward = leftHand.forward;
-            Vector3 handRight = leftHand.right;
+            Vector3 handForward = head.forward;
+            Vector3 handRight = head.right;
 
             // 将Y轴归零，确保只在水平面上移动
             handForward.y = 0;
