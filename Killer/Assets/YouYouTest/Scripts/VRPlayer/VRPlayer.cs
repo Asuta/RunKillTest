@@ -435,21 +435,21 @@ public class VRPlayer : MonoBehaviour, IPlayerHeadProvider
             return;
 
         // 获取body的世界坐标位置
-        Vector3 headPosition = body.position;
+        Vector3 bodyPosition = body.position;
 
         // 计算旋转前后的位置和旋转差异
         Vector3 currentPosition = transform.position;
         Quaternion currentRotation = transform.rotation;
 
         // 计算从当前位置到head的向量
-        Vector3 directionToHead = currentPosition - headPosition;
+        Vector3 directionToHead = currentPosition - bodyPosition;
 
         // 创建旋转四元数（绕Y轴旋转）
         Quaternion rotation = Quaternion.Euler(0, angle, 0);
 
         // 计算旋转后的新位置
         Vector3 newDirection = rotation * directionToHead;
-        Vector3 newPosition = headPosition + newDirection;
+        Vector3 newPosition = bodyPosition + newDirection;
 
         // 计算新的旋转
         Quaternion newRotation = rotation * currentRotation;
