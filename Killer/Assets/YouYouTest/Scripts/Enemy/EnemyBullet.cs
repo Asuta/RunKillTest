@@ -8,7 +8,9 @@ public class EnemyBullet : MonoBehaviour
     public Transform target;
     public Enemy createEnemy;
     public GameObject greenEffect;
+    public GameObject greenExplosion;
     public GameObject redEffect;
+    public GameObject redExplosion;
     public GameObject changeEffect;
     [SerializeField]
     private bool isBack;
@@ -33,6 +35,15 @@ public class EnemyBullet : MonoBehaviour
         else if (isBack || target == null)
         {
             // 没有目标，销毁自身
+            // 根据当前状态生成对应的特效
+            if (isBack && greenExplosion != null)
+            {
+                Instantiate(greenExplosion, transform.position, transform.rotation);
+            }
+            else if (!isBack && redExplosion != null)
+            {
+                Instantiate(redExplosion, transform.position, transform.rotation);
+            }
             Destroy(gameObject);
         }
     }
@@ -45,6 +56,11 @@ public class EnemyBullet : MonoBehaviour
             if (other.gameObject.tag == "Enemy")
             {
                 other.attachedRigidbody.GetComponent<Enemy>().OnHitByBullet();
+                // 根据当前状态生成对应的特效
+                if (isBack && greenExplosion != null)
+                {
+                    Instantiate(greenExplosion, transform.position, transform.rotation);
+                }
                 Destroy(gameObject);
 
             }
@@ -70,6 +86,11 @@ public class EnemyBullet : MonoBehaviour
                 }
                 else
                 {
+                    // 根据当前状态生成对应的特效
+                    if (isBack && greenExplosion != null)
+                    {
+                        Instantiate(greenExplosion, transform.position, transform.rotation);
+                    }
                     Destroy(gameObject);
                 }
             }
@@ -78,6 +99,15 @@ public class EnemyBullet : MonoBehaviour
             {
                 // 击中玩家
                 Debug.Log("敌人子弹击中防御");
+                // 根据当前状态生成对应的特效
+                if (isBack && greenExplosion != null)
+                {
+                    Instantiate(greenExplosion, transform.position, transform.rotation);
+                }
+                else if (!isBack && redExplosion != null)
+                {
+                    Instantiate(redExplosion, transform.position, transform.rotation);
+                }
                 Destroy(gameObject);
                 // createEnemy.OnHitDefense();
             }
@@ -88,6 +118,15 @@ public class EnemyBullet : MonoBehaviour
                 Debug.Log("敌人子弹击中玩家身体");
                 other.attachedRigidbody.GetComponent<ICanBeHit>().TakeDamage(20);
 
+                // 根据当前状态生成对应的特效
+                if (isBack && greenExplosion != null)
+                {
+                    Instantiate(greenExplosion, transform.position, transform.rotation);
+                }
+                else if (!isBack && redExplosion != null)
+                {
+                    Instantiate(redExplosion, transform.position, transform.rotation);
+                }
                 // 销毁这颗子弹
                 Destroy(gameObject);
             }
