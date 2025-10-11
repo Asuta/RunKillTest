@@ -2,58 +2,76 @@ using UnityEngine;
 
 public class VRPlayer : MonoBehaviour, IPlayerHeadProvider
 {
+    #region 组件引用
     public Transform leftHand;
     public Transform rightHand;
     public Transform body;
     public Transform head;
     private Rigidbody thisRb;
+    public VRBody vRBody;
+    #endregion
 
+    #region 移动设置
     [Header("移动设置")]
     public float moveSpeed = 3f;
     public float decelerationSpeed = 5f; // 减速速度
     public Vector3 moveDirection;
+    #endregion
 
+    #region 跳跃设置
     [Header("跳跃设置")]
     public float jumpForce = 8f; // 跳跃力度
     public float raycastDistance = 1.2f; // 地面检测距离
     public LayerMask groundLayerMask; // 地面层级
+    #endregion
 
-    // 状态管理
+    #region 状态管理
     private enum MovementState { Grounded, Jumping, Falling, Dashing, WallSliding, HookDashing }
     private MovementState currentState = MovementState.Grounded;
+    #endregion
 
+    #region 冲刺设置
     [Header("冲刺设置")]
     public float dashSpeed = 15f; // 冲刺速度
     public float dashDuration = 0.3f; // 冲刺持续时间
     public float dashCooldown = 1f; // 冲刺冷却时间
 
-    // 冲刺相关
+    // 冲刺相关私有变量
     private float dashTimer = 0f;
     private float dashCooldownTimer = 0f;
     private Vector3 dashDirection;
+    #endregion
 
+    #region Hook冲刺设置
     // hook冲刺相关
     private Transform hookTarget; // 目标hook的Transform
     private float hookDashTimer = 0f; // hook冲刺计时器
     private float hookDashDuration = 0.3f; // hook冲刺持续时间
     private Vector3 hookDashDirection; // hook冲刺方向
+    #endregion
 
+    #region 转向设置
     [Header("转向设置")]
     public float rotationAngle = 30f; // 每次转向的角度
     public float rotationDeadzone = 0.2f; // 摇杆中立区，必须回到中立区后才可再次触发
 
-    // 转向相关
+    // 转向相关私有变量
     private bool rotationArmed = true; // 只有回到中立区后才允许下一次触发
+    #endregion
 
-    // log setting
-    public bool needLog = false;
-
+    #region 贴墙滑行设置
     // 贴墙滑行相关
     private Vector3 wallNormal; // 存储墙面法线
     private float wallSlideTimer = 0f; // 贴墙计时器
     private Vector3 wallSlideDirection; // 存储贴墙滑行方向（投影向量）
-    public VRBody vRBody;
+    #endregion
 
+    #region 调试设置
+    // log setting
+    public bool needLog = false;
+    #endregion
+
+    #region Unity生命周期
     // Start is called once before the first execution of Update after the MonoBehaviour is created
     void Start()
     {
@@ -108,7 +126,9 @@ public class VRPlayer : MonoBehaviour, IPlayerHeadProvider
             HandleWallSlideMovement(); // 处理贴墙滑行移动
         }
     }
+    #endregion
 
+    #region 移动相关方法
     /// <summary>
     /// 根据摇杆输入计算移动方向
     /// </summary>
@@ -168,7 +188,9 @@ public class VRPlayer : MonoBehaviour, IPlayerHeadProvider
             thisRb.linearVelocity = horizontalVelocity;
         }
     }
+    #endregion
 
+    #region 地面检测
     /// <summary>
     /// 检测是否在地面上
     /// </summary>
@@ -213,6 +235,17 @@ public class VRPlayer : MonoBehaviour, IPlayerHeadProvider
         CapsuleWireframeDrawer.DrawCapsuleCastGizmo(bottomPoint, topPoint, capsuleRadius, Vector3.down * raycastDistance, rayColor);
     }
 
+    /// <summary>
+    /// 检查是否在地面上
+    /// </summary>
+    /// <returns>是否在地面上</returns>
+    private bool IsGrounded()
+    {
+        return currentState == MovementState.Grounded;
+    }
+    #endregion
+
+    #region 跳跃相关方法
     /// <summary>
     /// 处理跳跃输入
     /// </summary>
@@ -269,7 +302,9 @@ public class VRPlayer : MonoBehaviour, IPlayerHeadProvider
         // 更新状态为跳跃
         currentState = MovementState.Jumping;
     }
+    #endregion
 
+    #region 冲刺相关方法
     /// <summary>
     /// 处理冲刺输入
     /// </summary>
@@ -357,7 +392,9 @@ public class VRPlayer : MonoBehaviour, IPlayerHeadProvider
             thisRb.linearVelocity = dashVelocity;
         }
     }
+    #endregion
 
+    #region 转向相关方法
     /// <summary>
     /// 处理转向输入 - 右摇杆控制转向
     /// </summary>
@@ -422,7 +459,9 @@ public class VRPlayer : MonoBehaviour, IPlayerHeadProvider
         thisRb.MovePosition(newPosition);
         thisRb.MoveRotation(newRotation);
     }
+    #endregion
 
+    #region 状态更新
     /// <summary>
     /// 更新状态
     /// </summary>
@@ -434,15 +473,7 @@ public class VRPlayer : MonoBehaviour, IPlayerHeadProvider
             currentState = MovementState.Falling;
         }
     }
-
-    /// <summary>
-    /// 检查是否在地面上
-    /// </summary>
-    /// <returns>是否在地面上</returns>
-    private bool IsGrounded()
-    {
-        return currentState == MovementState.Grounded;
-    }
+    #endregion
 
     #region hook冲刺方法
     void HandleHookDash()
