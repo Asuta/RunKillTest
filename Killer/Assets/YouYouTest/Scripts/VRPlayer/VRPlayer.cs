@@ -173,21 +173,27 @@ public class VRPlayer : MonoBehaviour, IPlayerHeadProvider
         // 检查是否有摇杆输入
         bool hasInput = moveDirection.magnitude > 0.1f;
 
-        if (!hasInput)
+        if (IsGrounded() && !hasInput)
         {
-            // 如果没有输入，让水平方向速度渐渐归零
+            // 如果在地面上且没有摇杆输入，让水平方向速度渐渐归零
             Vector3 currentVelocity = thisRb.linearVelocity;
             Vector3 targetVelocity = new Vector3(0, currentVelocity.y, 0); // 只保留y轴速度
 
             // 使用Lerp逐渐减速
             thisRb.linearVelocity = Vector3.Lerp(currentVelocity, targetVelocity, decelerationSpeed * Time.fixedDeltaTime);
         }
-        else if (currentState != MovementState.Dashing && currentState != MovementState.HookDashing)
+        else if (moveDirection != Vector3.zero && currentState != MovementState.Dashing && currentState != MovementState.WallSliding && currentState != MovementState.HookDashing && IsGrounded())
         {
             // 归一化移动方向并应用速度到刚体，只控制x和z轴，保持y轴速度不变
             Vector3 normalizedDirection = moveDirection.normalized;
             Vector3 horizontalVelocity = new Vector3(normalizedDirection.x * moveSpeed, thisRb.linearVelocity.y, normalizedDirection.z * moveSpeed);
             thisRb.linearVelocity = horizontalVelocity;
+        }
+        else if (currentState == MovementState.WallSliding)
+        {
+            // 贴墙滑行状态：按照投影向量方向自动滑行，摇杆输入不起作用，Y轴速度为0
+            Vector3 wallSlideVelocity = new Vector3(wallSlideDirection.x * moveSpeed * 1.2f, 0, wallSlideDirection.z * moveSpeed * 1.2f);
+            thisRb.linearVelocity = wallSlideVelocity;
         }
     }
     #endregion
@@ -372,11 +378,13 @@ public class VRPlayer : MonoBehaviour, IPlayerHeadProvider
 
     void EndDash()
     {
-        // 冲刺结束时恢复正常移动
+        // 冲刺结束时速度设置为头部朝向的移动速度
         if (thisRb != null)
         {
-            Vector3 currentVelocity = thisRb.linearVelocity;
-            thisRb.linearVelocity = new Vector3(currentVelocity.x * 0.5f, currentVelocity.y, currentVelocity.z * 0.5f);
+            Vector3 headForward = head.forward;
+            headForward.y = 0; // 确保只在水平面上
+            headForward = headForward.normalized;
+            thisRb.linearVelocity = headForward * moveSpeed;
         }
 
         if (IsGrounded())
