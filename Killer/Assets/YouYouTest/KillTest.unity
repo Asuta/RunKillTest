@@ -5976,7 +5976,7 @@ GameObject:
   - component: {fileID: 702835019}
   m_Layer: 7
   m_Name: Sphere
-  m_TagString: Untagged
+  m_TagString: Player
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
@@ -6011,9 +6011,9 @@ SphereCollider:
     serializedVersion: 2
     m_Bits: 0
   m_LayerOverridePriority: 0
-  m_IsTrigger: 0
+  m_IsTrigger: 1
   m_ProvidesContacts: 0
-  m_Enabled: 0
+  m_Enabled: 1
   serializedVersion: 3
   m_Radius: 0.5
   m_Center: {x: 0, y: 0, z: 0}
@@ -7303,7 +7303,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 1
+  m_IsActive: 0
 --- !u!54 &921729346
 Rigidbody:
   m_ObjectHideFlags: 0
@@ -13695,7 +13695,7 @@ GameObject:
   - component: {fileID: 1938701844}
   m_Layer: 7
   m_Name: Body
-  m_TagString: Untagged
+  m_TagString: Player
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
@@ -15255,7 +15255,7 @@ Transform:
   m_GameObject: {fileID: 4959901384725437265}
   serializedVersion: 2
   m_LocalRotation: {x: -0, y: -0.78749335, z: -0, w: 0.61632323}
-  m_LocalPosition: {x: 186.57, y: 30.37, z: -312.78}
+  m_LocalPosition: {x: 193.12, y: 30.37, z: -314.39}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children:
@@ -15528,7 +15528,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 0
+  m_IsActive: 1
 --- !u!20 &5767171814535341968
 Camera:
   m_ObjectHideFlags: 0
