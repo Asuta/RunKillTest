@@ -47,10 +47,13 @@ public class Player : MonoBehaviour, ICanBeHit
 
     private void Respawn()
     {
-        // 重置玩家到初始位置
-        transform.position = initialPosition;
-        transform.rotation = Quaternion.Euler(initialRotation);
-        this.GetComponent<Rigidbody>().linearVelocity = Vector3.zero; // 重置速度
+        // 获取Rigidbody组件
+        Rigidbody rb = this.GetComponent<Rigidbody>();
+        
+        // 重置玩家到初始位置使用Rigidbody的MovePosition和MoveRotation
+        rb.MovePosition(initialPosition);
+        rb.MoveRotation(Quaternion.Euler(initialRotation));
+        rb.linearVelocity = Vector3.zero; // 重置速度
 
         // 隐藏红色面板
         deathRed.SetActive(false);
