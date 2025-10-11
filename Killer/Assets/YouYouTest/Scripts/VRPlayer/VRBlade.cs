@@ -45,10 +45,14 @@ public class VRBlade : MonoBehaviour
     public void SetBladeRed()
     {
         bladeMeshRenderer.material.color = Color.red;
+        PlayerHit.SetActive(true);
+        PlayerDefense.SetActive(false);
     }
     
     public void SetBladeBlack()
     {
         bladeMeshRenderer.material.color = Color.black;
+        PlayerHit.SetActive(false);
+        PlayerDefense.SetActive(true);
     }
 }
