@@ -254,6 +254,8 @@ public class VRPlayer : MonoBehaviour
             // 给刚体一个向上的速度和横向速度来实现贴墙跳跃
             thisRb.linearVelocity = new Vector3(horizontalVelocity.x, jumpForce, horizontalVelocity.z);
 
+            //log
+            CustomLog.Log(needLog, "执行贴墙跳跃  并退出贴墙滑行状态");
             ExitWallSliding();
         }
         else
@@ -651,7 +653,7 @@ public class VRPlayer : MonoBehaviour
                     Debug.DrawRay(contact.point, horizontalProjection, Color.green, 2f);
 
                     // 检查投影向量是否为垂直方向（没有水平分量）
-                    if (horizontalProjection != Vector3.zero)
+                    if (horizontalProjection != Vector3.zero && !IsGrounded())
                     {
                         // 保存投影向量用于贴墙滑行
                         wallSlideDirection = horizontalProjection;
@@ -673,6 +675,8 @@ public class VRPlayer : MonoBehaviour
         // 离开墙体时退出贴墙滑行状态
         if (collision.gameObject.CompareTag("Wall") && currentState == MovementState.WallSliding)
         {
+            //log 
+            CustomLog.Log(needLog, "离开墙体，退出贴墙滑行状态");
             ExitWallSliding();
         }
     }
