@@ -52,6 +52,7 @@ public class VRPlayer : MonoBehaviour
     private Vector3 wallNormal; // 存储墙面法线
     private float wallSlideTimer = 0f; // 贴墙计时器
     private Vector3 wallSlideDirection; // 存储贴墙滑行方向（投影向量）
+    public VRBody vRBody;
 
     // Start is called once before the first execution of Update after the MonoBehaviour is created
     void Start()
@@ -534,7 +535,7 @@ public class VRPlayer : MonoBehaviour
         currentState = MovementState.WallSliding;
         wallNormal = normal;
         wallSlideTimer = 0f;
-
+        vRBody.StopFollow();
         // 禁用刚体重力
         if (thisRb != null)
         {
@@ -548,6 +549,7 @@ public class VRPlayer : MonoBehaviour
     {
         if (currentState == MovementState.WallSliding)
         {
+            vRBody.StartFollow();
             // 重新启用刚体重力
             if (thisRb != null)
             {
