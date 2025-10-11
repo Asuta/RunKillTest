@@ -586,7 +586,7 @@ public class VRPlayer : MonoBehaviour
             if (hitInfo.collider.CompareTag("Wall"))
             {
                 stillAttached = true;
-                CustomLog.Log(needLog, "（黄色射线）贴墙滑行时检测到墙体");
+                // CustomLog.Log(needLog, "（黄色射线）贴墙滑行时检测到墙体");
                 break;
             }
         }
