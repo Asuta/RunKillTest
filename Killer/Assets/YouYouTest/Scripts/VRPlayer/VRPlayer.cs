@@ -7,17 +7,17 @@ public class VRPlayer : MonoBehaviour
     public Transform body;
     public Transform head;
     private Rigidbody thisRb;
-    
+
     [Header("移动设置")]
     public float moveSpeed = 3f;
     public float decelerationSpeed = 5f; // 减速速度
     public Vector3 moveDirection;
-    
+
     [Header("跳跃设置")]
     public float jumpForce = 8f; // 跳跃力度
     public float raycastDistance = 1.2f; // 地面检测距离
     public LayerMask groundLayerMask; // 地面层级
-    
+
     // 状态管理
     private enum MovementState { Grounded, Jumping, Falling, Dashing, WallSliding, HookDashing }
     private MovementState currentState = MovementState.Grounded;
@@ -45,16 +45,19 @@ public class VRPlayer : MonoBehaviour
     // 转向相关
     private bool rotationArmed = true; // 只有回到中立区后才允许下一次触发
 
+    // log setting
+    public bool needLog = false;
+
     // 贴墙滑行相关
     private Vector3 wallNormal; // 存储墙面法线
     private float wallSlideTimer = 0f; // 贴墙计时器
     private Vector3 wallSlideDirection; // 存储贴墙滑行方向（投影向量）
-    
+
     // Start is called once before the first execution of Update after the MonoBehaviour is created
     void Start()
     {
         thisRb = GetComponent<Rigidbody>();
-        
+
         // 如果没有设置地面层级，使用默认的Building层级
         if (groundLayerMask == 0)
         {
@@ -92,16 +95,19 @@ public class VRPlayer : MonoBehaviour
         // 更新状态
         UpdateState();
     }
-    
+
     void FixedUpdate()
     {
         // 在FixedUpdate中处理移动，确保物理计算的一致性
         HandleMovement();
         HandleDashMovement();
         HandleHookDashMovement(); // 处理hook冲刺移动
-        HandleWallSlideMovement(); // 处理贴墙滑行移动
+        if (currentState == MovementState.WallSliding)
+        {
+            HandleWallSlideMovement(); // 处理贴墙滑行移动
+        }
     }
-    
+
     /// <summary>
     /// 根据摇杆输入计算移动方向
     /// </summary>
@@ -119,20 +125,20 @@ public class VRPlayer : MonoBehaviour
             // 获取手柄的朝向，但只考虑水平方向的旋转
             Vector3 handForward = leftHand.forward;
             Vector3 handRight = leftHand.right;
-            
+
             // 将Y轴归零，确保只在水平面上移动
             handForward.y = 0;
             handRight.y = 0;
-            
+
             // 归一化方向向量
             handForward = handForward.normalized;
             handRight = handRight.normalized;
-            
+
             // 根据摇杆输入和头部朝向计算移动方向
             moveDirection = handForward * moveInput.y + handRight * moveInput.x;
         }
     }
-    
+
     /// <summary>
     /// 处理移动逻辑，参考PlayerMove.cs的实现
     /// </summary>
@@ -161,7 +167,7 @@ public class VRPlayer : MonoBehaviour
             thisRb.linearVelocity = horizontalVelocity;
         }
     }
-    
+
     /// <summary>
     /// 检测是否在地面上
     /// </summary>
@@ -169,7 +175,7 @@ public class VRPlayer : MonoBehaviour
     {
         if (body == null)
             return;
-            
+
         // 使用CapsuleCast进行有厚度的地面检测，参考PlayerMove.cs的实现
         // 胶囊体参数：底部点、顶部点、半径
         Vector3 bottomPoint = body.position + Vector3.down * 0.1f; // 稍微向下偏移
@@ -205,7 +211,7 @@ public class VRPlayer : MonoBehaviour
         // 在Scene视图中绘制CapsuleCast的检测区域
         CapsuleWireframeDrawer.DrawCapsuleCastGizmo(bottomPoint, topPoint, capsuleRadius, Vector3.down * raycastDistance, rayColor);
     }
-    
+
     /// <summary>
     /// 处理跳跃输入
     /// </summary>
@@ -213,13 +219,13 @@ public class VRPlayer : MonoBehaviour
     {
         // 检测跳跃输入（空格键）
         bool jumpInput = InputActionsManager.Actions.XRILeftInteraction.PrimaryButton.IsPressed();
-        
+
         if (jumpInput && CanJump())
         {
             PerformJump();
         }
     }
-    
+
     /// <summary>
     /// 检查是否可以跳跃
     /// </summary>
@@ -230,7 +236,7 @@ public class VRPlayer : MonoBehaviour
                currentState != MovementState.Dashing &&
                currentState != MovementState.HookDashing;
     }
-    
+
     /// <summary>
     /// 执行跳跃
     /// </summary>
@@ -238,16 +244,16 @@ public class VRPlayer : MonoBehaviour
     {
         if (thisRb == null)
             return;
-            
+
         // 如果当前是贴墙滑行状态，先退出滑行状态并添加横向速度
         if (currentState == MovementState.WallSliding)
         {
             // 使用头部的前方方向作为速度方向，保持速度大小不变
             Vector3 horizontalVelocity = head.forward.normalized * moveSpeed;
-            
+
             // 给刚体一个向上的速度和横向速度来实现贴墙跳跃
             thisRb.linearVelocity = new Vector3(horizontalVelocity.x, jumpForce, horizontalVelocity.z);
-            
+
             ExitWallSliding();
         }
         else
@@ -256,11 +262,11 @@ public class VRPlayer : MonoBehaviour
             Vector3 currentVelocity = thisRb.linearVelocity;
             thisRb.linearVelocity = new Vector3(currentVelocity.x, jumpForce, currentVelocity.z);
         }
-        
+
         // 更新状态为跳跃
         currentState = MovementState.Jumping;
     }
-    
+
     /// <summary>
     /// 处理冲刺输入
     /// </summary>
@@ -274,7 +280,7 @@ public class VRPlayer : MonoBehaviour
 
         // 检测冲刺输入（使用右手柄的PrimaryButton，通常是A键或B键）
         bool dashInput = InputActionsManager.Actions.XRIRightInteraction.PrimaryButton.IsPressed();
-        
+
         if (dashInput && CanDash())
         {
             StartDash();
@@ -440,7 +446,7 @@ public class VRPlayer : MonoBehaviour
     {
         // 检测hook冲刺输入（使用右手柄的SecondaryButton，通常是B键）
         bool hookDashInput = InputActionsManager.Actions.XRIRightInteraction.SecondaryButton.IsPressed();
-        
+
         if (hookDashInput && CanHookDash())
         {
             StartHookDash();
@@ -517,7 +523,7 @@ public class VRPlayer : MonoBehaviour
             CheckWallAttachment();
 
             // 贴墙滑行时的特殊逻辑（例如减速等）
-            HandleWallSlideMovement();
+            // HandleWallSlideMovement(); // 移动到FixedUpdate中处理
         }
     }
 
@@ -532,6 +538,8 @@ public class VRPlayer : MonoBehaviour
         {
             thisRb.useGravity = false;
         }
+
+        CustomLog.Log(needLog, "进入贴墙滑行状态");
     }
 
     void ExitWallSliding()
@@ -549,6 +557,8 @@ public class VRPlayer : MonoBehaviour
                 currentState = MovementState.Grounded;
             else
                 currentState = MovementState.Falling;
+
+            CustomLog.Log(needLog, "退出贴墙滑行状态");
         }
     }
 
@@ -564,7 +574,7 @@ public class VRPlayer : MonoBehaviour
         // 绘制黄色射线
         Color rayColor = Color.yellow;
         // 使用RaycastAll检测所有碰撞，然后过滤出Wall tag的物体
-        RaycastHit[] hits = Physics.RaycastAll(ray, raycastDistance);
+        RaycastHit[] hits = Physics.RaycastAll(ray, 6);
         bool stillAttached = false;
 
         foreach (RaycastHit hitInfo in hits)
@@ -572,18 +582,20 @@ public class VRPlayer : MonoBehaviour
             if (hitInfo.collider.CompareTag("Wall"))
             {
                 stillAttached = true;
+                CustomLog.Log(needLog, "（黄色射线）贴墙滑行时检测到墙体");
                 break;
             }
         }
 
         if (!stillAttached)
         {
+            CustomLog.Log(needLog, "贴墙滑行时未检测到墙体，退出贴墙状态");
             // 如果射线没有检测到墙体，退出贴墙状态
             ExitWallSliding();
         }
 
         // 在Scene视图中绘制射线，持续0.5秒
-        Debug.DrawRay(body.position, rayDirection * raycastDistance, rayColor, 0.5f);
+        Debug.DrawRay(body.position, rayDirection * raycastDistance, rayColor, 10f);
     }
 
     void HandleWallSlideMovement()
@@ -591,13 +603,9 @@ public class VRPlayer : MonoBehaviour
         if (thisRb == null)
             return;
 
-        // 贴墙滑行时的移动逻辑
-        // 可以在这里添加减速或其他特殊移动效果
-        Vector3 currentVelocity = thisRb.linearVelocity;
-
-        // 示例：在墙上时减少水平速度
-        Vector3 horizontalVelocity = new Vector3(currentVelocity.x * 0.8f, currentVelocity.y, currentVelocity.z * 0.8f);
-        thisRb.linearVelocity = horizontalVelocity;
+        // 贴墙滑行状态：按照投影向量方向自动滑行，Y轴速度为0
+        Vector3 wallSlideVelocity = new Vector3(wallSlideDirection.x * moveSpeed * 1.2f, 0, wallSlideDirection.z * moveSpeed * 1.2f);
+        thisRb.linearVelocity = wallSlideVelocity;
     }
     #endregion
 
@@ -607,11 +615,16 @@ public class VRPlayer : MonoBehaviour
         // 检测碰撞物体是否为Wall
         if (collision.gameObject.CompareTag("Wall"))
         {
+            CustomLog.Log(needLog, "检测到墙体碰撞");
+
             // 获取第一个接触点的法线
             if (collision.contactCount > 0)
             {
                 ContactPoint contact = collision.GetContact(0);
                 Vector3 normal = contact.normal;
+
+                // 输出法线信息
+                CustomLog.Log(needLog, $"碰撞点法线: {normal}");
 
                 // 从碰撞点绘制法线（红色）
                 Debug.DrawRay(contact.point, normal * 2f, Color.red, 2f);
@@ -631,6 +644,9 @@ public class VRPlayer : MonoBehaviour
                         horizontalProjection = horizontalProjection.normalized;
                     }
 
+                    // 输出投影向量信息
+                    CustomLog.Log(needLog, $"速度在法线平面上的投影向量 (Y轴归零, 长度1): {horizontalProjection}");
+
                     // 从碰撞点绘制投影向量（绿色）
                     Debug.DrawRay(contact.point, horizontalProjection, Color.green, 2f);
 
@@ -642,6 +658,10 @@ public class VRPlayer : MonoBehaviour
 
                         // 进入贴墙滑行状态
                         EnterWallSliding(normal);
+                    }
+                    else
+                    {
+                        CustomLog.Log(needLog, "投影向量为垂直方向，不进入滑行状态");
                     }
                 }
             }
