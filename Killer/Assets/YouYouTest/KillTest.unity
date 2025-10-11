@@ -3110,7 +3110,7 @@ GameObject:
   - component: {fileID: 303480465}
   - component: {fileID: 303480464}
   - component: {fileID: 303480463}
-  m_Layer: 0
+  m_Layer: 7
   m_Name: Cube (1)
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -5270,7 +5270,7 @@ GameObject:
   - component: {fileID: 571846435}
   - component: {fileID: 571846434}
   - component: {fileID: 571846433}
-  m_Layer: 0
+  m_Layer: 7
   m_Name: Cube
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -5974,7 +5974,7 @@ GameObject:
   - component: {fileID: 702835021}
   - component: {fileID: 702835020}
   - component: {fileID: 702835019}
-  m_Layer: 0
+  m_Layer: 7
   m_Name: Sphere
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -7832,7 +7832,7 @@ GameObject:
   - component: {fileID: 974107799}
   - component: {fileID: 974107798}
   - component: {fileID: 974107797}
-  m_Layer: 0
+  m_Layer: 7
   m_Name: PlayerDefense
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -9682,7 +9682,7 @@ GameObject:
   - component: {fileID: 1198078470}
   - component: {fileID: 1198078469}
   - component: {fileID: 1198078472}
-  m_Layer: 0
+  m_Layer: 7
   m_Name: Blade
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -13475,7 +13475,7 @@ GameObject:
   - component: {fileID: 1937006303}
   - component: {fileID: 1937006302}
   - component: {fileID: 1937006301}
-  m_Layer: 0
+  m_Layer: 7
   m_Name: PlayerHit
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -13584,7 +13584,7 @@ GameObject:
   - component: {fileID: 1938701845}
   - component: {fileID: 1938701847}
   - component: {fileID: 1938701844}
-  m_Layer: 0
+  m_Layer: 7
   m_Name: Body
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -15362,7 +15362,7 @@ GameObject:
   - component: {fileID: 1764914638109755385}
   - component: {fileID: 2966849649291780897}
   - component: {fileID: 476404409024224683}
-  m_Layer: 0
+  m_Layer: 7
   m_Name: RightCube
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -15411,7 +15411,7 @@ GameObject:
   - component: {fileID: 9158987136966061958}
   - component: {fileID: 9158987136966061959}
   - component: {fileID: 9158987136966061960}
-  m_Layer: 0
+  m_Layer: 7
   m_Name: VRPlayer
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -15503,7 +15503,7 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 3534411098447515399}
-  m_Layer: 0
+  m_Layer: 7
   m_Name: Camera Offset
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -15523,7 +15523,7 @@ GameObject:
   - component: {fileID: 8564085289613955270}
   - component: {fileID: 3152619794759383043}
   - component: {fileID: 3351851984864235374}
-  m_Layer: 0
+  m_Layer: 7
   m_Name: LeftCube
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -15543,7 +15543,7 @@ GameObject:
   - component: {fileID: 6034991259474032140}
   - component: {fileID: 7823160691603419857}
   - component: {fileID: 8928778748544976343}
-  m_Layer: 0
+  m_Layer: 7
   m_Name: Main Camera
   m_TagString: MainCamera
   m_Icon: {fileID: 0}

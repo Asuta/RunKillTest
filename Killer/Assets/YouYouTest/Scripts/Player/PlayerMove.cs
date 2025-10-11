@@ -1,7 +1,7 @@
 using UnityEngine;
 using System.Collections;
 
-public class PlayerMove : MonoBehaviour
+public class PlayerMove : MonoBehaviour,IPlayerHeadProvider
 {
     #region 移动设置
     [Header("移动设置")]
@@ -814,6 +814,17 @@ public class PlayerMove : MonoBehaviour
         // 示例：在墙上时减少水平速度
         Vector3 horizontalVelocity = new Vector3(currentVelocity.x * 0.8f, currentVelocity.y, currentVelocity.z * 0.8f);
         thisRb.linearVelocity = horizontalVelocity;
+    }
+    #endregion
+
+    #region IPlayerHeadProvider 实现
+    /// <summary>
+    /// 获取玩家头部的Transform
+    /// </summary>
+    /// <returns>玩家头部的Transform</returns>
+    public Transform GetPlayerHead()
+    {
+        return playerHead;
     }
     #endregion
 }

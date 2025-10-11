@@ -1,6 +1,6 @@
 using UnityEngine;
 
-public class VRPlayer : MonoBehaviour
+public class VRPlayer : MonoBehaviour, IPlayerHeadProvider
 {
     public Transform leftHand;
     public Transform rightHand;
@@ -681,6 +681,15 @@ public class VRPlayer : MonoBehaviour
             CustomLog.Log(needLog, "离开墙体，退出贴墙滑行状态");
             ExitWallSliding();
         }
+    }
+
+
+    #endregion
+
+    #region 接口实现
+    public Transform GetPlayerHead()
+    {
+        return head;
     }
     #endregion
 }

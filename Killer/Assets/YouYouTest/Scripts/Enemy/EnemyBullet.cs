@@ -54,8 +54,8 @@ public class EnemyBullet : MonoBehaviour
             // Debug.Log("敌人子弹触发进入:" + other.gameObject.name);
             if (other.gameObject.name == "PlayerHit")
             {
-                // 击中玩家
-                Debug.Log("敌人子弹击中玩家");
+                // 击中玩家的反击
+                Debug.Log("敌人子弹击中玩家的反击");
                 isBack = true;
                 // 只在状态改变时更新效果
                 if (currentEffectState != isBack)

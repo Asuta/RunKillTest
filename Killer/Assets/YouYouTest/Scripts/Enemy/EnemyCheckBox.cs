@@ -25,11 +25,11 @@ public class EnemyCheckBox : MonoBehaviour
             //find the rigdidbody assed to the collider
             Rigidbody playerRigidbody = other.attachedRigidbody;
 
-            //find the PlayerMove script assed to the playerRigidbody
-            PlayerMove playerMove = playerRigidbody.GetComponent<PlayerMove>();
-            if (playerMove != null)
+            //find the IPlayerHeadProvider interface implementation assed to the playerRigidbody
+            IPlayerHeadProvider playerHeadProvider = playerRigidbody.GetComponent<IPlayerHeadProvider>();
+            if (playerHeadProvider != null)
             {
-                enemy.SetTarget(playerMove.playerHead);   
+                enemy.SetTarget(playerHeadProvider.GetPlayerHead());
                 isFinded = true;
             }
             
