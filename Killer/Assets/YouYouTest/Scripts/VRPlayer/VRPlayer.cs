@@ -447,8 +447,8 @@ public class VRPlayer : MonoBehaviour, IPlayerHeadProvider
     #region hook冲刺方法
     void HandleHookDash()
     {
-        // 检测hook冲刺输入（使用右手柄的SecondaryButton，通常是B键）
-        bool hookDashInput = InputActionsManager.Actions.XRIRightInteraction.SecondaryButton.IsPressed();
+        // 检测hook冲刺输入（使用左摇杆的按下事件）
+        bool hookDashInput = InputActionsManager.Actions.XRILeftInteraction.ScaleToggle.IsPressed();
 
         if (hookDashInput && CanHookDash())
         {
