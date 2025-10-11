@@ -251,8 +251,8 @@ public class VRPlayer : MonoBehaviour, IPlayerHeadProvider
     /// </summary>
     void HandleJump()
     {
-        // 检测跳跃输入（空格键）
-        bool jumpInput = InputActionsManager.Actions.XRILeftInteraction.PrimaryButton.IsPressed();
+        // 检测跳跃输入（使用右手柄的SecondaryButton，通常是A键或B键）
+        bool jumpInput = InputActionsManager.Actions.XRIRightInteraction.SecondaryButton.IsPressed();
 
         if (jumpInput && CanJump())
         {
@@ -434,8 +434,8 @@ public class VRPlayer : MonoBehaviour, IPlayerHeadProvider
         if (head == null || thisRb == null)
             return;
 
-        // 获取head的世界坐标位置
-        Vector3 headPosition = head.position;
+        // 获取body的世界坐标位置
+        Vector3 headPosition = body.position;
 
         // 计算旋转前后的位置和旋转差异
         Vector3 currentPosition = transform.position;
