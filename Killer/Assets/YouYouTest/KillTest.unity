@@ -16052,21 +16052,22 @@ MonoBehaviour:
   rightHand: {fileID: 921280900117831063}
   body: {fileID: 1938701843}
   head: {fileID: 3083084464679903826}
-  moveSpeed: 3
-  decelerationSpeed: 5
+  vRBody: {fileID: 1938701847}
+  moveSpeed: 10
+  decelerationSpeed: 10
+  extraGravity: 20
   moveDirection: {x: 0, y: 0, z: 0}
-  jumpForce: 8
+  jumpForce: 13
   raycastDistance: 0.46
   groundLayerMask:
     serializedVersion: 2
     m_Bits: 0
-  dashSpeed: 15
-  dashDuration: 0.3
+  dashSpeed: 70
+  dashDuration: 0.15
   dashCooldown: 1
   rotationAngle: 30
   rotationDeadzone: 0.2
   needLog: 1
-  vRBody: {fileID: 1938701847}
 --- !u!114 &9158987136966061959
 MonoBehaviour:
   m_ObjectHideFlags: 0

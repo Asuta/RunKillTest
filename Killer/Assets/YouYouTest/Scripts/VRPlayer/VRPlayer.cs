@@ -15,6 +15,7 @@ public class VRPlayer : MonoBehaviour, IPlayerHeadProvider
     [Header("移动设置")]
     public float moveSpeed = 3f;
     public float decelerationSpeed = 5f; // 减速速度
+    public float extraGravity = 10f; // 额外重力
     public Vector3 moveDirection;
     #endregion
 
@@ -121,6 +122,7 @@ public class VRPlayer : MonoBehaviour, IPlayerHeadProvider
         HandleMovement();
         HandleDashMovement();
         HandleHookDashMovement(); // 处理hook冲刺移动
+        ApplyExtraGravity();
         if (currentState == MovementState.WallSliding)
         {
             HandleWallSlideMovement(); // 处理贴墙滑行移动
@@ -471,6 +473,17 @@ public class VRPlayer : MonoBehaviour, IPlayerHeadProvider
         if (currentState == MovementState.Jumping && thisRb.linearVelocity.y <= 0)
         {
             currentState = MovementState.Falling;
+        }
+    }
+    #endregion
+
+    #region 额外重力方法
+    void ApplyExtraGravity()
+    {
+        // 应用额外重力（贴墙状态、冲刺状态和hook冲刺状态下不应用重力）
+        if (thisRb != null && currentState != MovementState.Dashing && currentState != MovementState.WallSliding && currentState != MovementState.HookDashing)
+        {
+            thisRb.AddForce(Vector3.down * extraGravity, ForceMode.Acceleration);
         }
     }
     #endregion
