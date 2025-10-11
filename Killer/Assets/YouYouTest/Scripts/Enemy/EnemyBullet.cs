@@ -82,7 +82,7 @@ public class EnemyBullet : MonoBehaviour
                 // createEnemy.OnHitDefense();
             }
 
-            if (other.gameObject.name == "CapsuleBody")
+            if (other.gameObject.tag == "Player")
             {
                 // 击中玩家
                 Debug.Log("敌人子弹击中玩家身体");
