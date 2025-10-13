@@ -8523,9 +8523,21 @@ PrefabInstance:
       propertyPath: m_LocalEulerAnglesHint.z
       value: 0
       objectReference: {fileID: 0}
+    - target: {fileID: 1785699272852541243, guid: e3dba13aa9f886149b125c3506185898, type: 3}
+      propertyPath: m_Enabled
+      value: 0
+      objectReference: {fileID: 0}
     - target: {fileID: 2151867230420632495, guid: e3dba13aa9f886149b125c3506185898, type: 3}
       propertyPath: m_Name
       value: EnemyBullet
+      objectReference: {fileID: 0}
+    - target: {fileID: 2151867230420632495, guid: e3dba13aa9f886149b125c3506185898, type: 3}
+      propertyPath: m_IsActive
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 5652809449950717767, guid: e3dba13aa9f886149b125c3506185898, type: 3}
+      propertyPath: m_Enabled
+      value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 6070167428293840835, guid: e3dba13aa9f886149b125c3506185898, type: 3}
       propertyPath: m_Enabled
@@ -8569,6 +8581,7 @@ MonoBehaviour:
   _playerCameraT: {fileID: 0}
   _greenHooks: []
   _closestAngleHook: {fileID: 0}
+  nowActivateCheckPoint: {fileID: 0}
 --- !u!4 &1052136197
 Transform:
   m_ObjectHideFlags: 0
