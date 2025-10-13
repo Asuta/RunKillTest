@@ -45,14 +45,14 @@ public class Enemy : MonoBehaviour, ICanBeHit
             GameObject effect = Instantiate(deathEffect, spawnPosition, Quaternion.identity);
             // 可选：设置特效的旋转与敌人一致 
             effect.transform.rotation = transform.rotation;
-            effect.transform.localScale *=2;
+            effect.transform.localScale *= 2;
             // 播放特效（如果特效有自带的粒子系统或动画，会自动播放）
         }
         else
         {
             Debug.LogWarning("Death effect prefab is not assigned!");
         }
-        
+
         Destroy(gameObject);
     }
     #endregion
@@ -70,7 +70,18 @@ public class Enemy : MonoBehaviour, ICanBeHit
         // 创建球体网格
         sphereMesh = CreateSphereMesh(0.1f);
         EnemyCheckerBox.GetComponent<MeshRenderer>().enabled = false;
+
+        // 注册检查点重置事件
+        GlobalEvent.CheckPointReset.AddListener(OnCheckPointReset);
     }
+
+    private void OnDestroy()
+    {
+        // 注销检查点重置事件
+        GlobalEvent.CheckPointReset.RemoveListener(OnCheckPointReset);
+    }
+
+
 
     private void Update()
     {
@@ -78,7 +89,7 @@ public class Enemy : MonoBehaviour, ICanBeHit
         if (target != null && EnemyBody != null)
         {
             DrawTargetVisualization();
-            
+
             // 瞄准计时和射击逻辑
             HandleShooting();
         }
@@ -134,7 +145,7 @@ public class Enemy : MonoBehaviour, ICanBeHit
         // 创建子弹实例
         GameObject bullet = Instantiate(bulletPrefab, EnemyBody.position, Quaternion.identity);
         EnemyBullet enemyBullet = bullet.GetComponent<EnemyBullet>();
-        
+
         if (enemyBullet != null)
         {
             enemyBullet.target = target;
@@ -142,6 +153,17 @@ public class Enemy : MonoBehaviour, ICanBeHit
         }
 
         Debug.Log("Enemy fired a bullet!");
+    }
+
+    private void OnCheckPointReset()
+    {
+        // 检查点重置时停止攻击，并清空目标
+        target = null;
+        aimingTime = 0f;
+        hasFiredFirstShot = false;
+        lastFireTime = 0f;
+
+        Debug.Log("Enemy: Checkpoint reset - stopped attacking and cleared target");
     }
     #endregion
 

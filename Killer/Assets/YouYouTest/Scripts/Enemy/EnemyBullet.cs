@@ -1,3 +1,4 @@
+using System.Threading;
 using UnityEditor;
 using UnityEditor.Animations;
 using UnityEngine;
@@ -21,7 +22,17 @@ public class EnemyBullet : MonoBehaviour
         // 初始化效果状态
         currentEffectState = isBack;
         UpdateEffectState();
+
+        GlobalEvent.CheckPointReset.AddListener(OnCheckPointReset);
+
     }
+
+    void OnDestroy()
+    {
+        GlobalEvent.CheckPointReset.RemoveListener(OnCheckPointReset);
+    }
+
+
 
     // Update每帧调用一次
     void Update()
@@ -146,7 +157,7 @@ public class EnemyBullet : MonoBehaviour
                 // isBack为true时：关闭redEffect，打开greenEffect
                 redEffect.SetActive(false);
                 greenEffect.SetActive(true);
-                
+
                 // 当从false切换到true时，生成changeEffect特效
                 if (!currentEffectState && changeEffect != null)
                 {
@@ -162,5 +173,11 @@ public class EnemyBullet : MonoBehaviour
             // 更新当前状态跟踪
             currentEffectState = isBack;
         }
+    }
+
+    private void OnCheckPointReset()
+    {
+        // 检查点重置时销毁子弹
+        Destroy(gameObject);
     }
 }

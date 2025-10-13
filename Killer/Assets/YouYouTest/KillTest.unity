@@ -6483,7 +6483,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 1
+  m_IsActive: 0
 --- !u!4 &840194894
 Transform:
   m_ObjectHideFlags: 0
@@ -13004,6 +13004,10 @@ PrefabInstance:
       propertyPath: m_LocalEulerAnglesHint.z
       value: 0
       objectReference: {fileID: 0}
+    - target: {fileID: 6151848952227734696, guid: 83f58d4c2eacaad4e8245dc3b80ea846, type: 3}
+      propertyPath: m_Enabled
+      value: 0
+      objectReference: {fileID: 0}
     - target: {fileID: 9082031099684077259, guid: 83f58d4c2eacaad4e8245dc3b80ea846, type: 3}
       propertyPath: m_Name
       value: Trails
@@ -15762,14 +15766,14 @@ Transform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 4959901384725437265}
   serializedVersion: 2
-  m_LocalRotation: {x: -0, y: 0.60536575, z: -0, w: 0.7959475}
-  m_LocalPosition: {x: 98.9, y: 8.4, z: -61.2}
+  m_LocalRotation: {x: -0, y: 0.999879, z: -0, w: 0.015557124}
+  m_LocalPosition: {x: 256.15, y: 24.47, z: -212.68}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children:
   - {fileID: 3534411098447515399}
   m_Father: {fileID: 0}
-  m_LocalEulerAnglesHint: {x: 0, y: 74.51, z: 0}
+  m_LocalEulerAnglesHint: {x: 0, y: 178.217, z: 0}
 --- !u!23 &1764914638109755385
 MeshRenderer:
   m_ObjectHideFlags: 0
