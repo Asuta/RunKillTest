@@ -42,6 +42,12 @@ public static class GlobalEvent
     public static readonly UnityEvent CheckPointReset = new UnityEvent();
 
     /// <summary>
+    /// 检查点激活事件
+    /// </summary>
+    public static readonly UnityEvent<CheckPoint> CheckPointActivate = new UnityEvent<CheckPoint>();
+    
+
+    /// <summary>
     /// 模式按钮点击事件
     /// </summary>
     public static readonly UnityEvent ModeButtonPoke = new UnityEvent();

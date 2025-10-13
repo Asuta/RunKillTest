@@ -1,5 +1,7 @@
 using UnityEngine;
 using System.Collections.Generic;
+using System;
+
 
 public class GameManager : MonoBehaviour
 {
@@ -171,6 +173,8 @@ public class GameManager : MonoBehaviour
         }
     }
 
+    public CheckPoint nowActivateCheckPoint;
+
     // Start is called once before the first execution of Update after the MonoBehaviour is created
     void Start()
     {
@@ -179,6 +183,28 @@ public class GameManager : MonoBehaviour
         {
             CustomLog.LogWarning(needLog, "玩家相机尚未分配，可能会在稍后设置。");
         }
+
+        // 注册检查点激活事件
+        GlobalEvent.CheckPointActivate.AddListener(OnCheckPointActivate);
+    }
+
+    private void OnDestroy() {
+        GlobalEvent.CheckPointActivate.RemoveListener(OnCheckPointActivate);
+    }
+
+    private void OnCheckPointActivate(CheckPoint checkPoint) {
+        CustomLog.Log(needLog, $"检查点激活: {checkPoint.name}");
+        
+        // 如果已经有激活的检查点，将其状态设置为已激活
+        if (nowActivateCheckPoint != null)
+        {
+            nowActivateCheckPoint.SetState(CheckPoint.CheckPointState.Activated);
+        }
+        
+        nowActivateCheckPoint = checkPoint; // 存储激活的检查点引用
+        
+        // 检查点已经在CheckPoint.cs中设置为Activating状态
+        // 这里不需要再次设置状态，保持Activating状态让其他逻辑处理
     }
 
     // Update is called once per frame

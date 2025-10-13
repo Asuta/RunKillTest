@@ -46,6 +46,7 @@ public class CheckPoint : MonoBehaviour
         {
             // 开始激活过程
             SetState(CheckPointState.Activating);
+            GlobalEvent.CheckPointActivate.Invoke(this);
         }
     }
 
