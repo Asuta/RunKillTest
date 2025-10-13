@@ -38,6 +38,17 @@ public class CheckPoint : MonoBehaviour
         
     }
 
+    // 触发器检测 - 当玩家进入触发器时
+    private void OnTriggerEnter(Collider other)
+    {
+        // 检查是否是玩家
+        if (other.CompareTag("Player") && currentState == CheckPointState.Inactive)
+        {
+            // 开始激活过程
+            SetState(CheckPointState.Activating);
+        }
+    }
+
     // 更新材质颜色
     private void UpdateMaterialColor()
     {
