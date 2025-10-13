@@ -1,6 +1,6 @@
 using UnityEngine;
 
-public class VRPlayer : MonoBehaviour, IPlayerHeadProvider
+public class VRPlayerMove : MonoBehaviour, IPlayerHeadProvider
 {
     #region 组件引用
     public Transform leftHand;

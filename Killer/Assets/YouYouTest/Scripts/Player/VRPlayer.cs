@@ -1,8 +1,7 @@
 using UnityEngine;
 using UnityEngine.SceneManagement;
-using VInspector;
 
-public class Player : MonoBehaviour, ICanBeHit
+public class VRPlayer : MonoBehaviour, ICanBeHit
 {
     public void TakeDamage(int damage)
     {
@@ -32,6 +31,7 @@ public class Player : MonoBehaviour, ICanBeHit
 
     void OnDestroy()
     {
+        // 取消订阅检查点重置事件
         GlobalEvent.CheckPointReset.RemoveListener(OnCheckPointReset);
     }
 
@@ -78,13 +78,5 @@ public class Player : MonoBehaviour, ICanBeHit
 
         //重新加载当前场景
         // SceneManager.LoadScene(SceneManager.GetActiveScene().name);
-    }
-
-
-    //test
-    [Button]
-    private void TestDie()
-    {
-        GlobalEvent.CheckPointReset.Invoke();
     }
 }

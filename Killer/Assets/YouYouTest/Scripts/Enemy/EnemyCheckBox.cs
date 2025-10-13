@@ -1,4 +1,5 @@
 using UnityEngine;
+using VInspector;
 
 public class EnemyCheckBox : MonoBehaviour
 {
@@ -7,8 +8,18 @@ public class EnemyCheckBox : MonoBehaviour
     // Start is called once before the first execution of Update after the MonoBehaviour is created
     void Start()
     {
-        
+        GlobalEvent.CheckPointReset.AddListener(OnCheckPointReset);
     }
+
+    void OnDestroy()
+    {
+        GlobalEvent.CheckPointReset.RemoveListener(OnCheckPointReset);
+    }
+
+    private void OnCheckPointReset()
+    {
+        isFinded = false;
+    }  
 
     // Update is called once per frame
     void Update()
