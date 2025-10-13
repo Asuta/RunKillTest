@@ -56,8 +56,13 @@ public class Player : MonoBehaviour, ICanBeHit
         Debug.Log("Player died!");
         // 显示红色面板
         deathRed.SetActive(true);
-        // 5秒后执行复活
-        Invoke(nameof(Respawn), 2.5f); 
+        // 2.5秒后触发检查点重置事件
+        Invoke(nameof(TriggerCheckPointReset), 2.5f);
+    }
+    
+    private void TriggerCheckPointReset()
+    {
+        GlobalEvent.CheckPointReset.Invoke();
     }
 
     private void Respawn()
@@ -65,16 +70,30 @@ public class Player : MonoBehaviour, ICanBeHit
         // 获取Rigidbody组件
         Rigidbody rb = this.GetComponent<Rigidbody>();
         
-        // 重置玩家到初始位置使用Rigidbody的MovePosition和MoveRotation
-        rb.MovePosition(initialPosition);
-        rb.MoveRotation(Quaternion.Euler(initialRotation));
+        Vector3 respawnPosition = initialPosition;
+        Vector3 respawnRotation = initialRotation;
+        
+        // 如果有激活的检查点，使用检查点的位置和旋转
+        if (GameManager.Instance != null && GameManager.Instance.nowActivateCheckPoint != null)
+        {
+            respawnPosition = GameManager.Instance.nowActivateCheckPoint.transform.position;
+            respawnRotation = GameManager.Instance.nowActivateCheckPoint.transform.eulerAngles;
+            Debug.Log("Player respawned at checkpoint position!");
+        }
+        else
+        {
+            Debug.Log("Player respawned at initial position!");
+        }
+        
+        // 重置玩家到检查点位置或初始位置
+        rb.MovePosition(respawnPosition);
+        rb.MoveRotation(Quaternion.Euler(respawnRotation));
         rb.linearVelocity = Vector3.zero; // 重置速度
 
         // 隐藏红色面板
         deathRed.SetActive(false);
         // 恢复生命值
         health = 1;
-        Debug.Log("Player respawned at initial position!");
 
         //重新加载当前场景
         // SceneManager.LoadScene(SceneManager.GetActiveScene().name);
