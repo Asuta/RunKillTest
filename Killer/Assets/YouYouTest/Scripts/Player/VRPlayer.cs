@@ -13,6 +13,11 @@ public class VRPlayer : MonoBehaviour, ICanBeHit
         }
     }
 
+    public void OnDeath()
+    {
+        GlobalEvent.CheckPointReset.Invoke();
+    }
+
     public int health = 1;
     public GameObject deathRed; 
     private Vector3 initialPosition; // 存储初始位置

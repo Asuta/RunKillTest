@@ -106,4 +106,9 @@ public class Player : MonoBehaviour, ICanBeHit
     {
         GlobalEvent.CheckPointReset.Invoke();
     }
+
+    public void OnDeath()
+    {
+        GlobalEvent.CheckPointReset.Invoke();
+    }
 }
