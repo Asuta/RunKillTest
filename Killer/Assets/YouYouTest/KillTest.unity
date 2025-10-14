@@ -16161,6 +16161,7 @@ GameObject:
   - component: {fileID: 9158987136966061959}
   - component: {fileID: 9158987136966061960}
   - component: {fileID: 9158987136966061962}
+  - component: {fileID: 9158987136966061963}
   m_Layer: 7
   m_Name: VRPlayer
   m_TagString: Untagged
@@ -16610,6 +16611,21 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   health: 1
   deathRed: {fileID: 1134448047}
+--- !u!114 &9158987136966061963
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 4959901384725437265}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: e5af8fd21f2501e40aa733de13f7efc8, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  playerMove: {fileID: 9158987136966061958}
+  testDashKey: 32
+  testDashDirection: {x: 0, y: 0, z: 1}
 --- !u!1660057539 &9223372036854775807
 SceneRoots:
   m_ObjectHideFlags: 0

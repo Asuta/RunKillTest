@@ -349,21 +349,54 @@ public class VRPlayerMove : MonoBehaviour, IPlayerHeadProvider
                currentState != MovementState.Dashing;
     }
 
+    /// <summary>
+    /// 外部调用触发冲刺
+    /// </summary>
+    public void TriggerDash()
+    {
+        if (CanDash())
+        {
+            StartDash();
+        }
+    }
+
+    /// <summary>
+    /// 外部调用触发冲刺，可指定方向
+    /// </summary>
+    /// <param name="direction">冲刺方向</param>
+    public void TriggerDash(Vector3 direction)
+    {
+        if (CanDash())
+        {
+            StartDash(direction);
+        }
+    }
+
     void StartDash()
+    {
+        StartDash(Vector3.zero);
+    }
+
+    void StartDash(Vector3 customDirection)
     {
         currentState = MovementState.Dashing;
         dashTimer = dashDuration;
         dashCooldownTimer = dashCooldown;
 
-        // 如果当前没有移动方向，则使用左手柄的前方作为冲刺方向
-        if (moveDirection != Vector3.zero)
+        // 如果提供了自定义方向，使用自定义方向
+        if (customDirection != Vector3.zero)
+        {
+            dashDirection = customDirection.normalized;
+        }
+        // 如果当前没有移动方向，则使用头部的前方作为冲刺方向
+        else if (moveDirection != Vector3.zero)
         {
             dashDirection = moveDirection.normalized;
         }
         else
         {
-            // 使用左手柄的前方作为默认冲刺方向
-            if (leftHand != null)
+            // 使用头部的前方作为默认冲刺方向
+            if (head != null)
             {
                 Vector3 headForward = head.forward;
                 headForward.y = 0; // 确保只在水平面上冲刺
