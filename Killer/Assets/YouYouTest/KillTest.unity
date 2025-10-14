@@ -16162,6 +16162,7 @@ GameObject:
   - component: {fileID: 9158987136966061960}
   - component: {fileID: 9158987136966061962}
   - component: {fileID: 9158987136966061963}
+  - component: {fileID: 9158987136966061964}
   m_Layer: 7
   m_Name: VRPlayer
   m_TagString: Untagged
@@ -16626,6 +16627,20 @@ MonoBehaviour:
   playerMove: {fileID: 9158987136966061958}
   testDashKey: 32
   testDashDirection: {x: 0, y: 0, z: 1}
+--- !u!114 &9158987136966061964
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 4959901384725437265}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 5607c0e80f2b6e44cb6387d5bbb5272b, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  handTarget: {fileID: 921280900117831063}
+  moveSpeed: 9
 --- !u!1660057539 &9223372036854775807
 SceneRoots:
   m_ObjectHideFlags: 0

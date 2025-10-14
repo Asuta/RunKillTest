@@ -43,6 +43,15 @@ public class VRPlayerMove : MonoBehaviour, IPlayerHeadProvider
     private Vector3 dashDirection;
     #endregion
 
+    #region 手部移动冲刺设置
+    [Header("手部移动冲刺设置")]
+    public Transform rightHandTarget; // 右手目标Transform
+    public float handMoveSpeedThreshold = 1f; // 手部移动速度阈值
+
+    // 手部移动检测相关私有变量
+    private Vector3 previousHandLocalPosition;
+    #endregion
+
     #region Hook冲刺设置
     // hook冲刺相关
     private Transform hookTarget; // 目标hook的Transform
@@ -83,6 +92,12 @@ public class VRPlayerMove : MonoBehaviour, IPlayerHeadProvider
         {
             groundLayerMask = LayerMask.GetMask("Building");
         }
+
+        // 初始化右手位置
+        if (rightHandTarget != null)
+        {
+            previousHandLocalPosition = rightHandTarget.localPosition;
+        }
     }
 
     // Update is called once per frame
@@ -111,6 +126,9 @@ public class VRPlayerMove : MonoBehaviour, IPlayerHeadProvider
 
         // 处理贴墙滑行
         HandleWallSliding();
+
+        // 检测手部移动并触发冲刺
+        HandleHandMoveDash();
 
         // 更新状态
         UpdateState();
@@ -769,6 +787,34 @@ public class VRPlayerMove : MonoBehaviour, IPlayerHeadProvider
     }
 
 
+    #endregion
+
+    #region 手部移动冲刺方法
+    /// <summary>
+    /// 检测手部移动并触发冲刺
+    /// </summary>
+    void HandleHandMoveDash()
+    {
+        if (rightHandTarget == null)
+            return;
+
+        // 计算当前帧的本地位置
+        Vector3 currentLocalPosition = rightHandTarget.localPosition;
+
+        // 计算移动速度（每帧移动的距离）
+        float moveDistance = Vector3.Distance(currentLocalPosition, previousHandLocalPosition);
+        float speed = moveDistance / Time.deltaTime;
+
+        // 检查速度是否超过阈值
+        if (speed > handMoveSpeedThreshold)
+        {
+            Debug.Log("手部移动速度超过阈值，触发冲刺");
+            TriggerDash();
+        }
+
+        // 更新上一帧的位置
+        previousHandLocalPosition = currentLocalPosition;
+    }
     #endregion
 
     #region 接口实现
