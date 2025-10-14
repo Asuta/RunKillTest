@@ -16570,6 +16570,8 @@ MonoBehaviour:
   dashSpeed: 70
   dashDuration: 0.15
   dashCooldown: 1
+  rightHandTarget: {fileID: 921280900117831063}
+  handMoveSpeedThreshold: 6
   rotationAngle: 30
   rotationDeadzone: 0.2
   needLog: 1
@@ -16634,13 +16636,14 @@ MonoBehaviour:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 4959901384725437265}
-  m_Enabled: 1
+  m_Enabled: 0
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 5607c0e80f2b6e44cb6387d5bbb5272b, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  handTarget: {fileID: 921280900117831063}
+  rightHandTarget: {fileID: 0}
   moveSpeed: 9
+  playerMove: {fileID: 0}
 --- !u!1660057539 &9223372036854775807
 SceneRoots:
   m_ObjectHideFlags: 0

@@ -798,6 +798,17 @@ public class VRPlayerMove : MonoBehaviour, IPlayerHeadProvider
         if (rightHandTarget == null)
             return;
 
+        // 检测右手柄扳机键是否被按下
+        bool triggerPressed = InputActionsManager.Actions.XRIRightInteraction.Activate.IsPressed();
+        
+        // 如果扳机键没有被按下，则不进行冲刺检测
+        if (!triggerPressed)
+        {
+            // 更新上一帧的位置（重置位置跟踪）
+            previousHandLocalPosition = rightHandTarget.localPosition;
+            return;
+        }
+
         // 计算当前帧的本地位置
         Vector3 currentLocalPosition = rightHandTarget.localPosition;
 
@@ -808,7 +819,7 @@ public class VRPlayerMove : MonoBehaviour, IPlayerHeadProvider
         // 检查速度是否超过阈值
         if (speed > handMoveSpeedThreshold)
         {
-            Debug.Log("手部移动速度超过阈值，触发冲刺");
+            Debug.Log("手部移动速度超过阈值且扳机键被按下，触发冲刺");
             TriggerDash();
         }
 
