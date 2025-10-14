@@ -45,7 +45,24 @@ public static class GlobalEvent
     /// 检查点激活事件
     /// </summary>
     public static readonly UnityEvent<CheckPoint> CheckPointActivate = new UnityEvent<CheckPoint>();
-    
+
+
+    // /// <summary>
+    // /// 强制死亡事件
+    // /// </summary>
+    // public static readonly UnityEvent ForceDeathActivate = new UnityEvent();
+
+
+
+
+
+
+
+
+
+
+    /// sample event
+
 
     /// <summary>
     /// 模式按钮点击事件

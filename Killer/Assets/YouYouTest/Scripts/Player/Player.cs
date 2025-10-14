@@ -28,11 +28,15 @@ public class Player : MonoBehaviour, ICanBeHit
 
         // 订阅检查点重置事件
         GlobalEvent.CheckPointReset.AddListener(OnCheckPointReset);
+
+        // //订阅强制死亡事件
+        // GlobalEvent.ForceDeathActivate.AddListener(OnForceDeathActivate);
     }
 
     void OnDestroy()
     {
         GlobalEvent.CheckPointReset.RemoveListener(OnCheckPointReset);
+        // GlobalEvent.ForceDeathActivate.RemoveListener(OnForceDeathActivate);
     }
 
     private void OnCheckPointReset()
@@ -40,6 +44,11 @@ public class Player : MonoBehaviour, ICanBeHit
         // 当检查点重置事件触发时，执行复活逻辑
         Respawn();
     }
+
+    // private void OnForceDeathActivate()
+    // {
+    //     Die();
+    // }
 
     // Update is called once per frame
     void Update()
@@ -109,6 +118,6 @@ public class Player : MonoBehaviour, ICanBeHit
 
     public void OnDeath()
     {
-        GlobalEvent.CheckPointReset.Invoke();
+        Die();
     }
 }
