@@ -15,9 +15,10 @@ public class Player : MonoBehaviour, ICanBeHit
     }
 
     public int health = 1;
-    public GameObject deathRed; 
+    public GameObject deathRed;
     private Vector3 initialPosition; // 存储初始位置
     private Vector3 initialRotation; // 存储初始旋转
+    private bool isDead = false; // 标记玩家是否处于死亡状态
 
     // Start is called once before the first execution of Update after the MonoBehaviour is created
     void Start()
@@ -62,7 +63,10 @@ public class Player : MonoBehaviour, ICanBeHit
 
     private void Die()
     {
+        if (isDead) return; // 如果已经死亡，则不再执行死亡逻辑
+        
         Debug.Log("Player died!");
+        isDead = true; // 设置死亡标志
         // 显示红色面板
         deathRed.SetActive(true);
         // 2.5秒后触发检查点重置事件
@@ -103,6 +107,8 @@ public class Player : MonoBehaviour, ICanBeHit
         deathRed.SetActive(false);
         // 恢复生命值
         health = 1;
+        // 重置死亡标志
+        isDead = false;
 
         //重新加载当前场景
         // SceneManager.LoadScene(SceneManager.GetActiveScene().name);
@@ -118,6 +124,7 @@ public class Player : MonoBehaviour, ICanBeHit
 
     public void OnDeath()
     {
+        if (isDead) return; // 如果已经死亡，则不再触发死亡事件
         Die();
     }
 }

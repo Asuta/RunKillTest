@@ -1,5 +1,6 @@
 using UnityEngine;
 using UnityEngine.SceneManagement;
+using VInspector;
 
 public class VRPlayer : MonoBehaviour, ICanBeHit
 {
@@ -13,15 +14,12 @@ public class VRPlayer : MonoBehaviour, ICanBeHit
         }
     }
 
-    public void OnDeath()
-    {
-        GlobalEvent.CheckPointReset.Invoke();
-    }
 
     public int health = 1;
-    public GameObject deathRed; 
+    public GameObject deathRed;
     private Vector3 initialPosition; // 存储初始位置
     private Vector3 initialRotation; // 存储初始旋转
+    private bool isDead = false; // 标记玩家是否处于死亡状态
 
     // Start is called once before the first execution of Update after the MonoBehaviour is created
     void Start()
@@ -58,11 +56,19 @@ public class VRPlayer : MonoBehaviour, ICanBeHit
 
     private void Die()
     {
+        if (isDead) return; // 如果已经死亡，则不再执行死亡逻辑
+        
         Debug.Log("Player died!");
+        isDead = true; // 设置死亡标志
         // 显示红色面板
         deathRed.SetActive(true);
-        // 5秒后执行复活
-        Invoke(nameof(Respawn), 2.5f); 
+        // 2.5秒后触发检查点重置事件
+        Invoke(nameof(TriggerCheckPointReset), 2.5f);
+    }
+
+    private void TriggerCheckPointReset()
+    {
+        GlobalEvent.CheckPointReset.Invoke();
     }
 
     private void Respawn()
@@ -70,18 +76,47 @@ public class VRPlayer : MonoBehaviour, ICanBeHit
         // 获取Rigidbody组件
         Rigidbody rb = this.GetComponent<Rigidbody>();
         
-        // 重置玩家到初始位置使用Rigidbody的MovePosition和MoveRotation
-        rb.MovePosition(initialPosition);
-        rb.MoveRotation(Quaternion.Euler(initialRotation));
+        Vector3 respawnPosition = initialPosition;
+        Vector3 respawnRotation = initialRotation;
+        
+        // 如果有激活的检查点，使用检查点的位置和旋转
+        if (GameManager.Instance != null && GameManager.Instance.nowActivateCheckPoint != null)
+        {
+            respawnPosition = GameManager.Instance.nowActivateCheckPoint.transform.position;
+            respawnRotation = GameManager.Instance.nowActivateCheckPoint.transform.eulerAngles;
+            Debug.Log("Player respawned at checkpoint position!");
+        }
+        else
+        {
+            Debug.Log("Player respawned at initial position!");
+        }
+        
+        // 重置玩家到检查点位置或初始位置
+        rb.MovePosition(respawnPosition);
+        rb.MoveRotation(Quaternion.Euler(respawnRotation));
         rb.linearVelocity = Vector3.zero; // 重置速度
 
         // 隐藏红色面板
         deathRed.SetActive(false);
         // 恢复生命值
         health = 1;
-        Debug.Log("Player respawned at initial position!");
+        // 重置死亡标志
+        isDead = false;
 
         //重新加载当前场景
         // SceneManager.LoadScene(SceneManager.GetActiveScene().name);
+    }
+
+    //test
+    [Button]
+    private void TestDie()
+    {
+        GlobalEvent.CheckPointReset.Invoke();
+    }
+
+    public void OnDeath()
+    {
+        if (isDead) return; // 如果已经死亡，则不再触发死亡事件
+        Die();
     }
 }
