@@ -1,6 +1,6 @@
 using UnityEngine;
 
-namespace YouYouTest.CommandTest
+namespace YouYouTest.CommandFramework
 {
     /// <summary>
     /// 创建物体的命令

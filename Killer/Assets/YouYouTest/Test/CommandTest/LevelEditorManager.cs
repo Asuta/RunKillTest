@@ -1,6 +1,6 @@
 using UnityEngine;
 
-namespace YouYouTest.CommandTest
+namespace YouYouTest.CommandFramework
 {
     /// <summary>
     /// 关卡编辑器管理器，编辑器的主控制器
@@ -18,6 +18,7 @@ namespace YouYouTest.CommandTest
         private CommandHistory _commandHistory = new CommandHistory();
         private Transform _selectedObject; // 当前选中的物体
         private Vector3 _dragStartPosition; // 拖拽物体的起始位置
+        private Quaternion _dragStartRotation; // 拖拽物体的起始角度
         private bool _isDragging = false;
 
         void Start()
@@ -63,6 +64,7 @@ namespace YouYouTest.CommandTest
                 if (_selectedObject != null)
                 {
                     _dragStartPosition = _selectedObject.position;
+                    _dragStartRotation = _selectedObject.rotation;
                     _isDragging = true;
                 }
             }
@@ -76,11 +78,12 @@ namespace YouYouTest.CommandTest
                     // 如果位置发生了变化，创建一个MoveCommand
                     if (Vector3.Distance(_dragStartPosition, endPosition) > 0.01f) // 加一个阈值避免误操作
                     {
-                        ICommand moveCommand = new MoveCommand(_selectedObject, _dragStartPosition, endPosition);
+                        ICommand moveCommand = new MoveCommand(_selectedObject, _dragStartPosition, endPosition, _dragStartRotation, _selectedObject.rotation);
                         // 注意：这里不要直接执行，而是通过CommandHistory来执行
                         // 我们需要将移动操作本身也放入CommandHistory的记录中
                         // 所以正确的做法是：在拖拽结束后，把物体位置先复原，再由ExecuteCommand来设定最终位置
-                        _selectedObject.position = _dragStartPosition; // 复原
+                        _selectedObject.position = _dragStartPosition; // 复原位置
+                        _selectedObject.rotation = _dragStartRotation; // 复原角度
                         _commandHistory.ExecuteCommand(moveCommand); // 执行并记录
                     }
                 }

@@ -1,6 +1,6 @@
 using UnityEngine;
 
-namespace YouYouTest.CommandTest
+namespace YouYouTest.CommandFramework
 {
     /// <summary>
     /// 命令接口，所有具体的操作都将实现这个接口

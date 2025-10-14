@@ -1,7 +1,7 @@
 using System.Collections.Generic;
 using UnityEngine;
 
-namespace YouYouTest.CommandTest
+namespace YouYouTest.CommandFramework
 {
     /// <summary>
     /// 命令历史管理器，用于处理命令的执行、撤销和重做

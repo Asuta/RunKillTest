@@ -1,6 +1,6 @@
 using UnityEngine;
 
-namespace YouYouTest.CommandTest
+namespace YouYouTest.CommandFramework
 {
     /// <summary>
     /// 删除物体的命令

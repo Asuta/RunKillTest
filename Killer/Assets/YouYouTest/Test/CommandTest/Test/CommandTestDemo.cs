@@ -1,6 +1,6 @@
 using UnityEngine;
 
-namespace YouYouTest.CommandTest
+namespace YouYouTest.CommandFramework
 {
     /// <summary>
     /// 命令模式测试演示脚本
@@ -49,11 +49,13 @@ namespace YouYouTest.CommandTest
             {
                 Vector3 startPos = _testObject.transform.position;
                 Vector3 endPos = startPos + Vector3.right * 2;
+                Quaternion startRot = _testObject.transform.rotation;
+                Quaternion endRot = Quaternion.Euler(0, 45, 0); // 旋转45度作为测试
                 
-                MoveCommand moveCommand = new MoveCommand(_testObject.transform, startPos, endPos);
+                MoveCommand moveCommand = new MoveCommand(_testObject.transform, startPos, endPos, startRot, endRot);
                 _commandHistory.ExecuteCommand(moveCommand);
                 
-                Debug.Log($"测试移动命令: 从 {startPos} 到 {endPos}");
+                Debug.Log($"测试移动命令: 从 {startPos} 到 {endPos}，角度从 {startRot.eulerAngles} 到 {endRot.eulerAngles}");
             }
         }
         
