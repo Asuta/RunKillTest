@@ -1048,7 +1048,7 @@ public partial class @XRIDefaultInputActions: IInputActionCollection2, IDisposab
                     ""name"": ""Scale Toggle"",
                     ""type"": ""Button"",
                     ""id"": ""80ed7d74-56de-473c-bf76-da3bdd16b562"",
-                    ""expectedControlType"": ""Button"",
+                    ""expectedControlType"": """",
                     ""processors"": """",
                     ""interactions"": """",
                     ""initialStateCheck"": false
@@ -1075,6 +1075,15 @@ public partial class @XRIDefaultInputActions: IInputActionCollection2, IDisposab
                     ""name"": ""SecondaryButton"",
                     ""type"": ""Button"",
                     ""id"": ""8ae6cb4b-c309-4700-9330-48c9c27437eb"",
+                    ""expectedControlType"": """",
+                    ""processors"": """",
+                    ""interactions"": """",
+                    ""initialStateCheck"": false
+                },
+                {
+                    ""name"": ""Menu"",
+                    ""type"": ""Button"",
+                    ""id"": ""8c3fcbfe-2dfa-40ee-994f-f0f04af26c76"",
                     ""expectedControlType"": """",
                     ""processors"": """",
                     ""interactions"": """",
@@ -1387,6 +1396,17 @@ public partial class @XRIDefaultInputActions: IInputActionCollection2, IDisposab
                     ""processors"": """",
                     ""groups"": """",
                     ""action"": ""SecondaryButton"",
+                    ""isComposite"": false,
+                    ""isPartOfComposite"": false
+                },
+                {
+                    ""name"": """",
+                    ""id"": ""b4d7ca66-6529-4bb5-8046-2330581be3eb"",
+                    ""path"": ""<XRController>{LeftHand}/menu"",
+                    ""interactions"": """",
+                    ""processors"": """",
+                    ""groups"": """",
+                    ""action"": ""Menu"",
                     ""isComposite"": false,
                     ""isPartOfComposite"": false
                 }
@@ -3545,6 +3565,7 @@ public partial class @XRIDefaultInputActions: IInputActionCollection2, IDisposab
         m_XRILeftInteraction_ScaleOverTime = m_XRILeftInteraction.FindAction("Scale Over Time", throwIfNotFound: true);
         m_XRILeftInteraction_PrimaryButton = m_XRILeftInteraction.FindAction("PrimaryButton", throwIfNotFound: true);
         m_XRILeftInteraction_SecondaryButton = m_XRILeftInteraction.FindAction("SecondaryButton", throwIfNotFound: true);
+        m_XRILeftInteraction_Menu = m_XRILeftInteraction.FindAction("Menu", throwIfNotFound: true);
         // XRI Left Locomotion
         m_XRILeftLocomotion = asset.FindActionMap("XRI Left Locomotion", throwIfNotFound: true);
         m_XRILeftLocomotion_TeleportMode = m_XRILeftLocomotion.FindAction("Teleport Mode", throwIfNotFound: true);
@@ -4130,6 +4151,7 @@ public partial class @XRIDefaultInputActions: IInputActionCollection2, IDisposab
     private readonly InputAction m_XRILeftInteraction_ScaleOverTime;
     private readonly InputAction m_XRILeftInteraction_PrimaryButton;
     private readonly InputAction m_XRILeftInteraction_SecondaryButton;
+    private readonly InputAction m_XRILeftInteraction_Menu;
     /// <summary>
     /// Provides access to input actions defined in input action map "XRI Left Interaction".
     /// </summary>
@@ -4198,6 +4220,10 @@ public partial class @XRIDefaultInputActions: IInputActionCollection2, IDisposab
         /// </summary>
         public InputAction @SecondaryButton => m_Wrapper.m_XRILeftInteraction_SecondaryButton;
         /// <summary>
+        /// Provides access to the underlying input action "XRILeftInteraction/Menu".
+        /// </summary>
+        public InputAction @Menu => m_Wrapper.m_XRILeftInteraction_Menu;
+        /// <summary>
         /// Provides access to the underlying input action map instance.
         /// </summary>
         public InputActionMap Get() { return m_Wrapper.m_XRILeftInteraction; }
@@ -4265,6 +4291,9 @@ public partial class @XRIDefaultInputActions: IInputActionCollection2, IDisposab
             @SecondaryButton.started += instance.OnSecondaryButton;
             @SecondaryButton.performed += instance.OnSecondaryButton;
             @SecondaryButton.canceled += instance.OnSecondaryButton;
+            @Menu.started += instance.OnMenu;
+            @Menu.performed += instance.OnMenu;
+            @Menu.canceled += instance.OnMenu;
         }
 
         /// <summary>
@@ -4318,6 +4347,9 @@ public partial class @XRIDefaultInputActions: IInputActionCollection2, IDisposab
             @SecondaryButton.started -= instance.OnSecondaryButton;
             @SecondaryButton.performed -= instance.OnSecondaryButton;
             @SecondaryButton.canceled -= instance.OnSecondaryButton;
+            @Menu.started -= instance.OnMenu;
+            @Menu.performed -= instance.OnMenu;
+            @Menu.canceled -= instance.OnMenu;
         }
 
         /// <summary>
@@ -5785,6 +5817,13 @@ public partial class @XRIDefaultInputActions: IInputActionCollection2, IDisposab
         /// <seealso cref="UnityEngine.InputSystem.InputAction.performed" />
         /// <seealso cref="UnityEngine.InputSystem.InputAction.canceled" />
         void OnSecondaryButton(InputAction.CallbackContext context);
+        /// <summary>
+        /// Method invoked when associated input action "Menu" is either <see cref="UnityEngine.InputSystem.InputAction.started" />, <see cref="UnityEngine.InputSystem.InputAction.performed" /> or <see cref="UnityEngine.InputSystem.InputAction.canceled" />.
+        /// </summary>
+        /// <seealso cref="UnityEngine.InputSystem.InputAction.started" />
+        /// <seealso cref="UnityEngine.InputSystem.InputAction.performed" />
+        /// <seealso cref="UnityEngine.InputSystem.InputAction.canceled" />
+        void OnMenu(InputAction.CallbackContext context);
     }
     /// <summary>
     /// Interface to implement callback methods for all input action callbacks associated with input actions defined by "XRI Left Locomotion" which allows adding and removing callbacks.

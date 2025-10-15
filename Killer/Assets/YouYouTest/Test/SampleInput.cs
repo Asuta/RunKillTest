@@ -114,25 +114,16 @@ public class SampleInput : MonoBehaviour
             Debug.Log("右摇杆释放");
         }
 
-        // 左手柄菜单键（MenuButton）
-        if (InputActionsManager.Actions.XRILeftInteraction.UIPress.WasPressedThisFrame())
+        // 左手柄菜单键（Menu）
+        if (InputActionsManager.Actions.XRILeftInteraction.Menu.WasPressedThisFrame())
         {
             Debug.Log("左手柄菜单键按下");
         }
-        if (InputActionsManager.Actions.XRILeftInteraction.UIPress.WasReleasedThisFrame())
+        if (InputActionsManager.Actions.XRILeftInteraction.Menu.WasReleasedThisFrame())
         {
             Debug.Log("左手柄菜单键释放");
         }
 
-        // 右手柄菜单键（MenuButton）
-        if (InputActionsManager.Actions.XRIRightInteraction.UIPress.WasPressedThisFrame())
-        {
-            Debug.Log("右手柄菜单键按下");
-        }
-        if (InputActionsManager.Actions.XRIRightInteraction.UIPress.WasReleasedThisFrame())
-        {
-            Debug.Log("右手柄菜单键释放");
-        }
     }
 
     // private void OnDestroy()

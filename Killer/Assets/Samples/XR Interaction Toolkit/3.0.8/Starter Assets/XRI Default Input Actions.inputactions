@@ -962,7 +962,7 @@
                     "name": "Scale Toggle",
                     "type": "Button",
                     "id": "80ed7d74-56de-473c-bf76-da3bdd16b562",
-                    "expectedControlType": "Button",
+                    "expectedControlType": "",
                     "processors": "",
                     "interactions": "",
                     "initialStateCheck": false
@@ -989,6 +989,15 @@
                     "name": "SecondaryButton",
                     "type": "Button",
                     "id": "8ae6cb4b-c309-4700-9330-48c9c27437eb",
+                    "expectedControlType": "",
+                    "processors": "",
+                    "interactions": "",
+                    "initialStateCheck": false
+                },
+                {
+                    "name": "Menu",
+                    "type": "Button",
+                    "id": "8c3fcbfe-2dfa-40ee-994f-f0f04af26c76",
                     "expectedControlType": "",
                     "processors": "",
                     "interactions": "",
@@ -1301,6 +1310,17 @@
                     "processors": "",
                     "groups": "",
                     "action": "SecondaryButton",
+                    "isComposite": false,
+                    "isPartOfComposite": false
+                },
+                {
+                    "name": "",
+                    "id": "b4d7ca66-6529-4bb5-8046-2330581be3eb",
+                    "path": "<XRController>{LeftHand}/menu",
+                    "interactions": "",
+                    "processors": "",
+                    "groups": "",
+                    "action": "Menu",
                     "isComposite": false,
                     "isPartOfComposite": false
                 }
