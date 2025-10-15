@@ -10,6 +10,8 @@ public class CreateTest : MonoBehaviour
     public Transform handCheckTrigger; 
     
     private CommandHistory _commandHistory = new CommandHistory();
+    private CubeMoveTest grabbedObject = null; // 当前抓取的物体
+    private GrabCommand currentGrabCommand = null; // 当前抓取命令
 
     void Start()
     {
@@ -30,7 +32,36 @@ public class CreateTest : MonoBehaviour
         // 检查右手侧握键（Grip）是否按下
         if (InputActionsManager.Actions.XRIRightInteraction.Select.WasPressedThisFrame())
         {
-            CheckHandTriggerOverlap();
+            if (grabbedObject == null)
+            {
+                // 没有抓取物体时，尝试抓取
+                TryGrabObject();
+            }
+        }
+        
+        // 检查右手侧握键（Grip）是否松开
+        if (InputActionsManager.Actions.XRIRightInteraction.Select.WasReleasedThisFrame())
+        {
+            if (grabbedObject != null)
+            {
+                // 有抓取物体时，松开它
+                grabbedObject.OnReleased();
+                
+                // 完成抓取命令并添加到历史
+                if (currentGrabCommand != null)
+                {
+                    // 设置最终位置和旋转
+                    currentGrabCommand.SetEndTransform(grabbedObject.transform.position, grabbedObject.transform.rotation);
+                    
+                    // 执行命令并添加到历史
+                    _commandHistory.ExecuteCommand(currentGrabCommand);
+                    Debug.Log($"抓取命令已执行: {grabbedObject.gameObject.name} 从 {currentGrabCommand}");
+                }
+                
+                grabbedObject = null;
+                currentGrabCommand = null;
+                Debug.Log("松开了抓取的物体");
+            }
         }
         
         // 添加撤销和重做快捷键支持
@@ -82,13 +113,19 @@ public class CreateTest : MonoBehaviour
     }
     
     /// <summary>
-    /// 检查手部触发器位置的box overlap
+    /// 尝试抓取物体
     /// </summary>
-    private void CheckHandTriggerOverlap()
+    private void TryGrabObject()
     {
         if (handCheckTrigger == null)
         {
             Debug.LogWarning("handCheckTrigger 未赋值，无法执行重叠检查");
+            return;
+        }
+        
+        if (handPosition == null)
+        {
+            Debug.LogWarning("handPosition 未赋值，无法确定手的位置");
             return;
         }
         
@@ -106,15 +143,26 @@ public class CreateTest : MonoBehaviour
         Debug.Log($"在位置 {center} 执行box overlap检查，范围大小: {boxSize}");
         Debug.Log($"检查到 {hitColliders.Length} 个物体:");
         
+        // 寻找第一个有CubeMoveTest组件的物体
         foreach (Collider collider in hitColliders)
         {
+            CubeMoveTest cubeMove = collider.GetComponent<CubeMoveTest>();
+            if (cubeMove != null)
+            {
+                // 创建抓取命令，记录抓取前的状态
+                currentGrabCommand = new GrabCommand(cubeMove.transform, cubeMove.transform.position, cubeMove.transform.rotation);
+                
+                // 抓取这个物体
+                grabbedObject = cubeMove;
+                cubeMove.OnGrabbed(handPosition);
+                Debug.Log($"抓取了物体: {collider.gameObject.name}");
+                return; // 只抓取第一个找到的物体
+            }
+            
             Debug.Log($"- 检测到物体: {collider.gameObject.name}, 标签: {collider.gameObject.tag}, 层级: {LayerMask.LayerToName(collider.gameObject.layer)}");
         }
         
-        // 如果没有检测到任何物体
-        if (hitColliders.Length == 0)
-        {
-            Debug.Log("没有检测到任何物体");
-        }
+        // 如果没有检测到任何可抓取的物体
+        Debug.Log("没有检测到可抓取的物体");
     }
 }
