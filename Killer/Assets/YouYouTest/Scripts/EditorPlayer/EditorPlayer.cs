@@ -7,8 +7,8 @@ public class EditorPlayer : MonoBehaviour
     public Transform leftHand;
     public Transform rightHand;
 
-    private CubeMoveTest leftGrabbedObject = null; // 左手当前抓取的物体
-    private CubeMoveTest rightGrabbedObject = null; // 右手当前抓取的物体
+    private BeGrabobject leftGrabbedObject = null; // 左手当前抓取的物体
+    private BeGrabobject rightGrabbedObject = null; // 右手当前抓取的物体
     private GrabCommand leftCurrentGrabCommand = null; // 左手当前抓取命令
     private GrabCommand rightCurrentGrabCommand = null; // 右手当前抓取命令
 
@@ -84,7 +84,7 @@ public class EditorPlayer : MonoBehaviour
             return;
         }
 
-        CubeMoveTest cubeMove = targetObject.GetComponent<CubeMoveTest>();
+        BeGrabobject cubeMove = targetObject.GetComponent<BeGrabobject>();
         if (cubeMove == null)
         {
             Debug.LogWarning($"目标物体 {targetObject.name} 没有CubeMoveTest组件，无法抓取");
@@ -148,7 +148,7 @@ public class EditorPlayer : MonoBehaviour
             return;
         }
 
-        CubeMoveTest cubeMove = targetObject.GetComponent<CubeMoveTest>();
+        BeGrabobject cubeMove = targetObject.GetComponent<BeGrabobject>();
         if (cubeMove == null)
         {
             Debug.LogWarning($"目标物体 {targetObject.name} 没有CubeMoveTest组件，无法抓取");

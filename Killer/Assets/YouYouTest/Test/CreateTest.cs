@@ -9,7 +9,7 @@ public class CreateTest : MonoBehaviour
     public Transform handPosition;
     public Transform handCheckTrigger;
     
-    private CubeMoveTest grabbedObject = null; // 当前抓取的物体
+    private BeGrabobject grabbedObject = null; // 当前抓取的物体
     private GrabCommand currentGrabCommand = null; // 当前抓取命令
 
     void Start()
@@ -145,7 +145,7 @@ public class CreateTest : MonoBehaviour
         // 寻找第一个有CubeMoveTest组件的物体
         foreach (Collider collider in hitColliders)
         {
-            CubeMoveTest cubeMove = collider.GetComponent<CubeMoveTest>();
+            BeGrabobject cubeMove = collider.GetComponent<BeGrabobject>();
             if (cubeMove != null)
             {
                 // 创建抓取命令，记录抓取前的状态

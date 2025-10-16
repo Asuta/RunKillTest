@@ -1,6 +1,6 @@
 using UnityEngine;
 
-public class CubeMoveTest : MonoBehaviour
+public class BeGrabobject  : MonoBehaviour
 {
     private bool isGrabbed = false;
     private Transform grabHand; // 抓取它的手部transform
