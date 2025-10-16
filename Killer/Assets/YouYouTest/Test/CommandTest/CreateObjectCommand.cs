@@ -41,5 +41,14 @@ namespace YouYouTest.CommandFramework
                 _createdObject.SetActive(false);
             }
         }
+        
+        /// <summary>
+        /// 获取创建的物体
+        /// </summary>
+        /// <returns>创建的物体，如果还未创建则返回null</returns>
+        public GameObject GetCreatedObject()
+        {
+            return _createdObject;
+        }
     }
 }

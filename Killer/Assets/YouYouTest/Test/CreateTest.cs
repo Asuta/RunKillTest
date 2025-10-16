@@ -7,9 +7,8 @@ public class CreateTest : MonoBehaviour
 {
     public GameObject cubePrefab;
     public Transform handPosition;
-    public Transform handCheckTrigger; 
+    public Transform handCheckTrigger;
     
-    private CommandHistory _commandHistory = new CommandHistory();
     private CubeMoveTest grabbedObject = null; // 当前抓取的物体
     private GrabCommand currentGrabCommand = null; // 当前抓取命令
 
@@ -54,7 +53,7 @@ public class CreateTest : MonoBehaviour
                     currentGrabCommand.SetEndTransform(grabbedObject.transform.position, grabbedObject.transform.rotation);
                     
                     // 执行命令并添加到历史
-                    _commandHistory.ExecuteCommand(currentGrabCommand);
+                    CommandHistory.Instance.ExecuteCommand(currentGrabCommand);
                     Debug.Log($"抓取命令已执行: {grabbedObject.gameObject.name} 从 {currentGrabCommand}");
                 }
                 
@@ -69,24 +68,24 @@ public class CreateTest : MonoBehaviour
         {
             if (Input.GetKeyDown(KeyCode.Z))
             {
-                _commandHistory.Undo();
+                CommandHistory.Instance.Undo();
             }
             else if (Input.GetKeyDown(KeyCode.Y))
             {
-                _commandHistory.Redo();
+                CommandHistory.Instance.Redo();
             }
         }
         
         // 右手柄A键撤销，B键重做
         if (InputActionsManager.Actions.XRIRightInteraction.PrimaryButton.WasPressedThisFrame())
         {
-            _commandHistory.Undo();
+            CommandHistory.Instance.Undo();
             Debug.Log("右手柄A键按下：执行撤销操作");
         }
         
         if (InputActionsManager.Actions.XRIRightInteraction.SecondaryButton.WasPressedThisFrame())
         {
-            _commandHistory.Redo();
+            CommandHistory.Instance.Redo();
             Debug.Log("右手柄B键按下：执行重做操作");
         }
     }
@@ -100,7 +99,7 @@ public class CreateTest : MonoBehaviour
         {
             // 使用命令模式创建立方体
             ICommand createCommand = new CreateObjectCommand(cubePrefab, handPosition.position);
-            _commandHistory.ExecuteCommand(createCommand);
+            CommandHistory.Instance.ExecuteCommand(createCommand);
             Debug.Log($"使用命令模式在手的位置创建立方体: {handPosition.position}");
         }
         else

@@ -8,8 +8,27 @@ namespace YouYouTest.CommandFramework
     /// </summary>
     public class CommandHistory
     {
+        // 单例实例
+        private static CommandHistory _instance;
+        public static CommandHistory Instance
+        {
+            get
+            {
+                if (_instance == null)
+                {
+                    _instance = new CommandHistory();
+                }
+                return _instance;
+            }
+        }
+
         private Stack<ICommand> _undoStack = new Stack<ICommand>();
         private Stack<ICommand> _redoStack = new Stack<ICommand>();
+        
+        // 私有构造函数，防止外部实例化
+        private CommandHistory()
+        {
+        }
 
         /// <summary>
         /// 执行一个新命令

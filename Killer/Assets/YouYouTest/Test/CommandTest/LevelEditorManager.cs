@@ -15,7 +15,6 @@ namespace YouYouTest.CommandFramework
         [Header("调试信息")]
         [SerializeField] private bool _showDebugInfo = true;
         
-        private CommandHistory _commandHistory = new CommandHistory();
         private Transform _selectedObject; // 当前选中的物体
         private Vector3 _dragStartPosition; // 拖拽物体的起始位置
         private Quaternion _dragStartRotation; // 拖拽物体的起始角度
@@ -38,11 +37,11 @@ namespace YouYouTest.CommandFramework
             {
                 if (Input.GetKeyDown(KeyCode.Z))
                 {
-                    _commandHistory.Undo();
+                    CommandHistory.Instance.Undo();
                 }
                 else if (Input.GetKeyDown(KeyCode.Y))
                 {
-                    _commandHistory.Redo();
+                    CommandHistory.Instance.Redo();
                 }
             }
 
@@ -84,7 +83,7 @@ namespace YouYouTest.CommandFramework
                         // 所以正确的做法是：在拖拽结束后，把物体位置先复原，再由ExecuteCommand来设定最终位置
                         _selectedObject.position = _dragStartPosition; // 复原位置
                         _selectedObject.rotation = _dragStartRotation; // 复原角度
-                        _commandHistory.ExecuteCommand(moveCommand); // 执行并记录
+                        CommandHistory.Instance.ExecuteCommand(moveCommand); // 执行并记录
                     }
                 }
                 _selectedObject = null;
@@ -105,7 +104,7 @@ namespace YouYouTest.CommandFramework
             if (Input.GetKeyDown(KeyCode.Delete) && _selectedObject != null)
             {
                 ICommand deleteCommand = new DeleteObjectCommand(_selectedObject.gameObject);
-                _commandHistory.ExecuteCommand(deleteCommand);
+                CommandHistory.Instance.ExecuteCommand(deleteCommand);
                 _selectedObject = null;
             }
             
@@ -134,7 +133,7 @@ namespace YouYouTest.CommandFramework
             // 假设在鼠标位置创建
             Vector3 createPosition = GetMouseWorldPosition(); 
             ICommand createCommand = new CreateObjectCommand(prefabToCreate, createPosition);
-            _commandHistory.ExecuteCommand(createCommand);
+            CommandHistory.Instance.ExecuteCommand(createCommand);
         }
 
         // --- 示例：删除物体的按钮回调 ---
@@ -147,14 +146,14 @@ namespace YouYouTest.CommandFramework
             }
                 
             ICommand deleteCommand = new DeleteObjectCommand(objectToDelete);
-            _commandHistory.ExecuteCommand(deleteCommand);
+            CommandHistory.Instance.ExecuteCommand(deleteCommand);
         }
       
         // 加载新关卡时清除历史记录
         public void LoadLevel()
         {
            // ... 加载关卡逻辑 ...
-           _commandHistory.Clear();
+           CommandHistory.Instance.Clear();
         }
 
         /// <summary>
@@ -210,8 +209,8 @@ namespace YouYouTest.CommandFramework
             GUILayout.Label("Delete键: 删除选中物体");
             GUILayout.Label("Ctrl+Z: 撤销");
             GUILayout.Label("Ctrl+Y: 重做");
-            GUILayout.Label($"可撤销: {_commandHistory.CanUndo}");
-            GUILayout.Label($"可重做: {_commandHistory.CanRedo}");
+            GUILayout.Label($"可撤销: {CommandHistory.Instance.CanUndo}");
+            GUILayout.Label($"可重做: {CommandHistory.Instance.CanRedo}");
             GUILayout.EndArea();
         }
     }

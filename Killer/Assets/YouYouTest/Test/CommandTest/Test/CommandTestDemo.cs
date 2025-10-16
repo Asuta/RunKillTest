@@ -11,7 +11,6 @@ namespace YouYouTest.CommandFramework
         [SerializeField] private GameObject _testCubePrefab;
         [SerializeField] private GameObject _testSpherePrefab;
         
-        private CommandHistory _commandHistory = new CommandHistory();
         private GameObject _testObject;
         
         void Start()
@@ -34,7 +33,7 @@ namespace YouYouTest.CommandFramework
             {
                 Vector3 position = new Vector3(0, 1, 0);
                 CreateObjectCommand createCommand = new CreateObjectCommand(_testCubePrefab, position);
-                _commandHistory.ExecuteCommand(createCommand);
+                CommandHistory.Instance.ExecuteCommand(createCommand);
                 
                 // 获取创建的物体引用（这里简化处理）
                 _testObject = GameObject.CreatePrimitive(PrimitiveType.Cube);
@@ -53,7 +52,7 @@ namespace YouYouTest.CommandFramework
                 Quaternion endRot = Quaternion.Euler(0, 45, 0); // 旋转45度作为测试
                 
                 MoveCommand moveCommand = new MoveCommand(_testObject.transform, startPos, endPos, startRot, endRot);
-                _commandHistory.ExecuteCommand(moveCommand);
+                CommandHistory.Instance.ExecuteCommand(moveCommand);
                 
                 Debug.Log($"测试移动命令: 从 {startPos} 到 {endPos}，角度从 {startRot.eulerAngles} 到 {endRot.eulerAngles}");
             }
@@ -65,7 +64,7 @@ namespace YouYouTest.CommandFramework
             {
                 Vector3 position = new Vector3(2, 1, 0);
                 CreateObjectCommand createCommand = new CreateObjectCommand(_testSpherePrefab, position);
-                _commandHistory.ExecuteCommand(createCommand);
+                CommandHistory.Instance.ExecuteCommand(createCommand);
                 
                 Debug.Log($"测试创建命令: 在位置 {position} 创建球体");
             }
@@ -85,7 +84,7 @@ namespace YouYouTest.CommandFramework
             if (_testObject != null)
             {
                 DeleteObjectCommand deleteCommand = new DeleteObjectCommand(_testObject);
-                _commandHistory.ExecuteCommand(deleteCommand);
+                CommandHistory.Instance.ExecuteCommand(deleteCommand);
                 
                 Debug.Log($"测试删除命令: 删除 {_testObject.name}");
             }
@@ -96,17 +95,17 @@ namespace YouYouTest.CommandFramework
             Debug.Log("=== 测试撤销/重做功能 ===");
             
             // 撤销所有操作
-            while (_commandHistory.CanUndo)
+            while (CommandHistory.Instance.CanUndo)
             {
-                _commandHistory.Undo();
+                CommandHistory.Instance.Undo();
             }
             
             Debug.Log("所有操作已撤销");
             
             // 重新执行所有操作
-            while (_commandHistory.CanRedo)
+            while (CommandHistory.Instance.CanRedo)
             {
-                _commandHistory.Redo();
+                CommandHistory.Instance.Redo();
             }
             
             Debug.Log("所有操作已重做");
@@ -118,17 +117,17 @@ namespace YouYouTest.CommandFramework
             // 键盘测试
             if (Input.GetKeyDown(KeyCode.U))
             {
-                _commandHistory.Undo();
+                CommandHistory.Instance.Undo();
             }
             
             if (Input.GetKeyDown(KeyCode.R))
             {
-                _commandHistory.Redo();
+                CommandHistory.Instance.Redo();
             }
             
             if (Input.GetKeyDown(KeyCode.C))
             {
-                _commandHistory.Clear();
+                CommandHistory.Instance.Clear();
                 Debug.Log("命令历史已清空");
             }
         }
@@ -140,8 +139,8 @@ namespace YouYouTest.CommandFramework
             GUILayout.Label("U键: 撤销");
             GUILayout.Label("R键: 重做");
             GUILayout.Label("C键: 清空历史");
-            GUILayout.Label($"可撤销: {_commandHistory.CanUndo}");
-            GUILayout.Label($"可重做: {_commandHistory.CanRedo}");
+            GUILayout.Label($"可撤销: {CommandHistory.Instance.CanUndo}");
+            GUILayout.Label($"可重做: {CommandHistory.Instance.CanRedo}");
             GUILayout.EndArea();
         }
     }

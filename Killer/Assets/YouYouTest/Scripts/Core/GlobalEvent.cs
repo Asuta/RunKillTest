@@ -54,7 +54,10 @@ public static class GlobalEvent
 
 
 
-
+    /// <summary>
+    /// 生成按钮点击事件
+    /// </summary>
+    public static readonly UnityEvent<GameObject,Transform> CreateButtonPoke = new UnityEvent<GameObject,Transform>();
 
 
 
