@@ -10,6 +10,9 @@ public class BeGrabobject  : MonoBehaviour, IGrabable
     [Header("平滑设置")]
     [SerializeField] private float positionSmoothSpeed = 10f; // 位置平滑速度
     [SerializeField] private float rotationSmoothSpeed = 15f; // 旋转平滑速度
+    [Header("跟随设置")]
+    public bool freezeYaxis = false;
+
     
     // 实现接口属性
     public Transform ObjectTransform => transform;
@@ -30,6 +33,17 @@ public class BeGrabobject  : MonoBehaviour, IGrabable
             // 计算目标位置和旋转
             Vector3 targetPosition = grabHand.position + grabHand.rotation * offsetFromHand;
             Quaternion targetRotation = grabHand.rotation * initialRotationOffset;
+            
+            // 如果冻结Y轴，只保留Y轴旋转
+            if (freezeYaxis)
+            {
+                // 获取当前旋转的欧拉角
+                Vector3 currentEuler = transform.rotation.eulerAngles;
+                // 获取目标旋转的欧拉角
+                Vector3 targetEuler = targetRotation.eulerAngles;
+                // 只使用目标的Y轴旋转，保持当前的X和Z轴旋转
+                targetRotation = Quaternion.Euler(currentEuler.x, targetEuler.y, currentEuler.z);
+            }
             
             // 使用Lerp进行平滑移动
             transform.position = Vector3.Lerp(transform.position, targetPosition, positionSmoothSpeed * Time.deltaTime);
