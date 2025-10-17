@@ -79,6 +79,12 @@ public class EditorPlayer : MonoBehaviour
         }
 
 
+        // 左手柄A键删除当前抓取的物体
+        if (InputActionsManager.Actions.XRILeftInteraction.PrimaryButton.WasPressedThisFrame())
+        {
+            DeleteLeftHandObject();
+        }
+
         // 右手柄A键撤销，B键重做
         if (InputActionsManager.Actions.XRIRightInteraction.PrimaryButton.WasPressedThisFrame())
         {
@@ -266,5 +272,37 @@ public class EditorPlayer : MonoBehaviour
         
         // 没有找到IGrabable对象，返回null
         return null;
+    }
+    
+    /// <summary>
+    /// 删除左手当前hold的物体
+    /// </summary>
+    private void DeleteLeftHandObject()
+    {
+        if (leftHoldObject != null)
+        {
+            // 获取要删除的物体
+            GameObject objectToDelete = leftHoldObject.ObjectGameObject;
+            
+            // 创建删除命令并执行
+            DeleteObjectCommand deleteCommand = new DeleteObjectCommand(objectToDelete);
+            CommandHistory.Instance.ExecuteCommand(deleteCommand);
+            
+            // 如果当前正在抓取这个物体，需要先释放
+            if (leftGrabbedObject == leftHoldObject)
+            {
+                leftGrabbedObject.OnReleased();
+                leftGrabbedObject = null;
+                leftCurrentGrabCommand = null;
+            }
+            
+            // 清空hold状态
+            Debug.Log($"左手柄A键按下：删除物体 {objectToDelete.name}");
+            leftHoldObject = null;
+        }
+        else
+        {
+            Debug.Log("左手没有hold任何物体，无法删除");
+        }
     }
 }
