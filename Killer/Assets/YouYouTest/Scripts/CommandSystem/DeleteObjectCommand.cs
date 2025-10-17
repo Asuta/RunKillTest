@@ -29,5 +29,14 @@ namespace YouYouTest.CommandFramework
                 _targetObject.SetActive(true);
             }
         }
+        
+        /// <summary>
+        /// 获取目标对象
+        /// </summary>
+        /// <returns>目标对象</returns>
+        public GameObject GetTargetObject()
+        {
+            return _targetObject;
+        }
     }
 }

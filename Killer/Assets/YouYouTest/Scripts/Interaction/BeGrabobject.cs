@@ -7,6 +7,10 @@ public class BeGrabobject  : MonoBehaviour, IGrabable
     private Vector3 offsetFromHand; // 相对于手的偏移
     private Quaternion initialRotationOffset; // 初始旋转偏移
     
+    [Header("平滑设置")]
+    [SerializeField] private float positionSmoothSpeed = 10f; // 位置平滑速度
+    [SerializeField] private float rotationSmoothSpeed = 15f; // 旋转平滑速度
+    
     // 实现接口属性
     public Transform ObjectTransform => transform;
     public GameObject ObjectGameObject => gameObject;
@@ -23,8 +27,13 @@ public class BeGrabobject  : MonoBehaviour, IGrabable
         // 如果被抓取，跟随手部移动
         if (isGrabbed && grabHand != null)
         {
-            transform.position = grabHand.position + grabHand.rotation * offsetFromHand;
-            transform.rotation = grabHand.rotation * initialRotationOffset;
+            // 计算目标位置和旋转
+            Vector3 targetPosition = grabHand.position + grabHand.rotation * offsetFromHand;
+            Quaternion targetRotation = grabHand.rotation * initialRotationOffset;
+            
+            // 使用Lerp进行平滑移动
+            transform.position = Vector3.Lerp(transform.position, targetPosition, positionSmoothSpeed * Time.deltaTime);
+            transform.rotation = Quaternion.Slerp(transform.rotation, targetRotation, rotationSmoothSpeed * Time.deltaTime);
         }
     }
     
