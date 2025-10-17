@@ -122,10 +122,24 @@ public class EditorPlayer : MonoBehaviour
             return;
         }
 
-        IGrabable cubeMove = targetObject.GetComponent<IGrabable>();
+        IGrabable cubeMove = null;
+        
+        // 首先尝试在目标对象上查找IGrabable组件
+        cubeMove = targetObject.GetComponent<IGrabable>();
+        
+        // 如果没找到，尝试在附加的刚体上查找
         if (cubeMove == null)
         {
-            Debug.LogWarning($"目标物体 {targetObject.name} 没有CubeMoveTest组件，无法抓取");
+            Rigidbody rigidbody = targetObject.GetComponent<Rigidbody>();
+            if (rigidbody != null)
+            {
+                cubeMove = rigidbody.GetComponent<IGrabable>();
+            }
+        }
+        
+        if (cubeMove == null)
+        {
+            Debug.LogWarning($"目标物体 {targetObject.name} 没有IGrabable组件，无法抓取");
             return;
         }
 
@@ -188,10 +202,24 @@ public class EditorPlayer : MonoBehaviour
             return;
         }
 
-        IGrabable cubeMove = targetObject.GetComponent<IGrabable>();
+        IGrabable cubeMove = null;
+        
+        // 首先尝试在目标对象上查找IGrabable组件
+        cubeMove = targetObject.GetComponent<IGrabable>();
+        
+        // 如果没找到，尝试在附加的刚体上查找
         if (cubeMove == null)
         {
-            Debug.LogWarning($"目标物体 {targetObject.name} 没有CubeMoveTest组件，无法抓取");
+            Rigidbody rigidbody = targetObject.GetComponent<Rigidbody>();
+            if (rigidbody != null)
+            {
+                cubeMove = rigidbody.GetComponent<IGrabable>();
+            }
+        }
+        
+        if (cubeMove == null)
+        {
+            Debug.LogWarning($"目标物体 {targetObject.name} 没有IGrabable组件，无法抓取");
             return;
         }
 
@@ -270,12 +298,17 @@ public class EditorPlayer : MonoBehaviour
         // 遍历检测到的碰撞器
         for (int i = 0; i < hitCount; i++)
         {
-            // 检查碰撞器所属的GameObject是否有IGrabable组件
-            IGrabable grabable = hitColliders[i].GetComponent<IGrabable>();
-            if (grabable != null)
+            // 获取碰撞器附加的刚体
+            Rigidbody rigidbody = hitColliders[i].attachedRigidbody;
+            if (rigidbody != null)
             {
-                // 返回第一个找到的IGrabable对象
-                return grabable;
+                // 在刚体的GameObject上查找IGrabable组件
+                IGrabable grabable = rigidbody.GetComponent<IGrabable>();
+                if (grabable != null)
+                {
+                    // 返回第一个找到的IGrabable对象
+                    return grabable;
+                }
             }
         }
         
