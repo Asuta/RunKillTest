@@ -9,7 +9,7 @@ public class CreateTest : MonoBehaviour
     public Transform handPosition;
     public Transform handCheckTrigger;
     
-    private BeGrabobject grabbedObject = null; // 当前抓取的物体
+    private IGrabable grabbedObject = null; // 当前抓取的物体
     private GrabCommand currentGrabCommand = null; // 当前抓取命令
 
     void Start()
@@ -50,11 +50,11 @@ public class CreateTest : MonoBehaviour
                 if (currentGrabCommand != null)
                 {
                     // 设置最终位置和旋转
-                    currentGrabCommand.SetEndTransform(grabbedObject.transform.position, grabbedObject.transform.rotation);
+                    currentGrabCommand.SetEndTransform(grabbedObject.ObjectTransform.position, grabbedObject.ObjectTransform.rotation);
                     
                     // 执行命令并添加到历史
                     CommandHistory.Instance.ExecuteCommand(currentGrabCommand);
-                    Debug.Log($"抓取命令已执行: {grabbedObject.gameObject.name} 从 {currentGrabCommand}");
+                    Debug.Log($"抓取命令已执行: {grabbedObject.ObjectGameObject.name} 从 {currentGrabCommand}");
                 }
                 
                 grabbedObject = null;
@@ -145,11 +145,11 @@ public class CreateTest : MonoBehaviour
         // 寻找第一个有CubeMoveTest组件的物体
         foreach (Collider collider in hitColliders)
         {
-            BeGrabobject cubeMove = collider.GetComponent<BeGrabobject>();
+            IGrabable cubeMove = collider.GetComponent<IGrabable>();
             if (cubeMove != null)
             {
                 // 创建抓取命令，记录抓取前的状态
-                currentGrabCommand = new GrabCommand(cubeMove.transform, cubeMove.transform.position, cubeMove.transform.rotation);
+                currentGrabCommand = new GrabCommand(cubeMove.ObjectTransform, cubeMove.ObjectTransform.position, cubeMove.ObjectTransform.rotation);
                 
                 // 抓取这个物体
                 grabbedObject = cubeMove;

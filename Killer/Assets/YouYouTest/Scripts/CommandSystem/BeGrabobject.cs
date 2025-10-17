@@ -1,11 +1,15 @@
 using UnityEngine;
 
-public class BeGrabobject  : MonoBehaviour
+public class BeGrabobject  : MonoBehaviour, IGrabable
 {
     private bool isGrabbed = false;
     private Transform grabHand; // 抓取它的手部transform
     private Vector3 offsetFromHand; // 相对于手的偏移
     private Quaternion initialRotationOffset; // 初始旋转偏移
+    
+    // 实现接口属性
+    public Transform ObjectTransform => transform;
+    public GameObject ObjectGameObject => gameObject;
     
     // Start is called once before the first execution of Update after the MonoBehaviour is created
     void Start()

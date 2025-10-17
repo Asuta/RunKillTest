@@ -7,8 +7,8 @@ public class EditorPlayer : MonoBehaviour
     public Transform leftHand;
     public Transform rightHand;
 
-    private BeGrabobject leftGrabbedObject = null; // 左手当前抓取的物体
-    private BeGrabobject rightGrabbedObject = null; // 右手当前抓取的物体
+    private IGrabable leftGrabbedObject = null; // 左手当前抓取的物体
+    private IGrabable rightGrabbedObject = null; // 右手当前抓取的物体
     private GrabCommand leftCurrentGrabCommand = null; // 左手当前抓取命令
     private GrabCommand rightCurrentGrabCommand = null; // 右手当前抓取命令
 
@@ -84,7 +84,7 @@ public class EditorPlayer : MonoBehaviour
             return;
         }
 
-        BeGrabobject cubeMove = targetObject.GetComponent<BeGrabobject>();
+        IGrabable cubeMove = targetObject.GetComponent<IGrabable>();
         if (cubeMove == null)
         {
             Debug.LogWarning($"目标物体 {targetObject.name} 没有CubeMoveTest组件，无法抓取");
@@ -92,7 +92,7 @@ public class EditorPlayer : MonoBehaviour
         }
 
         // 创建抓取命令，记录抓取前的状态
-        leftCurrentGrabCommand = new GrabCommand(cubeMove.transform, cubeMove.transform.position, cubeMove.transform.rotation);
+        leftCurrentGrabCommand = new GrabCommand(cubeMove.ObjectTransform, cubeMove.ObjectTransform.position, cubeMove.ObjectTransform.rotation);
 
         // 抓取这个物体
         leftGrabbedObject = cubeMove;
@@ -118,14 +118,14 @@ public class EditorPlayer : MonoBehaviour
         if (leftCurrentGrabCommand != null)
         {
             // 设置最终位置和旋转
-            leftCurrentGrabCommand.SetEndTransform(leftGrabbedObject.transform.position, leftGrabbedObject.transform.rotation);
+            leftCurrentGrabCommand.SetEndTransform(leftGrabbedObject.ObjectTransform.position, leftGrabbedObject.ObjectTransform.rotation);
 
             // 执行命令并添加到历史
             CommandHistory.Instance.ExecuteCommand(leftCurrentGrabCommand);
-            Debug.Log($"左手抓取命令已执行: {leftGrabbedObject.gameObject.name} 从 {leftCurrentGrabCommand}");
+            Debug.Log($"左手抓取命令已执行: {leftGrabbedObject.ObjectGameObject.name} 从 {leftCurrentGrabCommand}");
         }
 
-        Debug.Log($"左手松开了抓取的物体: {leftGrabbedObject.gameObject.name}");
+        Debug.Log($"左手松开了抓取的物体: {leftGrabbedObject.ObjectGameObject.name}");
         leftGrabbedObject = null;
         leftCurrentGrabCommand = null;
     }
@@ -148,7 +148,7 @@ public class EditorPlayer : MonoBehaviour
             return;
         }
 
-        BeGrabobject cubeMove = targetObject.GetComponent<BeGrabobject>();
+        IGrabable cubeMove = targetObject.GetComponent<IGrabable>();
         if (cubeMove == null)
         {
             Debug.LogWarning($"目标物体 {targetObject.name} 没有CubeMoveTest组件，无法抓取");
@@ -156,7 +156,7 @@ public class EditorPlayer : MonoBehaviour
         }
 
         // 创建抓取命令，记录抓取前的状态
-        rightCurrentGrabCommand = new GrabCommand(cubeMove.transform, cubeMove.transform.position, cubeMove.transform.rotation);
+        rightCurrentGrabCommand = new GrabCommand(cubeMove.ObjectTransform, cubeMove.ObjectTransform.position, cubeMove.ObjectTransform.rotation);
 
         // 抓取这个物体
         rightGrabbedObject = cubeMove;
@@ -182,14 +182,14 @@ public class EditorPlayer : MonoBehaviour
         if (rightCurrentGrabCommand != null)
         {
             // 设置最终位置和旋转
-            rightCurrentGrabCommand.SetEndTransform(rightGrabbedObject.transform.position, rightGrabbedObject.transform.rotation);
+            rightCurrentGrabCommand.SetEndTransform(rightGrabbedObject.ObjectTransform.position, rightGrabbedObject.ObjectTransform.rotation);
 
             // 执行命令并添加到历史
             CommandHistory.Instance.ExecuteCommand(rightCurrentGrabCommand);
-            Debug.Log($"右手抓取命令已执行: {rightGrabbedObject.gameObject.name} 从 {rightCurrentGrabCommand}");
+            Debug.Log($"右手抓取命令已执行: {rightGrabbedObject.ObjectGameObject.name} 从 {rightCurrentGrabCommand}");
         }
 
-        Debug.Log($"右手松开了抓取的物体: {rightGrabbedObject.gameObject.name}");
+        Debug.Log($"右手松开了抓取的物体: {rightGrabbedObject.ObjectGameObject.name}");
         rightGrabbedObject = null;
         rightCurrentGrabCommand = null;
     }
