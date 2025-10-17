@@ -3,6 +3,7 @@ using YouYouTest.CommandFramework;
 
 public class EditorPlayer : MonoBehaviour
 {
+    #region 字段和属性
     public GameObject UITarget;
     public Transform leftHand;
     public Transform leftCheckSphere;
@@ -18,7 +19,9 @@ public class EditorPlayer : MonoBehaviour
     private GrabCommand rightCurrentGrabCommand = null; // 右手当前抓取命令
     
     private Collider[] hitColliders = new Collider[10]; // 用于OverlapSphereNonAlloc的碰撞器数组
+    #endregion
 
+    #region Unity 生命周期方法
     // Start is called once before the first execution of Update after the MonoBehaviour is created
     void Start()
     {
@@ -98,7 +101,9 @@ public class EditorPlayer : MonoBehaviour
             Debug.Log("右手柄B键按下：执行重做操作");
         }
     }
+    #endregion
 
+    #region 左手操作方法
     /// <summary>
     /// 左手抓取物体
     /// </summary>
@@ -162,7 +167,9 @@ public class EditorPlayer : MonoBehaviour
         leftGrabbedObject = null;
         leftCurrentGrabCommand = null;
     }
+    #endregion
 
+    #region 右手操作方法
     /// <summary>
     /// 右手抓取物体
     /// </summary>
@@ -226,7 +233,9 @@ public class EditorPlayer : MonoBehaviour
         rightGrabbedObject = null;
         rightCurrentGrabCommand = null;
     }
+    #endregion
     
+    #region 物体检测方法
     /// <summary>
     /// 检测左右手附近的可抓取对象
     /// </summary>
@@ -273,7 +282,9 @@ public class EditorPlayer : MonoBehaviour
         // 没有找到IGrabable对象，返回null
         return null;
     }
+    #endregion
     
+    #region 物体删除方法
     /// <summary>
     /// 删除左手当前hold的物体
     /// </summary>
@@ -305,4 +316,5 @@ public class EditorPlayer : MonoBehaviour
             Debug.Log("左手没有hold任何物体，无法删除");
         }
     }
+    #endregion
 }
