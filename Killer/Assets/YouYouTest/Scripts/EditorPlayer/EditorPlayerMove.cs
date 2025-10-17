@@ -2,6 +2,8 @@ using UnityEngine;
 
 public class EditorPlayerMove : MonoBehaviour
 {
+    #region 字段和属性
+    
     public Transform rigT; // tracking space
     public Transform headT; // head(center相机位置)
     private Vector3 rigRecordPos; //rigT记录位置(用于拖拽移动，按下时记录位置)
@@ -18,6 +20,10 @@ public class EditorPlayerMove : MonoBehaviour
     // 旋转状态控制
     private bool wasRotatingLeft = false;
     private bool wasRotatingRight = false;
+    
+    #endregion
+    
+    #region Unity生命周期
     
     // Start is called once before the first execution of Update after the MonoBehaviour is created
     void Start()
@@ -37,6 +43,13 @@ public class EditorPlayerMove : MonoBehaviour
         StickMove();
     }
     
+    #endregion
+    
+    #region 移动功能
+    
+    /// <summary>
+    /// 摇杆旋转功能 - 使用右手摇杆左右方向控制旋转
+    /// </summary>
     private void StickRotate()
     {
         //右手摇杆进行转向，每次旋转45度(以头部（headT）为旋转中心)
@@ -65,6 +78,9 @@ public class EditorPlayerMove : MonoBehaviour
         }
     }
     
+    /// <summary>
+    /// 摇杆移动功能 - 使用左手摇杆控制移动
+    /// </summary>
     private void StickMove()
     {
         //左摇杆移动
@@ -76,10 +92,14 @@ public class EditorPlayerMove : MonoBehaviour
             // 使用新的四元数旋转移动向量
             Vector3 dir = rotationY * new Vector3(move.x, 0, move.y);
             dir = new Vector3(dir.x, 0, dir.z);
-            rigT.position += dir * moveSpeed * Time.deltaTime;
+            // 考虑rigT的缩放，移动距离乘以rigT.localScale.x
+            rigT.position += dir * moveSpeed * Time.deltaTime * rigT.localScale.x;
         }
     }
     
+    /// <summary>
+    /// 拖拽移动功能 - 同时按住扳机和握键时进行拖拽移动
+    /// </summary>
     private void DragMove()
     {
         // 右手拖拽移动
@@ -89,6 +109,10 @@ public class EditorPlayerMove : MonoBehaviour
         HandleDragMove(false);
     }
     
+    /// <summary>
+    /// 处理单手拖拽移动
+    /// </summary>
+    /// <param name="isRightHand">是否为右手</param>
     private void HandleDragMove(bool isRightHand)
     {
         // 获取对应手的扳机和握键值和状态
@@ -137,7 +161,8 @@ public class EditorPlayerMove : MonoBehaviour
             {
                 Vector3 offset = handTransform.localPosition - rightHandRecordPos;
                 offset = Quaternion.Euler(0, rigT.eulerAngles.y, 0) * offset;
-                rigT.position = rigRecordPos - offset * moveSpeed;
+                // 考虑rigT的缩放，移动距离乘以rigT.localScale.x
+                rigT.position = rigRecordPos - offset * moveSpeed * rigT.localScale.x;
             }
             
             // 释放拖拽状态
@@ -169,7 +194,8 @@ public class EditorPlayerMove : MonoBehaviour
             {
                 Vector3 offset = handTransform.localPosition - leftHandRecordPos;
                 offset = Quaternion.Euler(0, rigT.eulerAngles.y, 0) * offset;
-                rigT.position = rigRecordPos - offset * moveSpeed;
+                // 考虑rigT的缩放，移动距离乘以rigT.localScale.x
+                rigT.position = rigRecordPos - offset * moveSpeed * rigT.localScale.x;
             }
             
             // 释放拖拽状态
@@ -179,4 +205,6 @@ public class EditorPlayerMove : MonoBehaviour
             }
         }
     }
+    
+    #endregion
 }
