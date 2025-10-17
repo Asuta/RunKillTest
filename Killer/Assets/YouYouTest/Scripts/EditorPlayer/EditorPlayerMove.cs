@@ -21,6 +21,12 @@ public class EditorPlayerMove : MonoBehaviour
     private bool wasRotatingLeft = false;
     private bool wasRotatingRight = false;
     
+    // 缩放相关变量
+    private float recordScale; // 记录的初始比例
+    private float recordDistance; // 记录的初始距离
+    private bool isScaling = false; // 是否正在缩放
+    private Vector3 centerPosition; // 缩放中心点
+    
     #endregion
     
     #region Unity生命周期
@@ -35,12 +41,15 @@ public class EditorPlayerMove : MonoBehaviour
     // Update is called once per frame
     void Update()
     {
-        moveSpeed = rigT.localScale.x;
+        // moveSpeed保持为1，因为我们在移动计算中已经考虑了rigT的缩放
+        moveSpeed = 1f;
         StickRotate();
         //拖拽移动
         DragMove();
         //左摇杆移动
         StickMove();
+        //双手缩放
+        HandleScale();
     }
     
     #endregion
@@ -203,6 +212,54 @@ public class EditorPlayerMove : MonoBehaviour
             {
                 leftHandDragging = false;
             }
+        }
+    }
+    
+    /// <summary>
+    /// 双手缩放功能 - 同时按住双手A键进行缩放
+    /// </summary>
+    private void HandleScale()
+    {
+        // 检测双手A键状态
+        bool leftAPressed = InputActionsManager.Actions.XRILeftInteraction.PrimaryButton.IsPressed();
+        bool rightAPressed = InputActionsManager.Actions.XRIRightInteraction.PrimaryButton.IsPressed();
+        bool leftADown = InputActionsManager.Actions.XRILeftInteraction.PrimaryButton.WasPressedThisFrame();
+        bool rightADown = InputActionsManager.Actions.XRIRightInteraction.PrimaryButton.WasPressedThisFrame();
+        
+        // 计算缩放中心点（两手之间的中点）
+        centerPosition = (leftHand.position + rightHand.position) / 2;
+        
+        // 检测是否开始缩放（任意一个A键按下且另一个已经按下）
+        if ((leftADown && rightAPressed) || (rightADown && leftAPressed))
+        {
+            // 记录当前的缩放倍数
+            recordScale = rigT.localScale.x;
+            // 记录当前两个手柄的距离
+            recordDistance = Vector3.Distance(leftHand.localPosition, rightHand.localPosition);
+            isScaling = true;
+        }
+        
+        // 如果双手都按住A键，进行缩放
+        if (leftAPressed && rightAPressed && isScaling)
+        {
+            // 获取现在两个手的距离
+            var nowDistance = Vector3.Distance(leftHand.localPosition, rightHand.localPosition);
+            // 计算现在的缩放比例
+            var targetScale = recordDistance / nowDistance * recordScale;
+            // 计算缩放后的大小
+            var newSize = targetScale;
+
+            // 计算要缩放的距离
+            Vector3 zoomVector = (centerPosition - rigT.position) * (newSize / rigT.localScale.x - 1.0f);
+            // 缩放物体并移动位置，以使中心点保持不变
+            rigT.localScale = new Vector3(newSize, newSize, newSize);
+            rigT.position -= zoomVector;
+        }
+        
+        // 如果任意一个A键释放，停止缩放
+        if (!leftAPressed || !rightAPressed)
+        {
+            isScaling = false;
         }
     }
     
