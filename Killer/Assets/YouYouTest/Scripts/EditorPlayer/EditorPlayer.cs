@@ -5,12 +5,19 @@ public class EditorPlayer : MonoBehaviour
 {
     public GameObject UITarget;
     public Transform leftHand;
+    public Transform leftCheckSphere;
     public Transform rightHand;
+    public Transform rightCheckSphere;
+
+    public IGrabable leftHoldObject = null; // 左手当前抓取的物体
+    public IGrabable rightHoldObject = null; // 右手当前抓取的物体
 
     private IGrabable leftGrabbedObject = null; // 左手当前抓取的物体
     private IGrabable rightGrabbedObject = null; // 右手当前抓取的物体
     private GrabCommand leftCurrentGrabCommand = null; // 左手当前抓取命令
     private GrabCommand rightCurrentGrabCommand = null; // 右手当前抓取命令
+    
+    private Collider[] hitColliders = new Collider[10]; // 用于OverlapSphereNonAlloc的碰撞器数组
 
     // Start is called once before the first execution of Update after the MonoBehaviour is created
     void Start()
@@ -21,14 +28,24 @@ public class EditorPlayer : MonoBehaviour
     // Update is called once per frame
     void Update()
     {
-
-
-
+        // 检测左右手附近的可抓取对象
+        CheckForGrabableObjects();
+        
         // 左手柄菜单键（Menu）
         if (InputActionsManager.Actions.XRILeftInteraction.Menu.WasPressedThisFrame())
         {
             Debug.Log("左手柄菜单键按下");
             UITarget.SetActive(!UITarget.activeSelf);
+        }
+
+        // 左手扳机按下时抓取物体
+        if (InputActionsManager.Actions.XRILeftInteraction.Activate.WasPressedThisFrame())
+        {
+            if (leftHoldObject != null && leftGrabbedObject == null)
+            {
+                LeftHandGrab(leftHoldObject.ObjectGameObject);
+                Debug.Log($"左手扳机按下，抓取物体: {leftHoldObject.ObjectGameObject.name}");
+            }
         }
 
         // 左手扳机抬起时释放物体
@@ -38,6 +55,16 @@ public class EditorPlayer : MonoBehaviour
             {
                 LeftHandRelease();
                 Debug.Log("左手扳机抬起，释放物体");
+            }
+        }
+
+        // 右手扳机按下时抓取物体
+        if (InputActionsManager.Actions.XRIRightInteraction.Activate.WasPressedThisFrame())
+        {
+            if (rightHoldObject != null && rightGrabbedObject == null)
+            {
+                RightHandGrab(rightHoldObject.ObjectGameObject);
+                Debug.Log($"右手扳机按下，抓取物体: {rightHoldObject.ObjectGameObject.name}");
             }
         }
 
@@ -192,5 +219,52 @@ public class EditorPlayer : MonoBehaviour
         Debug.Log($"右手松开了抓取的物体: {rightGrabbedObject.ObjectGameObject.name}");
         rightGrabbedObject = null;
         rightCurrentGrabCommand = null;
+    }
+    
+    /// <summary>
+    /// 检测左右手附近的可抓取对象
+    /// </summary>
+    private void CheckForGrabableObjects()
+    {
+        // 检测左手附近的可抓取对象
+        leftHoldObject = DetectGrabableObject(leftCheckSphere);
+        
+        // 检测右手附近的可抓取对象
+        rightHoldObject = DetectGrabableObject(rightCheckSphere);
+    }
+    
+    /// <summary>
+    /// 在指定Transform位置检测可抓取对象
+    /// </summary>
+    /// <param name="checkSphere">检测球体的Transform</param>
+    /// <returns>检测到的第一个IGrabable对象，如果没有则返回null</returns>
+    private IGrabable DetectGrabableObject(Transform checkSphere)
+    {
+        if (checkSphere == null)
+        {
+            Debug.LogWarning("检测球体Transform为空");
+            return null;
+        }
+        
+        // 使用CheckSphere的lossyScale的最大值作为检测半径
+        float radius = Mathf.Max(checkSphere.lossyScale.x, checkSphere.lossyScale.y, checkSphere.lossyScale.z);
+        
+        // 使用OverlapSphereNonAlloc检测指定位置附近的碰撞器
+        int hitCount = Physics.OverlapSphereNonAlloc(checkSphere.position, radius, hitColliders);
+        
+        // 遍历检测到的碰撞器
+        for (int i = 0; i < hitCount; i++)
+        {
+            // 检查碰撞器所属的GameObject是否有IGrabable组件
+            IGrabable grabable = hitColliders[i].GetComponent<IGrabable>();
+            if (grabable != null)
+            {
+                // 返回第一个找到的IGrabable对象
+                return grabable;
+            }
+        }
+        
+        // 没有找到IGrabable对象，返回null
+        return null;
     }
 }
