@@ -45,6 +45,7 @@ public class BeGrabAndScaleobject : MonoBehaviour, IGrabable
     private float initialHandsDistance = 0f;
     private Vector3 baseScale;
     private Quaternion twoHandRotationOffset = Quaternion.identity;
+    private bool isNewScaleGesture = false; // 是否是新的缩放手势
     
     // 单轴缩放相关
     private ScaleAxisData scaleAxisData = new ScaleAxisData();
@@ -74,6 +75,8 @@ public class BeGrabAndScaleobject : MonoBehaviour, IGrabable
         if (!isTwoHandScaling && nowTwoHand)
         {
             isTwoHandScaling = true;
+            isNewScaleGesture = true; // 标记为新的缩放手势
+            
             // 确认两只手引用
             if (editorPlayer != null)
             {
@@ -131,11 +134,11 @@ public class BeGrabAndScaleobject : MonoBehaviour, IGrabable
         Vector3 targetPos = primaryHand.position + primaryHand.rotation * offsetFromPrimary;
         Quaternion targetRot = primaryHand.rotation * rotationOffsetFromPrimary;
 
-        // 双手时，位置跟随两手中点，旋转跟随两手平均朝向（保持进入时的相对旋转偏移）
+        // 双手时，位置保持与主手的相对位置，旋转跟随两手平均朝向（保持进入时的相对旋转偏移）
         if (isTwoHandScaling && editorPlayer != null && editorPlayer.leftHand != null && editorPlayer.rightHand != null)
         {
-            Vector3 mid = (editorPlayer.leftHand.position + editorPlayer.rightHand.position) * 0.5f;
-            targetPos = mid;
+            // 保持与主手的相对位置，不移动到两手中心
+            targetPos = primaryHand.position + primaryHand.rotation * offsetFromPrimary;
             Quaternion avgRot = Quaternion.Slerp(editorPlayer.leftHand.rotation, editorPlayer.rightHand.rotation, 0.5f);
             targetRot = avgRot * twoHandRotationOffset;
         }
@@ -195,16 +198,17 @@ public class BeGrabAndScaleobject : MonoBehaviour, IGrabable
         
         scaleAxisData.Axis = currentScaleAxis;
         
-        // 开始缩放的第一帧，记录下当前的缩放值和两只手的距离
-        if (lastScaleAxis != currentScaleAxis)
+        // 当开始新的缩放手势，或缩放轴改变时，记录初始值
+        if (isNewScaleGesture || lastScaleAxis != currentScaleAxis)
         {
+            isNewScaleGesture = false; // 消耗标记
             lastScaleAxis = currentScaleAxis;
             recordScale = scaleAxisData.Value;
             recordHandDistance = Vector3.Distance(
                 editorPlayer.leftHand.position,
                 editorPlayer.rightHand.position
             );
-            Debug.Log($"{gameObject.name} 开始单轴缩放，轴: {currentScaleAxis}, 初始值: {recordScale:F3}, 初始距离: {recordHandDistance:F3}");
+            Debug.Log($"{gameObject.name} 开始或重置单轴缩放，轴: {currentScaleAxis}, 初始值: {recordScale:F3}, 初始距离: {recordHandDistance:F3}");
         }
         
         // 根据两只手的距离和记录的距离来计算缩放比例
@@ -277,6 +281,7 @@ public class BeGrabAndScaleobject : MonoBehaviour, IGrabable
                 Quaternion avgRot = Quaternion.Slerp(editorPlayer.leftHand.rotation, editorPlayer.rightHand.rotation, 0.5f);
                 twoHandRotationOffset = Quaternion.Inverse(avgRot) * transform.rotation;
                 isTwoHandScaling = true;
+                isNewScaleGesture = true; // 标记为新的缩放手势
                 Debug.Log($"{gameObject.name} 进入双手抓取，记录初始距离 {initialHandsDistance:F3} 与基准缩放 {baseScale}");
                 
                 // 创建缩放命令

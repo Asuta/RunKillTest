@@ -42,6 +42,17 @@ public class GameManager : MonoBehaviour
         DontDestroyOnLoad(gameObject);
     }
 
+    // VR player rig
+    [SerializeField]
+    private Transform _vrPlayerRig;
+    public Transform VrPlayerRig => _vrPlayerRig;
+
+
+    // VR editor rig
+    [SerializeField]
+    private Transform _vrEditorRig;
+    public Transform VrEditorRig => _vrEditorRig;
+
 
     [SerializeField]
     private Transform _playerCameraT;
@@ -94,7 +105,7 @@ public class GameManager : MonoBehaviour
         {
             _greenHooks.Remove(hookTransform);
             CustomLog.Log(needLog, $"绿色钩子已注销: {hookTransform.name}");
-            
+
             // 如果移除的是当前最小夹角的Hook，需要重新计算
             if (hookTransform == _closestAngleHook)
             {
@@ -129,7 +140,7 @@ public class GameManager : MonoBehaviour
         foreach (var hook in _greenHooks)
         {
             if (hook == null) continue;
-            
+
             float angle = CalculateAngleToCamera(hook);
             if (angle < minAngle)
             {
@@ -188,21 +199,23 @@ public class GameManager : MonoBehaviour
         GlobalEvent.CheckPointActivate.AddListener(OnCheckPointActivate);
     }
 
-    private void OnDestroy() {
+    private void OnDestroy()
+    {
         GlobalEvent.CheckPointActivate.RemoveListener(OnCheckPointActivate);
     }
 
-    private void OnCheckPointActivate(CheckPoint checkPoint) {
+    private void OnCheckPointActivate(CheckPoint checkPoint)
+    {
         CustomLog.Log(needLog, $"检查点激活: {checkPoint.name}");
-        
+
         // 如果已经有激活的检查点，将其状态设置为已激活
         if (nowActivateCheckPoint != null)
         {
             nowActivateCheckPoint.SetState(CheckPoint.CheckPointState.Activated);
         }
-        
+
         nowActivateCheckPoint = checkPoint; // 存储激活的检查点引用
-        
+
         // 检查点已经在CheckPoint.cs中设置为Activating状态
         // 这里不需要再次设置状态，保持Activating状态让其他逻辑处理
     }
