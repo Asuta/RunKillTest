@@ -18,9 +18,9 @@ namespace YouYouTest.CommandFramework
             _target = target;
             _startPosition = startPosition;
             _startRotation = startRotation;
-            // 松开时的位置和旋转在松开时设置
-            _endPosition = target.position;
-            _endRotation = target.rotation;
+            // 松开时的位置和旋转在松开时设置，这里初始化为默认值
+            _endPosition = startPosition;
+            _endRotation = startRotation;
         }
 
         // 执行操作：将物体移动到最终位置和角度
