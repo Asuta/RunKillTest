@@ -13,8 +13,8 @@ public class EditorPlayer : MonoBehaviour
     public IGrabable leftHoldObject = null; // 左手当前抓取的物体
     public IGrabable rightHoldObject = null; // 右手当前抓取的物体
 
-    private IGrabable leftGrabbedObject = null; // 左手当前抓取的物体
-    private IGrabable rightGrabbedObject = null; // 右手当前抓取的物体
+    public IGrabable leftGrabbedObject = null; // 左手当前抓取的物体
+    public IGrabable rightGrabbedObject = null; // 右手当前抓取的物体
     private GrabCommand leftCurrentGrabCommand = null; // 左手当前抓取命令
     private GrabCommand rightCurrentGrabCommand = null; // 右手当前抓取命令
     
@@ -44,7 +44,7 @@ public class EditorPlayer : MonoBehaviour
         // 左手扳机按下时抓取物体
         if (InputActionsManager.Actions.XRILeftInteraction.Activate.WasPressedThisFrame())
         {
-            if (leftHoldObject != null && leftGrabbedObject == null)
+            if (leftHoldObject != null)
             {
                 LeftHandGrab(leftHoldObject.ObjectGameObject);
                 Debug.Log($"左手扳机按下，抓取物体: {leftHoldObject.ObjectGameObject.name}");
@@ -64,7 +64,7 @@ public class EditorPlayer : MonoBehaviour
         // 右手扳机按下时抓取物体
         if (InputActionsManager.Actions.XRIRightInteraction.Activate.WasPressedThisFrame())
         {
-            if (rightHoldObject != null && rightGrabbedObject == null)
+            if (rightHoldObject != null)
             {
                 RightHandGrab(rightHoldObject.ObjectGameObject);
                 Debug.Log($"右手扳机按下，抓取物体: {rightHoldObject.ObjectGameObject.name}");
@@ -116,12 +116,6 @@ public class EditorPlayer : MonoBehaviour
             return;
         }
 
-        if (leftGrabbedObject != null)
-        {
-            Debug.LogWarning("左手已经抓取了物体，请先释放");
-            return;
-        }
-
         IGrabable cubeMove = null;
         
         // 首先尝试在目标对象上查找IGrabable组件
@@ -140,6 +134,29 @@ public class EditorPlayer : MonoBehaviour
         if (cubeMove == null)
         {
             Debug.LogWarning($"目标物体 {targetObject.name} 没有IGrabable组件，无法抓取");
+            return;
+        }
+
+        // 检查这个物体是否已经被右手抓取
+        if (rightGrabbedObject == cubeMove)
+        {
+            Debug.Log($"物体 {targetObject.name} 从右手切换到左手");
+            
+            // 完成右手的抓取命令
+            if (rightCurrentGrabCommand != null)
+            {
+                rightCurrentGrabCommand.SetEndTransform(rightGrabbedObject.ObjectTransform.position, rightGrabbedObject.ObjectTransform.rotation);
+                CommandHistory.Instance.ExecuteCommand(rightCurrentGrabCommand);
+                rightCurrentGrabCommand = null;
+            }
+            
+            // 清空右手状态
+            rightGrabbedObject = null;
+        }
+        // 如果左手已经抓取了其他物体，先完成当前抓取命令
+        else if (leftGrabbedObject != null && leftGrabbedObject != cubeMove)
+        {
+            Debug.LogWarning("左手已经抓取了其他物体，请先释放");
             return;
         }
 
@@ -196,12 +213,6 @@ public class EditorPlayer : MonoBehaviour
             return;
         }
 
-        if (rightGrabbedObject != null)
-        {
-            Debug.LogWarning("右手已经抓取了物体，请先释放");
-            return;
-        }
-
         IGrabable cubeMove = null;
         
         // 首先尝试在目标对象上查找IGrabable组件
@@ -220,6 +231,29 @@ public class EditorPlayer : MonoBehaviour
         if (cubeMove == null)
         {
             Debug.LogWarning($"目标物体 {targetObject.name} 没有IGrabable组件，无法抓取");
+            return;
+        }
+
+        // 检查这个物体是否已经被左手抓取
+        if (leftGrabbedObject == cubeMove)
+        {
+            Debug.Log($"物体 {targetObject.name} 从左手切换到右手");
+            
+            // 完成左手的抓取命令
+            if (leftCurrentGrabCommand != null)
+            {
+                leftCurrentGrabCommand.SetEndTransform(leftGrabbedObject.ObjectTransform.position, leftGrabbedObject.ObjectTransform.rotation);
+                CommandHistory.Instance.ExecuteCommand(leftCurrentGrabCommand);
+                leftCurrentGrabCommand = null;
+            }
+            
+            // 清空左手状态
+            leftGrabbedObject = null;
+        }
+        // 如果右手已经抓取了其他物体，先完成当前抓取命令
+        else if (rightGrabbedObject != null && rightGrabbedObject != cubeMove)
+        {
+            Debug.LogWarning("右手已经抓取了其他物体，请先释放");
             return;
         }
 
