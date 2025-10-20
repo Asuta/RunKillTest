@@ -1,6 +1,25 @@
 using UnityEngine;
 using YouYouTest.CommandFramework;
 
+/// <summary>
+/// 缩放轴枚举
+/// </summary>
+public enum ScaleAxis
+{
+    X,
+    Y,
+    Z
+}
+
+/// <summary>
+/// 缩放轴数据类
+/// </summary>
+public class ScaleAxisData
+{
+    public ScaleAxis Axis { get; set; }
+    public float Value { get; set; }
+}
+
 public class BeGrabAndScaleobject : MonoBehaviour, IGrabable
 {
     // IGrabable 接口实现
@@ -26,6 +45,12 @@ public class BeGrabAndScaleobject : MonoBehaviour, IGrabable
     private float initialHandsDistance = 0f;
     private Vector3 baseScale;
     private Quaternion twoHandRotationOffset = Quaternion.identity;
+    
+    // 单轴缩放相关
+    private ScaleAxisData scaleAxisData = new ScaleAxisData();
+    private float recordScale = 0f; // 记录的缩放值
+    private float recordHandDistance = 0f; // 记录的双手距离
+    private ScaleAxis? lastScaleAxis = null; // 上次的缩放轴
 
     private EditorPlayer editorPlayer; // 用于检测当前是否双手都在抓
     
@@ -127,14 +152,95 @@ public class BeGrabAndScaleobject : MonoBehaviour, IGrabable
         transform.position = Vector3.Lerp(transform.position, targetPos, posAlpha);
         transform.rotation = Quaternion.Slerp(transform.rotation, targetRot, rotAlpha);
 
-        // 双手缩放：根据两手距离比例缩放
+        // 双手缩放：使用单轴缩放
         if (isTwoHandScaling && editorPlayer != null && editorPlayer.leftHand != null && editorPlayer.rightHand != null)
         {
-            float currentDistance = Vector3.Distance(editorPlayer.leftHand.position, editorPlayer.rightHand.position);
-            if (initialHandsDistance > 1e-4f)
+            PerformSingleAxisScaling();
+        }
+    }
+    
+    /// <summary>
+    /// 执行单轴缩放
+    /// </summary>
+    private void PerformSingleAxisScaling()
+    {
+        // 获取双手向量
+        Vector3 handVector = editorPlayer.rightHand.position - editorPlayer.leftHand.position;
+        
+        // 计算与各轴的夹角
+        float angleX = Vector3.Angle(handVector, transform.right);
+        angleX = Mathf.Min(angleX, 180 - angleX);
+        float angleY = Vector3.Angle(handVector, transform.up);
+        angleY = Mathf.Min(angleY, 180 - angleY);
+        float angleZ = Vector3.Angle(handVector, transform.forward);
+        angleZ = Mathf.Min(angleZ, 180 - angleZ);
+        
+        // 确定最小夹角的轴
+        ScaleAxis currentScaleAxis;
+        if (angleX < angleY && angleX < angleZ)
+        {
+            currentScaleAxis = ScaleAxis.X;
+            scaleAxisData.Value = transform.localScale.x;
+        }
+        else if (angleY < angleX && angleY < angleZ)
+        {
+            currentScaleAxis = ScaleAxis.Y;
+            scaleAxisData.Value = transform.localScale.y;
+        }
+        else
+        {
+            currentScaleAxis = ScaleAxis.Z;
+            scaleAxisData.Value = transform.localScale.z;
+        }
+        
+        scaleAxisData.Axis = currentScaleAxis;
+        
+        // 开始缩放的第一帧，记录下当前的缩放值和两只手的距离
+        if (lastScaleAxis != currentScaleAxis)
+        {
+            lastScaleAxis = currentScaleAxis;
+            recordScale = scaleAxisData.Value;
+            recordHandDistance = Vector3.Distance(
+                editorPlayer.leftHand.position,
+                editorPlayer.rightHand.position
+            );
+            Debug.Log($"{gameObject.name} 开始单轴缩放，轴: {currentScaleAxis}, 初始值: {recordScale:F3}, 初始距离: {recordHandDistance:F3}");
+        }
+        
+        // 根据两只手的距离和记录的距离来计算缩放比例
+        float currentHandDistance = Vector3.Distance(
+            editorPlayer.leftHand.position,
+            editorPlayer.rightHand.position
+        );
+        
+        if (recordHandDistance > 1e-4f)
+        {
+            float scaleRate = currentHandDistance / recordHandDistance;
+            Vector3 currentScale = transform.localScale;
+            
+            switch (currentScaleAxis)
             {
-                float ratio = currentDistance / initialHandsDistance;
-                transform.localScale = baseScale * ratio;
+                case ScaleAxis.X:
+                    transform.localScale = new Vector3(
+                        recordScale * scaleRate,
+                        currentScale.y,
+                        currentScale.z
+                    );
+                    break;
+                case ScaleAxis.Y:
+                    transform.localScale = new Vector3(
+                        currentScale.x,
+                        recordScale * scaleRate,
+                        currentScale.z
+                    );
+                    break;
+                case ScaleAxis.Z:
+                    transform.localScale = new Vector3(
+                        currentScale.x,
+                        currentScale.y,
+                        recordScale * scaleRate
+                    );
+                    break;
             }
         }
     }
@@ -256,14 +362,17 @@ public class BeGrabAndScaleobject : MonoBehaviour, IGrabable
     {
         if (!isCommandActive)
         {
+            ScaleAxis? scaleAxis = lastScaleAxis;
             currentScaleCommand = new ScaleCommand(
                 transform,
                 baseScale,
                 transform.position,
-                transform.rotation
+                transform.rotation,
+                scaleAxis
             );
             isCommandActive = true;
-            Debug.Log($"{gameObject.name} 创建缩放命令，初始缩放: {baseScale}");
+            string axisInfo = scaleAxis.HasValue ? $"轴: {scaleAxis.Value}" : "整体缩放";
+            Debug.Log($"{gameObject.name} 创建缩放命令，{axisInfo}，初始缩放: {baseScale}");
         }
     }
     
@@ -284,11 +393,13 @@ public class BeGrabAndScaleobject : MonoBehaviour, IGrabable
             // 执行命令
             CommandHistory.Instance.ExecuteCommand(currentScaleCommand);
             
-            Debug.Log($"{gameObject.name} 完成缩放命令，最终缩放: {transform.localScale}");
+            string axisInfo = currentScaleCommand.GetScaleAxis().HasValue ? $"轴: {currentScaleCommand.GetScaleAxis().Value}" : "整体缩放";
+            Debug.Log($"{gameObject.name} 完成缩放命令，{axisInfo}，最终缩放: {transform.localScale}");
             
             // 重置命令状态
             currentScaleCommand = null;
             isCommandActive = false;
+            lastScaleAxis = null; // 重置缩放轴
         }
     }
     

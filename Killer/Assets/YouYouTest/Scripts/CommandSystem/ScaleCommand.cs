@@ -14,13 +14,15 @@ namespace YouYouTest.CommandFramework
         private Quaternion _startRotation;   // 缩放前的角度
         private Vector3 _endPosition;        // 缩放后的位置
         private Quaternion _endRotation;     // 缩放后的角度
+        private ScaleAxis? _scaleAxis;       // 缩放轴（null表示整体缩放）
 
-        public ScaleCommand(Transform target, Vector3 startScale, Vector3 startPosition, Quaternion startRotation)
+        public ScaleCommand(Transform target, Vector3 startScale, Vector3 startPosition, Quaternion startRotation, ScaleAxis? scaleAxis = null)
         {
             _target = target;
             _startScale = startScale;
             _startPosition = startPosition;
             _startRotation = startRotation;
+            _scaleAxis = scaleAxis;
             // 缩放后的位置、旋转和尺寸在松开时设置，这里初始化为默认值
             _endScale = startScale;
             _endPosition = startPosition;
@@ -60,6 +62,15 @@ namespace YouYouTest.CommandFramework
             _endScale = endScale;
             _endPosition = endPosition;
             _endRotation = endRotation;
+        }
+        
+        /// <summary>
+        /// 获取缩放轴信息
+        /// </summary>
+        /// <returns>缩放轴，null表示整体缩放</returns>
+        public ScaleAxis? GetScaleAxis()
+        {
+            return _scaleAxis;
         }
     }
 }
