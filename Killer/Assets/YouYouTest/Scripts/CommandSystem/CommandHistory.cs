@@ -53,18 +53,18 @@ namespace YouYouTest.CommandFramework
             while (_undoList.Count > _maxHistorySize)
             {
                 var oldestCommandNode = _undoList.First;
-                DisposeCommand(oldestCommandNode.Value);
+                // 注意：达到历史限制时，只从列表中移除最旧命令，不销毁其资源，避免影响场景现状
                 _undoList.RemoveFirst();
-                Debug.Log($"已移除超出历史记录限制的命令: {oldestCommandNode.Value.GetType().Name}");
+                Debug.Log($"已移除超出历史记录限制的命令(仅从历史移除，未销毁资源): {oldestCommandNode.Value.GetType().Name}");
             }
             
             // 处理重做列表，移除最旧的命令
             while (_redoList.Count > _maxHistorySize)
             {
                 var oldestCommandNode = _redoList.First;
-                DisposeCommand(oldestCommandNode.Value);
+                // 仅移除历史记录，不销毁资源
                 _redoList.RemoveFirst();
-                Debug.Log($"已移除超出历史记录限制的重做命令: {oldestCommandNode.Value.GetType().Name}");
+                Debug.Log($"已移除超出历史记录限制的重做命令(仅从历史移除): {oldestCommandNode.Value.GetType().Name}");
             }
         }
         

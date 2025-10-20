@@ -17,7 +17,7 @@ public class EditorPlayer : MonoBehaviour
     public IGrabable rightGrabbedObject = null; // 右手当前抓取的物体
     private GrabCommand leftCurrentGrabCommand = null; // 左手当前抓取命令
     private GrabCommand rightCurrentGrabCommand = null; // 右手当前抓取命令
-    
+
     private Collider[] hitColliders = new Collider[10]; // 用于OverlapSphereNonAlloc的碰撞器数组
     #endregion
 
@@ -33,7 +33,7 @@ public class EditorPlayer : MonoBehaviour
     {
         // 检测左右手附近的可抓取对象
         CheckForGrabableObjects();
-        
+
         // 左手柄菜单键（Menu）
         if (InputActionsManager.Actions.XRILeftInteraction.Menu.WasPressedThisFrame())
         {
@@ -117,10 +117,10 @@ public class EditorPlayer : MonoBehaviour
         }
 
         IGrabable cubeMove = null;
-        
+
         // 首先尝试在目标对象上查找IGrabable组件
         cubeMove = targetObject.GetComponent<IGrabable>();
-        
+
         // 如果没找到，尝试在附加的刚体上查找
         if (cubeMove == null)
         {
@@ -130,7 +130,7 @@ public class EditorPlayer : MonoBehaviour
                 cubeMove = rigidbody.GetComponent<IGrabable>();
             }
         }
-        
+
         if (cubeMove == null)
         {
             Debug.LogWarning($"目标物体 {targetObject.name} 没有IGrabable组件，无法抓取");
@@ -140,18 +140,8 @@ public class EditorPlayer : MonoBehaviour
         // 检查这个物体是否已经被右手抓取
         if (rightGrabbedObject == cubeMove)
         {
-            Debug.Log($"物体 {targetObject.name} 从右手切换到左手");
-            
-            // 完成右手的抓取命令
-            if (rightCurrentGrabCommand != null)
-            {
-                rightCurrentGrabCommand.SetEndTransform(rightGrabbedObject.ObjectTransform.position, rightGrabbedObject.ObjectTransform.rotation);
-                CommandHistory.Instance.ExecuteCommand(rightCurrentGrabCommand);
-                rightCurrentGrabCommand = null;
-            }
-            
-            // 清空右手状态
-            rightGrabbedObject = null;
+            // 允许双手同时抓取（对所有 IGrabable 生效），不清空右手状态与命令
+            Debug.Log($"物体 {targetObject.name} 已被右手抓取，允许双手同时抓取");
         }
         // 如果左手已经抓取了其他物体，先完成当前抓取命令
         else if (leftGrabbedObject != null && leftGrabbedObject != cubeMove)
@@ -180,9 +170,19 @@ public class EditorPlayer : MonoBehaviour
             return;
         }
 
+        // 若底层对象已被销毁（Unity null），安全清理并退出
+        var leftHost = leftGrabbedObject as MonoBehaviour;
+        if (leftHost == null)
+        {
+            Debug.LogWarning("左手抓取的对象已被销毁，跳过释放与命令记录");
+            leftGrabbedObject = null;
+            leftCurrentGrabCommand = null;
+            return;
+        }
+
         // 检查这个物体是否也被右手抓取
         bool isAlsoGrabbedByRightHand = (rightGrabbedObject == leftGrabbedObject);
-        
+
         if (isAlsoGrabbedByRightHand)
         {
             Debug.Log($"{leftGrabbedObject.ObjectGameObject.name} 从左手释放，但仍被右手抓取");
@@ -224,10 +224,10 @@ public class EditorPlayer : MonoBehaviour
         }
 
         IGrabable cubeMove = null;
-        
+
         // 首先尝试在目标对象上查找IGrabable组件
         cubeMove = targetObject.GetComponent<IGrabable>();
-        
+
         // 如果没找到，尝试在附加的刚体上查找
         if (cubeMove == null)
         {
@@ -237,7 +237,7 @@ public class EditorPlayer : MonoBehaviour
                 cubeMove = rigidbody.GetComponent<IGrabable>();
             }
         }
-        
+
         if (cubeMove == null)
         {
             Debug.LogWarning($"目标物体 {targetObject.name} 没有IGrabable组件，无法抓取");
@@ -247,18 +247,8 @@ public class EditorPlayer : MonoBehaviour
         // 检查这个物体是否已经被左手抓取
         if (leftGrabbedObject == cubeMove)
         {
-            Debug.Log($"物体 {targetObject.name} 从左手切换到右手");
-            
-            // 完成左手的抓取命令
-            if (leftCurrentGrabCommand != null)
-            {
-                leftCurrentGrabCommand.SetEndTransform(leftGrabbedObject.ObjectTransform.position, leftGrabbedObject.ObjectTransform.rotation);
-                CommandHistory.Instance.ExecuteCommand(leftCurrentGrabCommand);
-                leftCurrentGrabCommand = null;
-            }
-            
-            // 清空左手状态
-            leftGrabbedObject = null;
+            // 允许双手同时抓取（对所有 IGrabable 生效），不清空左手状态与命令
+            Debug.Log($"物体 {targetObject.name} 已被左手抓取，允许双手同时抓取");
         }
         // 如果右手已经抓取了其他物体，先完成当前抓取命令
         else if (rightGrabbedObject != null && rightGrabbedObject != cubeMove)
@@ -286,10 +276,20 @@ public class EditorPlayer : MonoBehaviour
             Debug.LogWarning("右手没有抓取任何物体");
             return;
         }
+        // 若底层对象已被销毁（Unity null），安全清理并退出
+        var rightHost = rightGrabbedObject as MonoBehaviour;
+        if (rightHost == null)
+        {
+            Debug.LogWarning("右手抓取的对象已被销毁，跳过释放与命令记录");
+            rightGrabbedObject = null;
+            rightCurrentGrabCommand = null;
+            return;
+        }
+
 
         // 检查这个物体是否也被左手抓取
         bool isAlsoGrabbedByLeftHand = (leftGrabbedObject == rightGrabbedObject);
-        
+
         if (isAlsoGrabbedByLeftHand)
         {
             Debug.Log($"{rightGrabbedObject.ObjectGameObject.name} 从右手释放，但仍被左手抓取");
@@ -316,7 +316,7 @@ public class EditorPlayer : MonoBehaviour
         rightCurrentGrabCommand = null;
     }
     #endregion
-    
+
     #region 物体检测方法
     /// <summary>
     /// 检测左右手附近的可抓取对象
@@ -325,11 +325,11 @@ public class EditorPlayer : MonoBehaviour
     {
         // 检测左手附近的可抓取对象
         leftHoldObject = DetectGrabableObject(leftCheckSphere);
-        
+
         // 检测右手附近的可抓取对象
         rightHoldObject = DetectGrabableObject(rightCheckSphere);
     }
-    
+
     /// <summary>
     /// 在指定Transform位置检测可抓取对象
     /// </summary>
@@ -342,13 +342,13 @@ public class EditorPlayer : MonoBehaviour
             Debug.LogWarning("检测球体Transform为空");
             return null;
         }
-        
+
         // 使用CheckSphere的lossyScale的最大值作为检测半径
         float radius = Mathf.Max(checkSphere.lossyScale.x, checkSphere.lossyScale.y, checkSphere.lossyScale.z);
-        
+
         // 使用OverlapSphereNonAlloc检测指定位置附近的碰撞器
         int hitCount = Physics.OverlapSphereNonAlloc(checkSphere.position, radius, hitColliders);
-        
+
         // 遍历检测到的碰撞器
         for (int i = 0; i < hitCount; i++)
         {
@@ -365,12 +365,12 @@ public class EditorPlayer : MonoBehaviour
                 }
             }
         }
-        
+
         // 没有找到IGrabable对象，返回null
         return null;
     }
     #endregion
-    
+
     #region 物体删除方法
     /// <summary>
     /// 删除左手当前hold的物体
@@ -381,11 +381,11 @@ public class EditorPlayer : MonoBehaviour
         {
             // 获取要删除的物体
             GameObject objectToDelete = leftHoldObject.ObjectGameObject;
-            
+
             // 创建删除命令并执行
             DeleteObjectCommand deleteCommand = new DeleteObjectCommand(objectToDelete);
             CommandHistory.Instance.ExecuteCommand(deleteCommand);
-            
+
             // 如果当前正在抓取这个物体，需要先释放
             if (leftGrabbedObject == leftHoldObject)
             {
@@ -393,7 +393,7 @@ public class EditorPlayer : MonoBehaviour
                 leftGrabbedObject = null;
                 leftCurrentGrabCommand = null;
             }
-            
+
             // 清空hold状态
             Debug.Log($"左手柄A键按下：删除物体 {objectToDelete.name}");
             leftHoldObject = null;

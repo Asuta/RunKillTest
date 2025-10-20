@@ -14,7 +14,7 @@ GameObject:
   - component: {fileID: 3957163590733977443}
   - component: {fileID: 4557631212539315419}
   - component: {fileID: 2553558293321392511}
-  - component: {fileID: 3657272892073542577}
+  - component: {fileID: 5789931921007240895}
   m_Layer: 0
   m_Name: CheckPoint
   m_TagString: Untagged
@@ -153,7 +153,7 @@ MonoBehaviour:
   inactiveColor: {r: 0.5, g: 0.5, b: 0.5, a: 1}
   activatingColor: {r: 1, g: 0.92156863, b: 0.015686275, a: 1}
   activatedColor: {r: 0, g: 1, b: 0, a: 1}
---- !u!114 &3657272892073542577
+--- !u!114 &5789931921007240895
 MonoBehaviour:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
@@ -162,8 +162,9 @@ MonoBehaviour:
   m_GameObject: {fileID: 6086105558996111182}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: cd83b80d97978014ebc5d8d26e4c37ac, type: 3}
+  m_Script: {fileID: 11500000, guid: 5180ad4ef285b314f9552a058220fb14, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
   positionSmoothSpeed: 10
   rotationSmoothSpeed: 15
+  freezeYaxis: 0
