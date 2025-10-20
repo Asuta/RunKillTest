@@ -164,24 +164,55 @@ public class BeGrabAndScaleobject : MonoBehaviour, IGrabable
         }
     }
 
-    // 完全松开（EditorPlayer 在两手都不再抓时才会调用）
-    public void OnReleased()
+    // 释放一只手：若仍有另一只手抓取，则切回单手；否则完全释放
+    public void OnReleased(Transform releasedHandTransform)
     {
-        isGrabbed = false;
-        isTwoHandScaling = false;
-        primaryHand = null;
-        secondaryHand = null;
-        Debug.Log($"{gameObject.name} 被完全松开了");
-    }
+        if (!isGrabbed) return;
 
-    // 供 EditorPlayer/其他逻辑查询：释放一只手后是否仍被另一只手抓住
-    public bool IsStillGrabbedByOtherHand(Transform releasedHandTransform)
-    {
-        if (!isGrabbed) return false;
+        // 若释放的是主手
+        if (releasedHandTransform == primaryHand)
+        {
+            if (secondaryHand != null)
+            {
+                // 将副手提升为主手，退出双手缩放，并重算与新主手的偏移
+                primaryHand = secondaryHand;
+                secondaryHand = null;
+                isTwoHandScaling = false;
+                offsetFromPrimary = Quaternion.Inverse(primaryHand.rotation) * (transform.position - primaryHand.position);
+                rotationOffsetFromPrimary = Quaternion.Inverse(primaryHand.rotation) * transform.rotation;
+                Debug.Log($"{gameObject.name} 从 {GetHandName(releasedHandTransform)} 释放，继续由 {GetHandName(primaryHand)} 单手抓取");
+                return;
+            }
+            // 没有其他手抓了，完全释放
+            isGrabbed = false;
+            isTwoHandScaling = false;
+            primaryHand = null;
+            secondaryHand = null;
+            Debug.Log($"{gameObject.name} 被完全松开了");
+            return;
+        }
+
+        // 若释放的是副手，仅退出双手缩放，保持主手抓取
+        if (releasedHandTransform == secondaryHand)
+        {
+            secondaryHand = null;
+            isTwoHandScaling = false;
+            Debug.Log($"{gameObject.name} 从 {GetHandName(releasedHandTransform)} 释放，退出双手抓取，保持单手");
+            return;
+        }
+
+        // 兜底：尝试用 EditorPlayer 判定当前是否还被任一只手抓取
         if (editorPlayer == null) editorPlayer = FindFirstObjectByType<EditorPlayer>();
         bool leftHolding = editorPlayer != null && editorPlayer.leftGrabbedObject == (IGrabable)this;
         bool rightHolding = editorPlayer != null && editorPlayer.rightGrabbedObject == (IGrabable)this;
-        return leftHolding || rightHolding;
+        if (!(leftHolding || rightHolding))
+        {
+            isGrabbed = false;
+            isTwoHandScaling = false;
+            primaryHand = null;
+            secondaryHand = null;
+            Debug.Log($"{gameObject.name} 被完全松开了");
+        }
     }
 
     private string GetHandName(Transform handTransform)

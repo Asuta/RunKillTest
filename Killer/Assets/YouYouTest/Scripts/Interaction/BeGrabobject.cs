@@ -78,7 +78,7 @@ public class BeGrabobject  : MonoBehaviour, IGrabable
     private string GetHandName(Transform handTransform)
     {
         // 通过EditorPlayer获取手部名称
-        EditorPlayer editorPlayer = FindObjectOfType<EditorPlayer>();
+        EditorPlayer editorPlayer = FindFirstObjectByType<EditorPlayer>();
         if (editorPlayer != null)
         {
             if (handTransform == editorPlayer.leftHand)
@@ -90,34 +90,51 @@ public class BeGrabobject  : MonoBehaviour, IGrabable
     }
     
     /// <summary>
-    /// 松开时调用
-    /// </summary>
-    public void OnReleased()
-    {
-        if (!isGrabbed) return; // 没有被抓取，不处理
-        
-        // 检查是否还被另一只手抓取
-        if (IsStillGrabbedByOtherHand(grabHand))
-        {
-            return; // 还被另一只手抓取，不清除状态
-        }
-        
-        // 真正被释放，清除所有状态
-        isGrabbed = false;
-        grabHand = null;
-        
-        Debug.Log($"{gameObject.name} 被完全松开了");
-    }
-    
-    /// <summary>
-    /// 检查是否还被另一只手抓取
+    /// 松开时调用（根据释放的手判断是否仍由另一只手抓取）
     /// </summary>
     /// <param name="releasedHandTransform">释放的手部transform</param>
-    /// <returns>如果还被另一只手抓取返回true，否则返回false</returns>
-    public bool IsStillGrabbedByOtherHand(Transform releasedHandTransform)
+    public void OnReleased(Transform releasedHandTransform)
     {
-        // 这个方法将由EditorPlayer在释放时调用，传入正确的参数
-        // 这里只是基础实现，具体逻辑在EditorPlayer中处理
-        return false;
+        if (!isGrabbed) return; // 没有被抓取，不处理
+
+        EditorPlayer editorPlayer = FindObjectOfType<EditorPlayer>();
+        bool stillHeldByOther = false;
+        Transform otherHand = null;
+
+        if (editorPlayer != null && releasedHandTransform != null)
+        {
+            if (releasedHandTransform == editorPlayer.leftHand)
+            {
+                stillHeldByOther = editorPlayer.rightGrabbedObject == (IGrabable)this;
+                otherHand = editorPlayer.rightHand;
+            }
+            else if (releasedHandTransform == editorPlayer.rightHand)
+            {
+                stillHeldByOther = editorPlayer.leftGrabbedObject == (IGrabable)this;
+                otherHand = editorPlayer.leftHand;
+            }
+            else
+            {
+                // 无法识别释放自哪只手，保守判断是否仍被任一只手持有
+                stillHeldByOther = (editorPlayer.leftGrabbedObject == (IGrabable)this) || (editorPlayer.rightGrabbedObject == (IGrabable)this);
+                otherHand = (editorPlayer.leftGrabbedObject == (IGrabable)this) ? editorPlayer.leftHand :
+                            (editorPlayer.rightGrabbedObject == (IGrabable)this) ? editorPlayer.rightHand : null;
+            }
+        }
+
+        if (stillHeldByOther && otherHand != null)
+        {
+            // 切换到另一只手继续跟随，并重算偏移/旋转偏移，避免跳变
+            grabHand = otherHand;
+            offsetFromHand = Quaternion.Inverse(otherHand.rotation) * (transform.position - otherHand.position);
+            initialRotationOffset = Quaternion.Inverse(otherHand.rotation) * transform.rotation;
+            Debug.Log($"{gameObject.name} 从 {GetHandName(releasedHandTransform)} 释放，但仍由 {GetHandName(otherHand)} 抓取");
+            return;
+        }
+
+        // 真正被完全释放
+        isGrabbed = false;
+        grabHand = null;
+        Debug.Log($"{gameObject.name} 被完全松开了");
     }
 }

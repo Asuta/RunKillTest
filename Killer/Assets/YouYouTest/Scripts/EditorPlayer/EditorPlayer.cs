@@ -180,18 +180,8 @@ public class EditorPlayer : MonoBehaviour
             return;
         }
 
-        // 检查这个物体是否也被右手抓取
-        bool isAlsoGrabbedByRightHand = (rightGrabbedObject == leftGrabbedObject);
-
-        if (isAlsoGrabbedByRightHand)
-        {
-            Debug.Log($"{leftGrabbedObject.ObjectGameObject.name} 从左手释放，但仍被右手抓取");
-        }
-        else
-        {
-            // 只有当物体不被另一只手抓取时，才真正释放
-            leftGrabbedObject.OnReleased();
-        }
+        // 通知对象左手释放，由对象内部决定是否完全释放或切换到另一只手
+        leftGrabbedObject.OnReleased(leftHand);
 
         // 完成抓取命令并添加到历史
         if (leftCurrentGrabCommand != null)
@@ -287,18 +277,8 @@ public class EditorPlayer : MonoBehaviour
         }
 
 
-        // 检查这个物体是否也被左手抓取
-        bool isAlsoGrabbedByLeftHand = (leftGrabbedObject == rightGrabbedObject);
-
-        if (isAlsoGrabbedByLeftHand)
-        {
-            Debug.Log($"{rightGrabbedObject.ObjectGameObject.name} 从右手释放，但仍被左手抓取");
-        }
-        else
-        {
-            // 只有当物体不被另一只手抓取时，才真正释放
-            rightGrabbedObject.OnReleased();
-        }
+        // 通知对象右手释放，由对象内部决定是否完全释放或切换到另一只手
+        rightGrabbedObject.OnReleased(rightHand);
 
         // 完成抓取命令并添加到历史
         if (rightCurrentGrabCommand != null)
@@ -389,7 +369,7 @@ public class EditorPlayer : MonoBehaviour
             // 如果当前正在抓取这个物体，需要先释放
             if (leftGrabbedObject == leftHoldObject)
             {
-                leftGrabbedObject.OnReleased();
+                leftGrabbedObject.OnReleased(leftHand);
                 leftGrabbedObject = null;
                 leftCurrentGrabCommand = null;
             }
