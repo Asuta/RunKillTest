@@ -25,4 +25,11 @@ public interface IGrabable
     /// 松开时调用
     /// </summary>
     void OnReleased();
+    
+    /// <summary>
+    /// 检查是否还被另一只手抓取
+    /// </summary>
+    /// <param name="releasedHandTransform">释放的手部transform</param>
+    /// <returns>如果还被另一只手抓取返回true，否则返回false</returns>
+    bool IsStillGrabbedByOtherHand(Transform releasedHandTransform);
 }

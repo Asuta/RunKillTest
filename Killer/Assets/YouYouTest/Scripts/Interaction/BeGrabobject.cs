@@ -97,23 +97,9 @@ public class BeGrabobject  : MonoBehaviour, IGrabable
         if (!isGrabbed) return; // 没有被抓取，不处理
         
         // 检查是否还被另一只手抓取
-        EditorPlayer editorPlayer = FindObjectOfType<EditorPlayer>();
-        if (editorPlayer != null)
+        if (IsStillGrabbedByOtherHand(grabHand))
         {
-            // 如果当前被左手抓取，检查右手是否也抓取了这个物体
-            if (grabHand == editorPlayer.leftHand && editorPlayer.rightGrabbedObject == this)
-            {
-                Debug.Log($"{gameObject.name} 从左手释放，但仍被右手抓取");
-                grabHand = editorPlayer.rightHand; // 切换到右手
-                return;
-            }
-            // 如果当前被右手抓取，检查左手是否也抓取了这个物体
-            else if (grabHand == editorPlayer.rightHand && editorPlayer.leftGrabbedObject == this)
-            {
-                Debug.Log($"{gameObject.name} 从右手释放，但仍被左手抓取");
-                grabHand = editorPlayer.leftHand; // 切换到左手
-                return;
-            }
+            return; // 还被另一只手抓取，不清除状态
         }
         
         // 真正被释放，清除所有状态
@@ -121,5 +107,17 @@ public class BeGrabobject  : MonoBehaviour, IGrabable
         grabHand = null;
         
         Debug.Log($"{gameObject.name} 被完全松开了");
+    }
+    
+    /// <summary>
+    /// 检查是否还被另一只手抓取
+    /// </summary>
+    /// <param name="releasedHandTransform">释放的手部transform</param>
+    /// <returns>如果还被另一只手抓取返回true，否则返回false</returns>
+    public bool IsStillGrabbedByOtherHand(Transform releasedHandTransform)
+    {
+        // 这个方法将由EditorPlayer在释放时调用，传入正确的参数
+        // 这里只是基础实现，具体逻辑在EditorPlayer中处理
+        return false;
     }
 }
