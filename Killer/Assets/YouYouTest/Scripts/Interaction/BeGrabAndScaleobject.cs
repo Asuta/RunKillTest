@@ -1,4 +1,5 @@
 using UnityEngine;
+using YouYouTest.CommandFramework;
 
 public class BeGrabAndScaleobject : MonoBehaviour, IGrabable
 {
@@ -27,6 +28,10 @@ public class BeGrabAndScaleobject : MonoBehaviour, IGrabable
     private Quaternion twoHandRotationOffset = Quaternion.identity;
 
     private EditorPlayer editorPlayer; // 用于检测当前是否双手都在抓
+    
+    // 命令系统相关
+    private ScaleCommand currentScaleCommand; // 当前缩放命令
+    private bool isCommandActive = false; // 是否有活跃的命令
 
     private void Awake()
     {
@@ -60,11 +65,18 @@ public class BeGrabAndScaleobject : MonoBehaviour, IGrabable
                     Quaternion avgRot = Quaternion.Slerp(editorPlayer.leftHand.rotation, editorPlayer.rightHand.rotation, 0.5f);
                     twoHandRotationOffset = Quaternion.Inverse(avgRot) * transform.rotation;
             }
+            
+            // 创建缩放命令
+            CreateScaleCommand();
         }
         // 退出双手状态（其中一只手松开）
         else if (isTwoHandScaling && !nowTwoHand)
         {
             isTwoHandScaling = false;
+            
+            // 完成缩放命令
+            CompleteScaleCommand();
+            
             // 仅剩的一只手继续作为主手跟随
             if (leftHolding && editorPlayer != null)
             {
@@ -160,6 +172,9 @@ public class BeGrabAndScaleobject : MonoBehaviour, IGrabable
                 twoHandRotationOffset = Quaternion.Inverse(avgRot) * transform.rotation;
                 isTwoHandScaling = true;
                 Debug.Log($"{gameObject.name} 进入双手抓取，记录初始距离 {initialHandsDistance:F3} 与基准缩放 {baseScale}");
+                
+                // 创建缩放命令
+                CreateScaleCommand();
             }
         }
     }
@@ -188,6 +203,10 @@ public class BeGrabAndScaleobject : MonoBehaviour, IGrabable
             isTwoHandScaling = false;
             primaryHand = null;
             secondaryHand = null;
+            
+            // 清理命令状态
+            CleanupCommand();
+            
             Debug.Log($"{gameObject.name} 被完全松开了");
             return;
         }
@@ -211,6 +230,10 @@ public class BeGrabAndScaleobject : MonoBehaviour, IGrabable
             isTwoHandScaling = false;
             primaryHand = null;
             secondaryHand = null;
+            
+            // 清理命令状态
+            CleanupCommand();
+            
             Debug.Log($"{gameObject.name} 被完全松开了");
         }
     }
@@ -224,5 +247,60 @@ public class BeGrabAndScaleobject : MonoBehaviour, IGrabable
             if (handTransform == editorPlayer.rightHand) return "右手";
         }
         return "未知手部";
+    }
+    
+    /// <summary>
+    /// 创建缩放命令
+    /// </summary>
+    private void CreateScaleCommand()
+    {
+        if (!isCommandActive)
+        {
+            currentScaleCommand = new ScaleCommand(
+                transform,
+                baseScale,
+                transform.position,
+                transform.rotation
+            );
+            isCommandActive = true;
+            Debug.Log($"{gameObject.name} 创建缩放命令，初始缩放: {baseScale}");
+        }
+    }
+    
+    /// <summary>
+    /// 完成缩放命令
+    /// </summary>
+    private void CompleteScaleCommand()
+    {
+        if (isCommandActive && currentScaleCommand != null)
+        {
+            // 设置最终状态
+            currentScaleCommand.SetEndTransform(
+                transform.localScale,
+                transform.position,
+                transform.rotation
+            );
+            
+            // 执行命令
+            CommandHistory.Instance.ExecuteCommand(currentScaleCommand);
+            
+            Debug.Log($"{gameObject.name} 完成缩放命令，最终缩放: {transform.localScale}");
+            
+            // 重置命令状态
+            currentScaleCommand = null;
+            isCommandActive = false;
+        }
+    }
+    
+    /// <summary>
+    /// 在物体被完全释放时清理命令状态
+    /// </summary>
+    private void CleanupCommand()
+    {
+        if (isCommandActive && currentScaleCommand != null)
+        {
+            // 如果有未完成的命令，直接完成它
+            CompleteScaleCommand();
+        }
     }
 }

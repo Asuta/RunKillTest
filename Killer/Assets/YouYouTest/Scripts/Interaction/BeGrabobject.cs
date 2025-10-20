@@ -97,7 +97,7 @@ public class BeGrabobject  : MonoBehaviour, IGrabable
     {
         if (!isGrabbed) return; // 没有被抓取，不处理
 
-        EditorPlayer editorPlayer = FindObjectOfType<EditorPlayer>();
+        EditorPlayer editorPlayer = FindFirstObjectByType<EditorPlayer>();
         bool stillHeldByOther = false;
         Transform otherHand = null;
 
