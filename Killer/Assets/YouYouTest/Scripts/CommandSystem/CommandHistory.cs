@@ -1,5 +1,4 @@
 using System.Collections.Generic;
-using System.Linq;
 using UnityEngine;
 
 namespace YouYouTest.CommandFramework
@@ -23,8 +22,8 @@ namespace YouYouTest.CommandFramework
             }
         }
 
-        private Stack<ICommand> _undoStack = new Stack<ICommand>();
-        private Stack<ICommand> _redoStack = new Stack<ICommand>();
+        private LinkedList<ICommand> _undoList = new LinkedList<ICommand>();
+        private LinkedList<ICommand> _redoList = new LinkedList<ICommand>();
         
         // 历史记录数量限制
         [SerializeField] private int _maxHistorySize = 50; // 默认限制为50条记录
@@ -50,89 +49,35 @@ namespace YouYouTest.CommandFramework
         /// </summary>
         private void EnforceHistoryLimit()
         {
-            // 处理撤销栈
-            while (_undoStack.Count > _maxHistorySize)
+            // 处理撤销列表，移除最旧的命令
+            while (_undoList.Count > _maxHistorySize)
             {
-                // 获取最底部的命令（最早的命令）
-                ICommand oldestCommand = _undoStack.ElementAt(_undoStack.Count - 1);
-                
-                // 从栈中移除该命令
-                Stack<ICommand> tempStack = new Stack<ICommand>();
-                while (_undoStack.Count > 0)
-                {
-                    ICommand cmd = _undoStack.Pop();
-                    if (cmd != oldestCommand)
-                    {
-                        tempStack.Push(cmd);
-                    }
-                }
-                
-                // 重新构建栈
-                while (tempStack.Count > 0)
-                {
-                    _undoStack.Push(tempStack.Pop());
-                }
-                
-                // 销毁该命令引用的对象
-                DestroyCommandObjects(oldestCommand);
-                Debug.Log($"已销毁超出历史记录限制的命令: {oldestCommand.GetType().Name}");
+                var oldestCommandNode = _undoList.First;
+                DisposeCommand(oldestCommandNode.Value);
+                _undoList.RemoveFirst();
+                Debug.Log($"已移除超出历史记录限制的命令: {oldestCommandNode.Value.GetType().Name}");
             }
             
-            // 处理重做栈
-            while (_redoStack.Count > _maxHistorySize)
+            // 处理重做列表，移除最旧的命令
+            while (_redoList.Count > _maxHistorySize)
             {
-                // 获取最底部的命令（最早的命令）
-                ICommand oldestCommand = _redoStack.ElementAt(_redoStack.Count - 1);
-                
-                // 从栈中移除该命令
-                Stack<ICommand> tempStack = new Stack<ICommand>();
-                while (_redoStack.Count > 0)
-                {
-                    ICommand cmd = _redoStack.Pop();
-                    if (cmd != oldestCommand)
-                    {
-                        tempStack.Push(cmd);
-                    }
-                }
-                
-                // 重新构建栈
-                while (tempStack.Count > 0)
-                {
-                    _redoStack.Push(tempStack.Pop());
-                }
-                
-                // 销毁该命令引用的对象
-                DestroyCommandObjects(oldestCommand);
-                Debug.Log($"已销毁超出历史记录限制的重做命令: {oldestCommand.GetType().Name}");
+                var oldestCommandNode = _redoList.First;
+                DisposeCommand(oldestCommandNode.Value);
+                _redoList.RemoveFirst();
+                Debug.Log($"已移除超出历史记录限制的重做命令: {oldestCommandNode.Value.GetType().Name}");
             }
         }
         
         /// <summary>
-        /// 销毁命令引用的对象，真正地销毁而不是禁用
+        /// 检查命令是否实现了IDisposableCommand，如果是，则调用其Dispose方法
         /// </summary>
-        /// <param name="command">要销毁对象的命令</param>
-        private void DestroyCommandObjects(ICommand command)
+        /// <param name="command">要处理的命令</param>
+        private void DisposeCommand(ICommand command)
         {
-            if (command is CreateObjectCommand createCommand)
+            if (command is IDisposableCommand disposableCommand)
             {
-                GameObject createdObject = createCommand.GetCreatedObject();
-                if (createdObject != null)
-                {
-                    Object.DestroyImmediate(createdObject);
-                    Debug.Log($"已销毁对象: {createdObject.name}");
-                }
+                disposableCommand.Dispose();
             }
-            else if (command is DeleteObjectCommand deleteCommand)
-            {
-                // 获取DeleteObjectCommand的目标对象并真正销毁它
-                GameObject targetObject = deleteCommand.GetTargetObject();
-                if (targetObject != null)
-                {
-                    Object.DestroyImmediate(targetObject);
-                    Debug.Log($"已销毁DeleteObjectCommand的目标对象: {targetObject.name}");
-                }
-            }
-            // MoveCommand和GrabCommand通常不需要销毁对象，因为它们只是移动现有对象
         }
 
         /// <summary>
@@ -142,13 +87,13 @@ namespace YouYouTest.CommandFramework
         public void ExecuteCommand(ICommand command)
         {
             command.Execute();          // 首先执行命令
-            _undoStack.Push(command);   // 将命令压入撤销栈
-            _redoStack.Clear();         // 一旦有新操作，清空重做栈
+            _undoList.AddLast(command); // 将命令添加到撤销列表的末尾
+            _redoList.Clear();          // 一旦有新操作，清空重做列表
             
             // 检查历史记录限制
             EnforceHistoryLimit();
             
-            Debug.Log($"执行命令: {command.GetType().Name}, 撤销栈数量: {_undoStack.Count}");
+            Debug.Log($"执行命令: {command.GetType().Name}, 撤销列表数量: {_undoList.Count}");
         }
 
         /// <summary>
@@ -156,16 +101,15 @@ namespace YouYouTest.CommandFramework
         /// </summary>
         public void Undo()
         {
-            if (_undoStack.Count > 0)
+            if (_undoList.Count > 0)
             {
-                ICommand command = _undoStack.Pop(); // 从撤销栈中取出命令
-                command.Undo();                      // 执行撤销
-                _redoStack.Push(command);            // 将命令压入重做栈
+                var lastCommandNode = _undoList.Last; // 获取撤销列表的最后一个节点
+                ICommand command = lastCommandNode.Value;
+                command.Undo();                        // 执行撤销
+                _undoList.RemoveLast();                // 从撤销列表中移除
+                _redoList.AddLast(command);            // 将命令添加到重做列表的末尾
                 
-                // 检查历史记录限制
-                EnforceHistoryLimit();
-                
-                Debug.Log($"撤销命令: {command.GetType().Name}, 撤销栈数量: {_undoStack.Count}, 重做栈数量: {_redoStack.Count}");
+                Debug.Log($"撤销命令: {command.GetType().Name}, 撤销列表数量: {_undoList.Count}, 重做列表数量: {_redoList.Count}");
             }
             else
             {
@@ -178,16 +122,15 @@ namespace YouYouTest.CommandFramework
         /// </summary>
         public void Redo()
         {
-            if (_redoStack.Count > 0)
+            if (_redoList.Count > 0)
             {
-                ICommand command = _redoStack.Pop(); // 从重做栈中取出命令
-                command.Execute();                   // 重新执行
-                _undoStack.Push(command);            // 将命令压回撤销栈
+                var lastCommandNode = _redoList.Last; // 获取重做列表的最后一个节点
+                ICommand command = lastCommandNode.Value;
+                command.Execute();                     // 重新执行
+                _redoList.RemoveLast();                // 从重做列表中移除
+                _undoList.AddLast(command);            // 将命令添加回撤销列表的末尾
                 
-                // 检查历史记录限制
-                EnforceHistoryLimit();
-                
-                Debug.Log($"重做命令: {command.GetType().Name}, 撤销栈数量: {_undoStack.Count}, 重做栈数量: {_redoStack.Count}");
+                Debug.Log($"重做命令: {command.GetType().Name}, 撤销列表数量: {_undoList.Count}, 重做列表数量: {_redoList.Count}");
             }
             else
             {
@@ -201,39 +144,39 @@ namespace YouYouTest.CommandFramework
         public void Clear()
         {
             // 销毁所有命令引用的对象
-            foreach (var command in _undoStack)
+            foreach (var command in _undoList)
             {
-                DestroyCommandObjects(command);
+                DisposeCommand(command);
             }
             
-            foreach (var command in _redoStack)
+            foreach (var command in _redoList)
             {
-                DestroyCommandObjects(command);
+                DisposeCommand(command);
             }
             
-            _undoStack.Clear();
-            _redoStack.Clear();
+            _undoList.Clear();
+            _redoList.Clear();
             Debug.Log("命令历史已清空，所有相关对象已销毁");
         }
         
         /// <summary>
-        /// 获取当前撤销栈中的命令数量
+        /// 获取当前撤销列表中的命令数量
         /// </summary>
-        public int UndoCount => _undoStack.Count;
+        public int UndoCount => _undoList.Count;
         
         /// <summary>
-        /// 获取当前重做栈中的命令数量
+        /// 获取当前重做列表中的命令数量
         /// </summary>
-        public int RedoCount => _redoStack.Count;
+        public int RedoCount => _redoList.Count;
 
         /// <summary>
         /// 获取是否可以撤销
         /// </summary>
-        public bool CanUndo => _undoStack.Count > 0;
+        public bool CanUndo => _undoList.Count > 0;
 
         /// <summary>
         /// 获取是否可以重做
         /// </summary>
-        public bool CanRedo => _redoStack.Count > 0;
+        public bool CanRedo => _redoList.Count > 0;
     }
 }

@@ -25,15 +25,21 @@ namespace YouYouTest.CommandFramework
         // 执行操作：将物体移动到目标位置和角度
         public void Execute()
         {
-            _target.position = _endPosition;
-            _target.rotation = _endRotation;
+            if (_target != null)
+            {
+                _target.position = _endPosition;
+                _target.rotation = _endRotation;
+            }
         }
 
         // 撤销操作：将物体移回原始位置和角度
         public void Undo()
         {
-            _target.position = _startPosition;
-            _target.rotation = _startRotation;
+            if (_target != null)
+            {
+                _target.position = _startPosition;
+                _target.rotation = _startRotation;
+            }
         }
     }
 }

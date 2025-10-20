@@ -5,7 +5,7 @@ namespace YouYouTest.CommandFramework
     /// <summary>
     /// 创建物体的命令
     /// </summary>
-    public class CreateObjectCommand : ICommand
+    public class CreateObjectCommand : IDisposableCommand
     {
         private GameObject _createdObject; // 被创建的物体
         private Vector3 _position;          // 创建的位置
@@ -26,7 +26,7 @@ namespace YouYouTest.CommandFramework
                 _createdObject = Object.Instantiate(_prefab, _position, Quaternion.identity);
             }
             // 如果是重做，就重新激活它
-            else
+            else if (_createdObject != null) // 增加健壮性检查
             {
                 _createdObject.SetActive(true);
             }
@@ -39,6 +39,18 @@ namespace YouYouTest.CommandFramework
             if (_createdObject != null)
             {
                 _createdObject.SetActive(false);
+            }
+        }
+
+        /// <summary>
+        /// 释放此命令创建的资源，当命令从历史记录中被永久移除时调用
+        /// </summary>
+        public void Dispose()
+        {
+            if (_createdObject != null)
+            {
+                Object.DestroyImmediate(_createdObject);
+                _createdObject = null; // 避免重复销毁和悬空引用
             }
         }
         
