@@ -54,6 +54,12 @@ public class GameManager : MonoBehaviour
     public Transform VrEditorRig => _vrEditorRig;
 
 
+    // 是否为PlayMode
+    [SerializeField]
+    private bool _isPlayMode;
+    public bool IsPlayMode => _isPlayMode;
+
+
     [SerializeField]
     private Transform _playerCameraT;
     public Transform PlayerCameraT
@@ -197,11 +203,61 @@ public class GameManager : MonoBehaviour
 
         // 注册检查点激活事件
         GlobalEvent.CheckPointActivate.AddListener(OnCheckPointActivate);
+
+        // 注册模式按钮点击事件
+        GlobalEvent.ModeButtonPoke.AddListener(OnModeButtonPoke);
+    }
+
+    private void OnModeButtonPoke()
+    {
+        CustomLog.Log(needLog, "模式按钮点击");
+
+        // 切换PlayMode状态
+        _isPlayMode = !_isPlayMode;
+        CustomLog.Log(needLog, $"切换模式: {(_isPlayMode ? "PlayMode" : "EditMode")}");
+
+        // 根据状态激活/禁用对应的Rig
+        if (_isPlayMode)
+        {
+
+            if (_vrEditorRig != null)
+            {
+                _vrEditorRig.gameObject.SetActive(false);
+                CustomLog.Log(needLog, "VR Editor Rig 已禁用");
+            }
+
+
+            // PlayMode: 激活VR Player，禁用VR Editor
+            if (_vrPlayerRig != null)
+            {
+                _vrPlayerRig.gameObject.SetActive(true);
+                CustomLog.Log(needLog, "VR Player Rig 已激活");
+            }
+
+
+        }
+        else
+        {
+
+            if (_vrPlayerRig != null)
+            {
+                _vrPlayerRig.gameObject.SetActive(false);
+                CustomLog.Log(needLog, "VR Player Rig 已禁用");
+            }
+
+            // EditMode: 激活VR Editor，禁用VR Player
+            if (_vrEditorRig != null)
+            {
+                _vrEditorRig.gameObject.SetActive(true);
+                CustomLog.Log(needLog, "VR Editor Rig 已激活");
+            }
+        }
     }
 
     private void OnDestroy()
     {
         GlobalEvent.CheckPointActivate.RemoveListener(OnCheckPointActivate);
+        GlobalEvent.ModeButtonPoke.RemoveListener(OnModeButtonPoke);
     }
 
     private void OnCheckPointActivate(CheckPoint checkPoint)

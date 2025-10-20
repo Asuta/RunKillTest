@@ -7454,6 +7454,8 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   needLog: 0
+  _vrPlayerRig: {fileID: 82952706292239113}
+  _vrEditorRig: {fileID: 1791249904}
   _playerCameraT: {fileID: 0}
   _greenHooks: []
   _closestAngleHook: {fileID: 0}
@@ -8754,6 +8756,50 @@ MonoBehaviour:
     m_MipBias: 0
     m_VarianceClampScale: 0.9
     m_ContrastAdaptiveSharpening: 0
+--- !u!1 &1190184878
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 1190184880}
+  - component: {fileID: 1190184879}
+  m_Layer: 0
+  m_Name: ManyButtonTest
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!114 &1190184879
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1190184878}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: f74cc7bf5b6d7eb4eb3a568926d5afb5, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+--- !u!4 &1190184880
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1190184878}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 107.7684, y: 7.518242, z: -46.627213}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 0}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &1226110411
 GameObject:
   m_ObjectHideFlags: 0
@@ -11547,6 +11593,11 @@ MeshFilter:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1769120358}
   m_Mesh: {fileID: 10202, guid: 0000000000000000e000000000000000, type: 0}
+--- !u!4 &1791249904 stripped
+Transform:
+  m_CorrespondingSourceObject: {fileID: 4226674472206706763, guid: d71c71bfed17b304b83252502742edd4, type: 3}
+  m_PrefabInstance: {fileID: 1361166264}
+  m_PrefabAsset: {fileID: 0}
 --- !u!4 &1820088917 stripped
 Transform:
   m_CorrespondingSourceObject: {fileID: 8163770691085137594, guid: 248b90b4da24a1a468ad58eaf7db580b, type: 3}
@@ -14324,6 +14375,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   rightHandTarget: {fileID: 0}
   moveSpeed: 9
+  previousLocalPosition: {x: 0, y: 0, z: 0}
   playerMove: {fileID: 0}
 --- !u!23 &4894412534929114738
 MeshRenderer:
@@ -15594,3 +15646,4 @@ SceneRoots:
   - {fileID: 1159981381}
   - {fileID: 1032672757}
   - {fileID: 617440885}
+  - {fileID: 1190184880}

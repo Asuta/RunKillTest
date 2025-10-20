@@ -1,0 +1,36 @@
+using UnityEngine;
+using VInspector;
+
+
+public class ManyButtonTest : MonoBehaviour
+{
+    // Start is called once before the first execution of Update after the MonoBehaviour is created
+    void Start()
+    {
+        
+    }
+
+    // Update is called once per frame
+    void Update()
+    {
+        
+    }
+
+    [Button]
+    void Button1()
+    {
+        GlobalEvent.ModeButtonPoke.Invoke();
+    }
+
+    [Button]
+    void Button2()
+    {
+        Debug.Log("Button2");
+    }
+
+    [Button]
+    void Button3()
+    {
+        Debug.Log("Button3");
+    }
+}

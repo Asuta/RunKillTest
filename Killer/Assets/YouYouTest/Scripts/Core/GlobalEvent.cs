@@ -57,20 +57,20 @@ public static class GlobalEvent
     /// <summary>
     /// 生成按钮点击事件
     /// </summary>
-    public static readonly UnityEvent<GameObject,Transform> CreateButtonPoke = new UnityEvent<GameObject,Transform>();
-
-
-
-
-
-
-    /// sample event
+    public static readonly UnityEvent<GameObject, Transform> CreateButtonPoke = new UnityEvent<GameObject, Transform>();
 
 
     /// <summary>
     /// 模式按钮点击事件
     /// </summary>
     public static readonly UnityEvent ModeButtonPoke = new UnityEvent();
+
+
+
+    /// sample event
+
+
+
 
     /// <summary>
     /// 播放状态改变事件
