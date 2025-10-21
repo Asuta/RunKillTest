@@ -12,6 +12,7 @@ public class VRGrabBody : MonoBehaviour
     // Update is called once per frame
     void Update()
     {
-        
+        transform.position = bodyTarget.position;
+        transform.rotation = bodyTarget.rotation;
     }
 }
