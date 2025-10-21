@@ -1,25 +1,17 @@
 using UnityEngine;
 
-public class VRBody : MonoBehaviour
+public class VRGrabBody : MonoBehaviour
 {
-
-    public Transform target;
-    public Vector3 offset;
+    public Transform bodyTarget;
     // Start is called once before the first execution of Update after the MonoBehaviour is created
     void Start()
     {
-
+        
     }
 
     // Update is called once per frame
     void Update()
     {
-
-        transform.position = target.position + offset;
-        transform.rotation = target.rotation;
+        
     }
-
-    
-
-
 }

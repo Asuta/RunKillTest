@@ -20,6 +20,7 @@ public class VRPlayer : MonoBehaviour, ICanBeHit
     private Vector3 initialPosition; // 存储初始位置
     private Vector3 initialRotation; // 存储初始旋转
     private bool isDead = false; // 标记玩家是否处于死亡状态
+    public GameObject grabBody;
 
     // Start is called once before the first execution of Update after the MonoBehaviour is created
     void Start()
@@ -30,12 +31,18 @@ public class VRPlayer : MonoBehaviour, ICanBeHit
 
         // 订阅检查点重置事件
         GlobalEvent.CheckPointReset.AddListener(OnCheckPointReset);
+        
+        // 订阅游戏模式变化事件
+        GlobalEvent.IsPlayChange.AddListener(OnGameModeChange);
     }
 
     void OnDestroy()
     {
         // 取消订阅检查点重置事件
         GlobalEvent.CheckPointReset.RemoveListener(OnCheckPointReset);
+        
+        // 取消订阅游戏模式变化事件
+        GlobalEvent.IsPlayChange.RemoveListener(OnGameModeChange);
     }
 
     private void OnCheckPointReset()
@@ -118,5 +125,16 @@ public class VRPlayer : MonoBehaviour, ICanBeHit
     {
         if (isDead) return; // 如果已经死亡，则不再触发死亡事件
         Die();
+    }
+
+    private void OnGameModeChange(bool isPlayMode)
+    {
+        // 当游戏模式变化时，根据状态设置grabBody的激活状态
+        if (grabBody != null)
+        {
+            grabBody.SetActive(!isPlayMode);
+        }
+
+        this.GetComponent<Rigidbody>().isKinematic = !isPlayMode;
     }
 }

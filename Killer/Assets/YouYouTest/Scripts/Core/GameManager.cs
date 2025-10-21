@@ -2,6 +2,7 @@ using UnityEngine;
 using System.Collections.Generic;
 using System;
 using YouYouTest;
+using Unity.XR.CoreUtils;
 
 
 public class GameManager : MonoBehaviour
@@ -50,6 +51,8 @@ public class GameManager : MonoBehaviour
     [SerializeField]
     private Transform _vrPlayerRig;
     public Transform VrPlayerRig => _vrPlayerRig;
+
+    public XROrigin _vrPlayerOrigin;
 
 
     // VR editor rig
@@ -234,33 +237,31 @@ public class GameManager : MonoBehaviour
         // 根据状态激活/禁用对应的Rig
         if (_isPlayMode)
         {
-
+            // PlayMode: 激活VR Player，禁用VR Editor
             if (_vrEditorRig != null)
             {
                 _vrEditorRig.gameObject.SetActive(false);
                 CustomLog.Log(needLog, "VR Editor Rig 已禁用");
             }
 
-
-            // PlayMode: 激活VR Player，禁用VR Editor
             if (_vrPlayerRig != null)
             {
+                _vrPlayerOrigin.gameObject.SetActive(false);
+                _vrPlayerOrigin.gameObject.SetActive(true);
                 _vrPlayerRig.gameObject.SetActive(true);
                 CustomLog.Log(needLog, "VR Player Rig 已激活");
             }
-
-
         }
         else
         {
-
+            // EditMode: 激活VR Editor，禁用VR Player
             if (_vrPlayerRig != null)
             {
+                _vrPlayerOrigin.enabled = false;
                 _vrPlayerRig.gameObject.SetActive(false);
                 CustomLog.Log(needLog, "VR Player Rig 已禁用");
             }
 
-            // EditMode: 激活VR Editor，禁用VR Player
             if (_vrEditorRig != null)
             {
                 _vrEditorRig.gameObject.SetActive(true);
@@ -301,7 +302,7 @@ public class GameManager : MonoBehaviour
         CheckModeChange();
 
         vrEditorScale = vrEditorRigOffset.localScale.x;
-        
+
     }
 
     private void CheckModeChange()

@@ -638,7 +638,7 @@ public class VRPlayerMove : MonoBehaviour, IPlayerHeadProvider
         currentState = MovementState.WallSliding;
         wallNormal = normal;
         wallSlideTimer = 0f;
-        vRBody.StopFollow();
+        
         // 禁用刚体重力
         if (thisRb != null)
         {
@@ -652,7 +652,7 @@ public class VRPlayerMove : MonoBehaviour, IPlayerHeadProvider
     {
         if (currentState == MovementState.WallSliding)
         {
-            vRBody.StartFollow();
+
             // 重新启用刚体重力
             if (thisRb != null)
             {
