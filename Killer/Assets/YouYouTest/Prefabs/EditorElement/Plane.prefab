@@ -12,8 +12,8 @@ GameObject:
   - component: {fileID: 609286639634120052}
   - component: {fileID: 8691428259584421241}
   - component: {fileID: 6916947067724368867}
-  - component: {fileID: -5594360352216689339}
   - component: {fileID: 619552046929407280}
+  - component: {fileID: 6582254373453446953}
   m_Layer: 6
   m_Name: Plane
   m_TagString: Untagged
@@ -110,20 +110,6 @@ BoxCollider:
   serializedVersion: 3
   m_Size: {x: 1, y: 1, z: 1}
   m_Center: {x: 0, y: 0, z: 0}
---- !u!114 &-5594360352216689339
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 8825567146491008829}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: cd83b80d97978014ebc5d8d26e4c37ac, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  positionSmoothSpeed: 10
-  rotationSmoothSpeed: 15
 --- !u!54 &619552046929407280
 Rigidbody:
   m_ObjectHideFlags: 0
@@ -151,3 +137,18 @@ Rigidbody:
   m_Interpolate: 0
   m_Constraints: 0
   m_CollisionDetection: 0
+--- !u!114 &6582254373453446953
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 8825567146491008829}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 5180ad4ef285b314f9552a058220fb14, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  positionSmoothSpeed: 10
+  rotationSmoothSpeed: 15
+  freezeYaxis: 1

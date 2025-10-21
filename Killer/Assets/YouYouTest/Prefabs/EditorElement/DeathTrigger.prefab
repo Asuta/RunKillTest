@@ -13,8 +13,8 @@ GameObject:
   - component: {fileID: 4945374366470281202}
   - component: {fileID: 6725058315845317151}
   - component: {fileID: 481704701042502655}
+  - component: {fileID: 536936048097399125}
   - component: {fileID: 7262546341808981543}
-  - component: {fileID: 6810546561413352955}
   m_Layer: 0
   m_Name: DeathTrigger
   m_TagString: Untagged
@@ -138,6 +138,21 @@ Rigidbody:
   m_Interpolate: 0
   m_Constraints: 0
   m_CollisionDetection: 0
+--- !u!114 &536936048097399125
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 3823390580743307774}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 5180ad4ef285b314f9552a058220fb14, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  positionSmoothSpeed: 10
+  rotationSmoothSpeed: 15
+  freezeYaxis: 1
 --- !u!114 &7262546341808981543
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -150,17 +165,3 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 198706eff9675a54a920beb448da2623, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
---- !u!114 &6810546561413352955
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 3823390580743307774}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: cd83b80d97978014ebc5d8d26e4c37ac, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  positionSmoothSpeed: 10
-  rotationSmoothSpeed: 15

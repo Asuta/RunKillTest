@@ -12,7 +12,7 @@ GameObject:
   - component: {fileID: 9093430536631149439}
   - component: {fileID: 1153629458427604319}
   - component: {fileID: 3749662038338500900}
-  - component: {fileID: 8787932074104436891}
+  - component: {fileID: 4592217777428436721}
   - component: {fileID: 7260562611563158598}
   m_Layer: 0
   m_Name: Wall
@@ -110,7 +110,7 @@ BoxCollider:
   serializedVersion: 3
   m_Size: {x: 1, y: 1, z: 1}
   m_Center: {x: 0, y: 0, z: 0}
---- !u!114 &8787932074104436891
+--- !u!114 &4592217777428436721
 MonoBehaviour:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
@@ -119,11 +119,12 @@ MonoBehaviour:
   m_GameObject: {fileID: 891060191394058732}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: cd83b80d97978014ebc5d8d26e4c37ac, type: 3}
+  m_Script: {fileID: 11500000, guid: 5180ad4ef285b314f9552a058220fb14, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
   positionSmoothSpeed: 10
   rotationSmoothSpeed: 15
+  freezeYaxis: 0
 --- !u!54 &7260562611563158598
 Rigidbody:
   m_ObjectHideFlags: 0
