@@ -4040,6 +4040,10 @@ PrefabInstance:
       propertyPath: m_AnchoredPosition.y
       value: 0
       objectReference: {fileID: 0}
+    - target: {fileID: 7734755639011140502, guid: d71c71bfed17b304b83252502742edd4, type: 3}
+      propertyPath: m_MaxVisualCurveDistance
+      value: 1000
+      objectReference: {fileID: 0}
     - target: {fileID: 8316177611747615282, guid: d71c71bfed17b304b83252502742edd4, type: 3}
       propertyPath: m_AnchorMax.y
       value: 0

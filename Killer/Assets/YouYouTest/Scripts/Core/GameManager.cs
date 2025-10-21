@@ -40,6 +40,8 @@ public class GameManager : MonoBehaviour
             return;
         }
 
+
+
         _instance = this;
         DontDestroyOnLoad(gameObject);
     }
@@ -54,6 +56,14 @@ public class GameManager : MonoBehaviour
     [SerializeField]
     private Transform _vrEditorRig;
     public Transform VrEditorRig => _vrEditorRig;
+
+
+    // VR editor rig
+    [SerializeField]
+    private Transform vrEditorRigOffset;
+
+    public float vrEditorScale = 1;
+
 
 
     // 是否为PlayMode
@@ -217,7 +227,7 @@ public class GameManager : MonoBehaviour
         // 切换PlayMode状态
         _isPlayMode = !_isPlayMode;
         CustomLog.Log(needLog, $"切换模式: {(_isPlayMode ? "PlayMode" : "EditMode")}");
-        
+
         // 触发播放状态改变事件
         GlobalEvent.IsPlayChange.Invoke(_isPlayMode);
 
@@ -288,7 +298,10 @@ public class GameManager : MonoBehaviour
         FindClosestAngleHook();
 
         // check mode change
-        CheckModeChange(); 
+        CheckModeChange();
+
+        vrEditorScale = vrEditorRigOffset.localScale.x;
+        
     }
 
     private void CheckModeChange()
