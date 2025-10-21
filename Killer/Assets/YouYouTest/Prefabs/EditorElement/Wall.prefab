@@ -124,7 +124,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   positionSmoothSpeed: 10
   rotationSmoothSpeed: 15
-  freezeYaxis: 0
+  freezeYaxis: 1
 --- !u!54 &7260562611563158598
 Rigidbody:
   m_ObjectHideFlags: 0
