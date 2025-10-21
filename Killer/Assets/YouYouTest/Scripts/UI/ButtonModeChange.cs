@@ -13,11 +13,11 @@ public class ButtonModeChange : MonoBehaviour
         // 获取Button组件
         button = GetComponent<Button>();
         
-        // 如果找到了Button组件，移除原有的onClick事件监听
+        // 如果找到了Button组件，添加onClick事件监听
         if (button != null)
         {
-            button.onClick.RemoveListener(OnButtonClick);
-            Debug.Log("Button组件已找到并移除原有onClick事件监听");
+            button.onClick.AddListener(OnButtonClick);
+            Debug.Log("Button组件已找到并添加onClick事件监听");
         }
         else
         {
