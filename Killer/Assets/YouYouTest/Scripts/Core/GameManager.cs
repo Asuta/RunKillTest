@@ -1,11 +1,13 @@
 using UnityEngine;
 using System.Collections.Generic;
 using System;
+using YouYouTest;
 
 
 public class GameManager : MonoBehaviour
 {
     public bool needLog;
+    private float _menuButtonPressTime = 0f;
     // 单例实例
     private static GameManager _instance;
 
@@ -215,6 +217,9 @@ public class GameManager : MonoBehaviour
         // 切换PlayMode状态
         _isPlayMode = !_isPlayMode;
         CustomLog.Log(needLog, $"切换模式: {(_isPlayMode ? "PlayMode" : "EditMode")}");
+        
+        // 触发播放状态改变事件
+        GlobalEvent.IsPlayChange.Invoke(_isPlayMode);
 
         // 根据状态激活/禁用对应的Rig
         if (_isPlayMode)
@@ -281,5 +286,25 @@ public class GameManager : MonoBehaviour
     {
         // 每帧更新最小夹角的Hook
         FindClosestAngleHook();
+
+        // check mode change
+        CheckModeChange(); 
+    }
+
+    private void CheckModeChange()
+    {
+        if (InputActionsManager.Actions.XRILeftInteraction.Menu.IsPressed())
+        {
+            _menuButtonPressTime += Time.deltaTime;
+            if (_menuButtonPressTime >= 0.7f)
+            {
+                OnModeButtonPoke();
+                _menuButtonPressTime = 0f; // Reset time after triggering
+            }
+        }
+        else
+        {
+            _menuButtonPressTime = 0f;
+        }
     }
 }

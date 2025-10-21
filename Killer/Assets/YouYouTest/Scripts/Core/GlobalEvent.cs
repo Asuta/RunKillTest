@@ -65,6 +65,12 @@ public static class GlobalEvent
     /// </summary>
     public static readonly UnityEvent ModeButtonPoke = new UnityEvent();
 
+    /// <summary>
+    /// 播放状态改变事件
+    /// </summary>
+    public static readonly UnityEvent<bool> IsPlayChange = new UnityEvent<bool>();
+
+
 
 
     /// sample event
@@ -72,10 +78,6 @@ public static class GlobalEvent
 
 
 
-    /// <summary>
-    /// 播放状态改变事件
-    /// </summary>
-    public static readonly UnityEvent<bool> IsPlayChange = new UnityEvent<bool>();
 
     /// <summary>
     /// 对齐状态改变事件

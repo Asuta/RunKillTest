@@ -471,6 +471,7 @@ GameObject:
   - component: {fileID: 7295274701797170196}
   - component: {fileID: 876209353564301219}
   - component: {fileID: 5842761998136896542}
+  - component: {fileID: 3147982456253592615}
   m_Layer: 0
   m_Name: CheckBox
   m_TagString: Untagged
@@ -607,6 +608,21 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   enemy: {fileID: 7519064234060763059}
+--- !u!114 &3147982456253592615
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 8901690409459480880}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 5180ad4ef285b314f9552a058220fb14, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  positionSmoothSpeed: 10
+  rotationSmoothSpeed: 15
+  freezeYaxis: 1
 --- !u!1 &9204595431291664674
 GameObject:
   m_ObjectHideFlags: 0
