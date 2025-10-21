@@ -2,8 +2,8 @@ using UnityEngine;
 
 public class VRBody : MonoBehaviour
 {
-
-    public Transform target;
+    bool isFollowing = false;
+    public Transform Target;
     public Vector3 offset;
     // Start is called once before the first execution of Update after the MonoBehaviour is created
     void Start()
@@ -14,12 +14,23 @@ public class VRBody : MonoBehaviour
     // Update is called once per frame
     void Update()
     {
+        if (isFollowing)
+        {
+            var targetPosition = Target.position + offset;
+            transform.position = targetPosition;
+        }
 
-        transform.position = target.position + offset;
-        transform.rotation = target.rotation;
     }
 
-    
+    public void StartFollow()
+    {
+        isFollowing = true;
+    }
+
+    public void StopFollow()
+    {
+        isFollowing = false;
+    }
 
 
 }
