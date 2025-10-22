@@ -13,6 +13,11 @@ public interface ISaveable
     string PrefabID { get; }
 
     /// <summary>
+    /// 获取用于序列化/反序列化的数据类型
+    /// </summary>
+    System.Type DataType { get; }
+
+    /// <summary>
     /// 捕获当前状态，返回一个可序列化的对象
     /// </summary>
     /// <returns>包含需要保存的数据的对象</returns>

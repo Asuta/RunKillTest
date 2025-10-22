@@ -20,6 +20,7 @@ public class TransformSavable : MonoBehaviour, ISaveable
     }
 
     public string PrefabID => prefabID;
+    public System.Type DataType => typeof(TransformSaveData);
 
     /// <summary>
     /// 捕获当前Transform的状态

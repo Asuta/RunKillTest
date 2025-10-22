@@ -231,10 +231,24 @@ public class SaveTestt : MonoBehaviour
         // 如果customData不为空，先反序列化它
         if (!string.IsNullOrEmpty(saveData.customData))
         {
-            SerializationHelper helper = JsonUtility.FromJson<SerializationHelper>(saveData.customData);
-            if (helper != null)
+            try
             {
-                customState = helper.ToDictionary();
+                SerializationHelper helper = JsonUtility.FromJson<SerializationHelper>(saveData.customData);
+                if (helper != null && helper.keys != null && helper.jsonValues != null)
+                {
+                    // 这里是关键：我们应该从helper重建字典，而不是直接用ToDictionary()
+                    // 因为ToDictionary()会再次反序列化，而此时我们只需要键值对
+                    for(int i = 0; i < helper.keys.Count; i++)
+                    {
+                        // 暂时将json字符串存入，避免类型问题
+                        // 在ToDictionary()时才真正反序列化
+                        customState[helper.keys[i]] = helper.jsonValues[i];
+                    }
+                }
+            }
+            catch(System.Exception e)
+            {
+                 Debug.LogError($"MergeCustomData: 反序列化旧数据时出错: {e.Message}");
             }
         }
         
@@ -307,40 +321,69 @@ public class SaveTestt : MonoBehaviour
         {
             try
             {
+                if (enableDebugLog) Debug.Log($"准备恢复自定义数据: {objectData.customData}");
+
                 // 反序列化自定义数据
                 SerializationHelper helper = JsonUtility.FromJson<SerializationHelper>(objectData.customData);
                 if (helper != null)
                 {
-                    var customState = helper.ToDictionary();
+                    if (enableDebugLog) Debug.Log("SerializationHelper 反序列化成功。");
+                    // ToDictionary() 现在需要 newObj 来查找组件并获取正确的DataType
+                    var customState = helper.ToDictionary(newObj);
                     
                     foreach (var stateEntry in customState)
                     {
+                        if (enableDebugLog) Debug.Log($"正在处理组件类型: {stateEntry.Key}");
+                        
                         // 获取组件类型
                         System.Type componentType = System.Type.GetType(stateEntry.Key);
                         if (componentType != null)
                         {
+                            if (enableDebugLog) Debug.Log($"找到类型: {componentType.FullName}");
+
                             // 尝试获取该类型的组件
                             var component = newObj.GetComponent(componentType) as ISaveable;
                             if (component != null)
                             {
-                                // 将保存的JSON字符串反序列化为具体类型
-                                string jsonData = JsonUtility.ToJson(stateEntry.Value);
-                                object restoredState = JsonUtility.FromJson(jsonData, componentType);
+                                if (enableDebugLog) Debug.Log($"在 '{newObj.name}' 上找到组件 {stateEntry.Key}，准备恢复状态。");
+
+                                // ToDictionary() 已经为我们反序列化好了，直接使用
+                                object restoredState = stateEntry.Value;
+                                if (enableDebugLog) Debug.Log($"从字典获取状态对象: {(restoredState != null ? "不为空" : "为空")}");
                                 
-                                component.RestoreState(restoredState);
+                                if(restoredState != null)
+                                {
+                                    component.RestoreState(restoredState);
+                                }
+                                else
+                                {
+                                    Debug.LogError($"恢复状态失败，因为从字典获取的状态对象为null。类型: {stateEntry.Key}");
+                                }
                                 
                                 if (enableDebugLog)
                                 {
                                     Debug.Log($"已恢复组件 {stateEntry.Key} 的状态");
                                 }
                             }
+                            else
+                            {
+                                Debug.LogWarning($"在 '{newObj.name}' 上未找到组件 {stateEntry.Key} 或其未实现ISaveable。");
+                            }
+                        }
+                        else
+                        {
+                            Debug.LogError($"无法从字符串 '{stateEntry.Key}' 获取类型。");
                         }
                     }
+                }
+                else
+                {
+                    Debug.LogError("SerializationHelper 反序列化失败，helper为null。");
                 }
             }
             catch (System.Exception e)
             {
-                Debug.LogError($"恢复自定义数据时出错: {e.Message}");
+                Debug.LogError($"恢复自定义数据时出错: {e.Message}\n{e.StackTrace}");
             }
         }
         // --- 结束 ---
@@ -478,20 +521,58 @@ public class SceneSaveData
 public class SerializationHelper
 {
     public List<string> keys;
-    public List<object> values;
+    public List<string> jsonValues; // 改为存储JSON字符串
 
     public SerializationHelper(Dictionary<string, object> dictionary)
     {
         keys = new List<string>(dictionary.Keys);
-        values = new List<object>(dictionary.Values);
+        jsonValues = new List<string>();
+        foreach (var kvp in dictionary)
+        {
+            if (kvp.Value is string)
+            {
+                // 如果值已经是json字符串（来自MergeCustomData），直接添加
+                jsonValues.Add(kvp.Value as string);
+            }
+            else
+            {
+                // 否则，序列化它
+                jsonValues.Add(JsonUtility.ToJson(kvp.Value));
+            }
+        }
     }
 
-    public Dictionary<string, object> ToDictionary()
+    public Dictionary<string, object> ToDictionary(GameObject targetObject)
     {
         var dictionary = new Dictionary<string, object>();
+        if (keys == null || jsonValues == null || keys.Count != jsonValues.Count)
+        {
+            Debug.LogError("SerializationHelper: Keys and Values count mismatch or null lists!");
+            return dictionary;
+        }
+
         for (int i = 0; i < keys.Count; i++)
         {
-            dictionary[keys[i]] = values[i];
+            // 根据key（组件类型名）获取组件
+            System.Type componentType = System.Type.GetType(keys[i]);
+            if (componentType != null)
+            {
+                var component = targetObject.GetComponent(componentType) as ISaveable;
+                if (component != null)
+                {
+                    // 使用组件提供的DataType来反序列化
+                    object obj = JsonUtility.FromJson(jsonValues[i], component.DataType);
+                    dictionary[keys[i]] = obj;
+                }
+                else
+                {
+                    Debug.LogError($"SerializationHelper: Could not find component '{keys[i]}' on '{targetObject.name}'");
+                }
+            }
+            else
+            {
+                Debug.LogError($"SerializationHelper: Could not find type for key '{keys[i]}'");
+            }
         }
         return dictionary;
     }

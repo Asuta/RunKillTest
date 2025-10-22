@@ -1,5 +1,6 @@
 using UnityEngine;
 using System;
+using VInspector;
 
 /// <summary>
 /// 用于保存Enemy组件数据的独立脚本
@@ -13,16 +14,18 @@ public class EnemySavable : MonoBehaviour, ISaveable
     [Serializable]
     public struct EnemySaveData
     {
-        public int health;
-        public bool hasFiredFirstShot;
+        public Vector3 checkBoxPosition;
+        public Quaternion checkBoxRotation;
+        public Vector3 checkBoxScale;
     }
 
     public string PrefabID => prefabID;
+    public Type DataType => typeof(EnemySaveData);
 
     /// <summary>
-    /// 捕获Enemy组件的状态
+    /// 捕获Enemy组件的CheckBox Transform状态
     /// </summary>
-    /// <returns>包含Enemy数据的对象</returns>
+    /// <returns>包含CheckBox Transform数据的对象</returns>
     public object CaptureState()
     {
         Enemy enemyComponent = GetComponent<Enemy>();
@@ -32,31 +35,22 @@ public class EnemySavable : MonoBehaviour, ISaveable
             return null;
         }
 
-        // 使用反射来获取私有字段hasFiredFirstShot
-        // 这是一个更通用的方法，可以访问非公有成员
-        bool hasFiredFirstShot = false;
-        var enemyType = typeof(Enemy);
-        var fieldInfo = enemyType.GetField("hasFiredFirstShot", 
-            System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance);
-        
-        if (fieldInfo != null)
+        if (enemyComponent.checkBox == null)
         {
-            hasFiredFirstShot = (bool)fieldInfo.GetValue(enemyComponent);
-        }
-        else
-        {
-            Debug.LogWarning("EnemySavable: 无法找到Enemy类中的hasFiredFirstShot字段。请确保字段名正确。");
+            Debug.LogError("EnemySavable: Enemy组件上的checkBox为空！");
+            return null;
         }
 
         return new EnemySaveData
         {
-            health = enemyComponent.health,
-            hasFiredFirstShot = hasFiredFirstShot
+            checkBoxPosition = enemyComponent.checkBox.position,
+            checkBoxRotation = enemyComponent.checkBox.rotation,
+            checkBoxScale = enemyComponent.checkBox.localScale
         };
     }
 
     /// <summary>
-    /// 恢复Enemy组件的状态
+    /// 恢复Enemy组件的CheckBox Transform状态
     /// </summary>
     /// <param name="state">从文件中加载的数据对象</param>
     public void RestoreState(object state)
@@ -74,25 +68,25 @@ public class EnemySavable : MonoBehaviour, ISaveable
             return;
         }
 
+        if (enemyComponent.checkBox == null)
+        {
+            Debug.LogError("EnemySavable: Enemy组件上的checkBox为空，无法恢复状态！");
+            return;
+        }
+
         EnemySaveData data = (EnemySaveData)state;
 
-        // 恢复公有字段
-        enemyComponent.health = data.health;
+        // 恢复CheckBox的Transform
+        enemyComponent.checkBox.position = data.checkBoxPosition;
+        enemyComponent.checkBox.rotation = data.checkBoxRotation;
+        enemyComponent.checkBox.localScale = data.checkBoxScale;
 
-        // 使用反射来设置私有字段hasFiredFirstShot
-        var enemyType = typeof(Enemy);
-        var fieldInfo = enemyType.GetField("hasFiredFirstShot", 
-            System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance);
+        Debug.Log($"EnemySavable: CheckBox的Transform状态已恢复。");
+    }
 
-        if (fieldInfo != null)
-        {
-            fieldInfo.SetValue(enemyComponent, data.hasFiredFirstShot);
-        }
-        else
-        {
-            Debug.LogWarning("EnemySavable: 无法找到Enemy类中的hasFiredFirstShot字段来设置值。");
-        }
-
-        Debug.Log($"EnemySavable: 状态已恢复 - Health: {data.health}, HasFiredFirstShot: {data.hasFiredFirstShot}");
+    [Button]
+    public void SetID()
+    {
+        prefabID = gameObject.name;
     }
 }

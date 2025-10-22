@@ -6,6 +6,7 @@ public class Enemy : MonoBehaviour, ICanBeHit
     public int health = 100;
     public Transform target;
     public Transform EnemyBody;
+    public Transform checkBox;
     // public GameObject EnemyCheckerBox;
 
     // 用于绘制的材质和网格
