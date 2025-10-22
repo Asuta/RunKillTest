@@ -212,6 +212,6 @@ public class Enemy : MonoBehaviour, ICanBeHit
         return MeshDrawUtility.CreateSphereMesh(radius);
     }
 
+#endregion
 
-    #endregion
 }

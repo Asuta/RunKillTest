@@ -121,7 +121,7 @@ GameObject:
   - component: {fileID: 7519064234060763059}
   - component: {fileID: 7439479123347375779}
   - component: {fileID: -4760500423097345206}
-  - component: {fileID: -505516188901502407}
+  - component: {fileID: -8240167736166548290}
   m_Layer: 0
   m_Name: Enemy
   m_TagString: Enemy
@@ -207,7 +207,7 @@ MonoBehaviour:
   positionSmoothSpeed: 10
   rotationSmoothSpeed: 15
   freezeYaxis: 1
---- !u!114 &-505516188901502407
+--- !u!114 &-8240167736166548290
 MonoBehaviour:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
@@ -216,7 +216,7 @@ MonoBehaviour:
   m_GameObject: {fileID: 2173686282840896920}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 6fed11ddeb3b0244ebedb9a48c1fbf0d, type: 3}
+  m_Script: {fileID: 11500000, guid: 1ef231533aa16424db0389bb7d44567b, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
   prefabID: Enemy

@@ -41,7 +41,7 @@ public class SaveTestt : MonoBehaviour
     }
     
     /// <summary>
-    /// 保存场景中所有ObjectIdentifier对象的信息到JSON文件
+    /// 保存场景中所有实现了ISaveable接口的对象的信息到JSON文件
     /// </summary>
     public void SaveSceneObjects()
     {
@@ -50,45 +50,71 @@ public class SaveTestt : MonoBehaviour
             Debug.Log("开始保存场景对象...");
         }
         
-        // 查找所有ObjectIdentifier组件
-        ObjectIdentifier[] objectIdentifiers = FindObjectsOfType<ObjectIdentifier>();
+        // 查找所有MonoBehaviour，然后筛选出实现了ISaveable接口的
+        MonoBehaviour[] allMonoBehaviours = FindObjectsOfType<MonoBehaviour>();
+        var saveableObjects = new List<MonoBehaviour>();
         
-        if (objectIdentifiers.Length == 0)
+        foreach (var mb in allMonoBehaviours)
         {
-            Debug.LogWarning("场景中没有找到任何ObjectIdentifier组件!");
+            if (mb is ISaveable)
+            {
+                saveableObjects.Add(mb);
+            }
+        }
+
+        if (saveableObjects.Count == 0)
+        {
+            Debug.LogWarning("场景中没有找到任何实现ISaveable接口的组件!");
             return;
         }
         
         // 创建保存数据列表
         List<ObjectSaveData> saveDataList = new List<ObjectSaveData>();
         
-        // 遍历所有ObjectIdentifier组件
-        foreach (ObjectIdentifier objIdentifier in objectIdentifiers)
+        // 遍历所有ISaveable组件
+        foreach (var mb in saveableObjects)
         {
-            if (objIdentifier == null || string.IsNullOrEmpty(objIdentifier.prefabID))
+            ISaveable saveable = mb as ISaveable;
+            if (saveable == null || string.IsNullOrEmpty(saveable.PrefabID))
             {
                 if (enableDebugLog)
                 {
-                    Debug.LogWarning("发现空的ObjectIdentifier或prefabID为空，跳过保存");
+                    Debug.LogWarning($"发现空的ISaveable组件或PrefabID为空，跳过保存。对象: {mb?.gameObject.name}");
                 }
                 continue;
             }
+
+            // 检查是否已经保存过同一个GameObject上的其他ISaveable组件
+            // 我们将同一个GameObject上的所有ISaveable数据合并到一个ObjectSaveData中
+            GameObject obj = mb.gameObject;
+            ObjectSaveData existingData = saveDataList.Find(data => data.objectName == obj.name);
             
-            // 创建保存数据
-            ObjectSaveData saveData = new ObjectSaveData
+            if (existingData != null)
             {
-                prefabID = objIdentifier.prefabID,
-                position = objIdentifier.transform.position,
-                rotation = objIdentifier.transform.rotation,
-                scale = objIdentifier.transform.localScale,
-                objectName = objIdentifier.gameObject.name
-            };
-            
-            saveDataList.Add(saveData);
+                // 如果已存在，只需更新customData
+                MergeCustomData(existingData, saveable);
+            }
+            else
+            {
+                // 如果不存在，创建新的保存数据
+                ObjectSaveData newSaveData = new ObjectSaveData
+                {
+                    prefabID = saveable.PrefabID,
+                    position = obj.transform.position,
+                    rotation = obj.transform.rotation,
+                    scale = obj.transform.localScale,
+                    objectName = obj.name
+                };
+                
+                // 创建并合并自定义数据
+                MergeCustomData(newSaveData, saveable);
+
+                saveDataList.Add(newSaveData);
+            }
             
             if (enableDebugLog)
             {
-                Debug.Log($"准备保存对象: {saveData.objectName} (ID: {saveData.prefabID})");
+                Debug.Log($"准备保存对象: {mb.gameObject.name} (ID: {saveable.PrefabID})");
             }
         }
         
@@ -194,6 +220,32 @@ public class SaveTestt : MonoBehaviour
     }
     
     /// <summary>
+    /// 合并ISaveable组件的数据到ObjectSaveData中
+    /// </summary>
+    /// <param name="saveData">要合并到的目标数据</param>
+    /// <param name="saveable">提供数据的ISaveable组件</param>
+    private void MergeCustomData(ObjectSaveData saveData, ISaveable saveable)
+    {
+        var customState = new System.Collections.Generic.Dictionary<string, object>();
+        
+        // 如果customData不为空，先反序列化它
+        if (!string.IsNullOrEmpty(saveData.customData))
+        {
+            SerializationHelper helper = JsonUtility.FromJson<SerializationHelper>(saveData.customData);
+            if (helper != null)
+            {
+                customState = helper.ToDictionary();
+            }
+        }
+        
+        // 添加新的组件数据
+        customState[saveable.GetType().ToString()] = saveable.CaptureState();
+        
+        // 重新序列化并保存
+        saveData.customData = JsonUtility.ToJson(new SerializationHelper(customState));
+    }
+
+    /// <summary>
     /// 加载单个对象
     /// </summary>
     /// <param name="objectData">对象数据</param>
@@ -249,6 +301,49 @@ public class SaveTestt : MonoBehaviour
         newObj.transform.position = objectData.position;
         newObj.transform.rotation = objectData.rotation;
         newObj.transform.localScale = objectData.scale;
+        
+        // --- 逻辑：加载自定义组件数据 ---
+        if (!string.IsNullOrEmpty(objectData.customData))
+        {
+            try
+            {
+                // 反序列化自定义数据
+                SerializationHelper helper = JsonUtility.FromJson<SerializationHelper>(objectData.customData);
+                if (helper != null)
+                {
+                    var customState = helper.ToDictionary();
+                    
+                    foreach (var stateEntry in customState)
+                    {
+                        // 获取组件类型
+                        System.Type componentType = System.Type.GetType(stateEntry.Key);
+                        if (componentType != null)
+                        {
+                            // 尝试获取该类型的组件
+                            var component = newObj.GetComponent(componentType) as ISaveable;
+                            if (component != null)
+                            {
+                                // 将保存的JSON字符串反序列化为具体类型
+                                string jsonData = JsonUtility.ToJson(stateEntry.Value);
+                                object restoredState = JsonUtility.FromJson(jsonData, componentType);
+                                
+                                component.RestoreState(restoredState);
+                                
+                                if (enableDebugLog)
+                                {
+                                    Debug.Log($"已恢复组件 {stateEntry.Key} 的状态");
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+            catch (System.Exception e)
+            {
+                Debug.LogError($"恢复自定义数据时出错: {e.Message}");
+            }
+        }
+        // --- 结束 ---
         
         if (enableDebugLog)
         {
@@ -360,6 +455,9 @@ public class ObjectSaveData
     public Quaternion rotation;
     public Vector3 scale;
     public string objectName;
+    
+    // 新增字段：用于存储自定义组件数据
+    public string customData;
 }
 
 /// <summary>
@@ -371,4 +469,30 @@ public class SceneSaveData
     public string saveTime;
     public int objectCount;
     public List<ObjectSaveData> objects;
+}
+
+/// <summary>
+/// 辅助类，用于序列化Dictionary
+/// </summary>
+[System.Serializable]
+public class SerializationHelper
+{
+    public List<string> keys;
+    public List<object> values;
+
+    public SerializationHelper(Dictionary<string, object> dictionary)
+    {
+        keys = new List<string>(dictionary.Keys);
+        values = new List<object>(dictionary.Values);
+    }
+
+    public Dictionary<string, object> ToDictionary()
+    {
+        var dictionary = new Dictionary<string, object>();
+        for (int i = 0; i < keys.Count; i++)
+        {
+            dictionary[keys[i]] = values[i];
+        }
+        return dictionary;
+    }
 }

@@ -15,7 +15,7 @@ GameObject:
   - component: {fileID: 481704701042502655}
   - component: {fileID: 536936048097399125}
   - component: {fileID: 7262546341808981543}
-  - component: {fileID: 4895659499048240755}
+  - component: {fileID: -6098686268839338521}
   m_Layer: 0
   m_Name: DeathTrigger
   m_TagString: Untagged
@@ -166,7 +166,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 198706eff9675a54a920beb448da2623, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
---- !u!114 &4895659499048240755
+--- !u!114 &-6098686268839338521
 MonoBehaviour:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
@@ -175,7 +175,7 @@ MonoBehaviour:
   m_GameObject: {fileID: 3823390580743307774}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 6fed11ddeb3b0244ebedb9a48c1fbf0d, type: 3}
+  m_Script: {fileID: 11500000, guid: 1ef231533aa16424db0389bb7d44567b, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
   prefabID: DeathTrigger
