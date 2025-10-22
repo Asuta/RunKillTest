@@ -121,6 +121,7 @@ GameObject:
   - component: {fileID: 7519064234060763059}
   - component: {fileID: 7439479123347375779}
   - component: {fileID: -4760500423097345206}
+  - component: {fileID: -505516188901502407}
   m_Layer: 0
   m_Name: Enemy
   m_TagString: Enemy
@@ -160,7 +161,6 @@ MonoBehaviour:
   health: 1
   target: {fileID: 0}
   EnemyBody: {fileID: 627795430947705909}
-  EnemyCheckerBox: {fileID: 8901690409459480880}
   lineMaterial: {fileID: 2100000, guid: d0653562e5a5053468d9a58ae508e8fa, type: 2}
   sphereMaterial: {fileID: 2100001, guid: 2ec66658b9de135428647d5bb59c198f, type: 2}
   bulletPrefab: {fileID: 2151867230420632495, guid: e3dba13aa9f886149b125c3506185898, type: 3}
@@ -207,6 +207,19 @@ MonoBehaviour:
   positionSmoothSpeed: 10
   rotationSmoothSpeed: 15
   freezeYaxis: 1
+--- !u!114 &-505516188901502407
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2173686282840896920}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 6fed11ddeb3b0244ebedb9a48c1fbf0d, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  prefabID: Enemy
 --- !u!1 &4777423813008001768
 GameObject:
   m_ObjectHideFlags: 0
