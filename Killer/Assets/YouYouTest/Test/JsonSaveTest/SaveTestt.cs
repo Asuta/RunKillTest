@@ -433,47 +433,72 @@ public class SaveTestt : MonoBehaviour
     {
         Debug.Log("=== Debug Resources文件夹内容 ===");
         
-        // 尝试加载所有可能路径的预制体
-        string[] testPaths = {
-            "Wall",
-            "Prefabs/Wall",
-            "Prefabs/EditorElement/Wall",
-            "EditorElement/Wall",
-            "Enemy",
-            "Prefabs/Enemy",
-            "Prefabs/EditorElement/Enemy",
-            "EditorElement/Enemy",
-            "CheckPoint",
-            "Prefabs/CheckPoint",
-            "Prefabs/EditorElement/CheckPoint",
-            "EditorElement/CheckPoint"
-        };
-        
-        foreach (string path in testPaths)
-        {
-            GameObject prefab = Resources.Load<GameObject>(path);
-            if (prefab != null)
-            {
-                Debug.Log($"✓ 找到预制体: {path}");
-            }
-            else
-            {
-                Debug.Log($"✗ 未找到预制体: {path}");
-            }
-        }
-        
-        // 列出Resources文件夹中所有的预制体
+        // 动态加载Resources文件夹中所有的预制体
         GameObject[] allPrefabs = Resources.LoadAll<GameObject>("");
         Debug.Log($"Resources文件夹中共有 {allPrefabs.Length} 个预制体:");
+        
+        // 创建一个字典来存储预制体名称和对应的路径
+        Dictionary<string, List<string>> prefabPaths = new Dictionary<string, List<string>>();
+        
         foreach (GameObject prefab in allPrefabs)
         {
             if (prefab != null)
             {
                 Debug.Log($"  - {prefab.name}");
+                
+                // 尝试找到预制体的实际路径
+                string prefabPath = GetPrefabPath(prefab);
+                if (!string.IsNullOrEmpty(prefabPath))
+                {
+                    if (!prefabPaths.ContainsKey(prefab.name))
+                    {
+                        prefabPaths[prefab.name] = new List<string>();
+                    }
+                    prefabPaths[prefab.name].Add(prefabPath);
+                }
+            }
+        }
+        
+        // 输出找到的预制体路径信息
+        Debug.Log("=== 预制体路径信息 ===");
+        foreach (var kvp in prefabPaths)
+        {
+            foreach (string path in kvp.Value)
+            {
+                Debug.Log($"✓ 找到预制体: {kvp.Key} (路径: {path})");
             }
         }
         
         Debug.Log("=== Debug完成 ===");
+    }
+    
+    /// <summary>
+    /// 获取预制体在Resources文件夹中的相对路径
+    /// </summary>
+    /// <param name="prefab">预制体对象</param>
+    /// <returns>相对路径，如果找不到则返回空字符串</returns>
+    private string GetPrefabPath(GameObject prefab)
+    {
+        if (prefab == null) return string.Empty;
+        
+        // 尝试常见的路径结构
+        string[] possiblePaths = {
+            prefab.name,
+            $"Prefabs/{prefab.name}",
+            $"Prefabs/EditorElement/{prefab.name}",
+            $"EditorElement/{prefab.name}"
+        };
+        
+        foreach (string path in possiblePaths)
+        {
+            GameObject testPrefab = Resources.Load<GameObject>(path);
+            if (testPrefab != null && testPrefab == prefab)
+            {
+                return path;
+            }
+        }
+        
+        return string.Empty;
     }
     
     /// <summary>
