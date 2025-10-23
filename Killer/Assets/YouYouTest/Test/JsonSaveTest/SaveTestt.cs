@@ -4,6 +4,39 @@ using System.IO;
 
 public class SaveTestt : MonoBehaviour
 {
+    // 单例模式实现
+    private static SaveTestt _instance;
+    public static SaveTestt Instance
+    {
+        get
+        {
+            if (_instance == null)
+            {
+                _instance = FindObjectOfType<SaveTestt>();
+                if (_instance == null)
+                {
+                    GameObject go = new GameObject("SaveTestt_Singleton");
+                    _instance = go.AddComponent<SaveTestt>();
+                    DontDestroyOnLoad(go);
+                }
+            }
+            return _instance;
+        }
+    }
+    
+    private void Awake()
+    {
+        if (_instance == null)
+        {
+            _instance = this;
+            DontDestroyOnLoad(gameObject);
+        }
+        else if (_instance != this)
+        {
+            Destroy(gameObject);
+        }
+    }
+
     [Header("保存设置")]
     [SerializeField] private string saveFileName = "SceneObjects.json";
     [SerializeField] private bool autoSaveOnStart = false;
