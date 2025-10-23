@@ -56,7 +56,7 @@ public class Player : MonoBehaviour, ICanBeHit
     {
         if(Input.GetKeyDown(KeyCode.R)) 
         {
-            Respawn();
+            GlobalEvent.CheckPointReset.Invoke();
         }
 
     }

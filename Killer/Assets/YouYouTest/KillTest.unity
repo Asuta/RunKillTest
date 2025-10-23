@@ -1934,6 +1934,7 @@ MonoBehaviour:
   health: 1
   target: {fileID: 0}
   EnemyBody: {fileID: 843798973}
+  checkBox: {fileID: 0}
   lineMaterial: {fileID: 2100000, guid: d0653562e5a5053468d9a58ae508e8fa, type: 2}
   sphereMaterial: {fileID: 2100001, guid: 2ec66658b9de135428647d5bb59c198f, type: 2}
   bulletPrefab: {fileID: 2151867230420632495, guid: e3dba13aa9f886149b125c3506185898, type: 3}
@@ -2828,6 +2829,7 @@ MonoBehaviour:
   health: 1
   target: {fileID: 0}
   EnemyBody: {fileID: 261220925}
+  checkBox: {fileID: 0}
   lineMaterial: {fileID: 2100000, guid: d0653562e5a5053468d9a58ae508e8fa, type: 2}
   sphereMaterial: {fileID: 2100001, guid: 2ec66658b9de135428647d5bb59c198f, type: 2}
   bulletPrefab: {fileID: 2151867230420632495, guid: e3dba13aa9f886149b125c3506185898, type: 3}
@@ -4065,6 +4067,7 @@ MonoBehaviour:
   health: 1
   target: {fileID: 0}
   EnemyBody: {fileID: 1494138652}
+  checkBox: {fileID: 0}
   lineMaterial: {fileID: 2100000, guid: d0653562e5a5053468d9a58ae508e8fa, type: 2}
   sphereMaterial: {fileID: 2100001, guid: 2ec66658b9de135428647d5bb59c198f, type: 2}
   bulletPrefab: {fileID: 2151867230420632495, guid: e3dba13aa9f886149b125c3506185898, type: 3}
@@ -5024,6 +5027,7 @@ MonoBehaviour:
   health: 1
   target: {fileID: 0}
   EnemyBody: {fileID: 785452730}
+  checkBox: {fileID: 0}
   lineMaterial: {fileID: 2100000, guid: d0653562e5a5053468d9a58ae508e8fa, type: 2}
   sphereMaterial: {fileID: 2100001, guid: 2ec66658b9de135428647d5bb59c198f, type: 2}
   bulletPrefab: {fileID: 2151867230420632495, guid: e3dba13aa9f886149b125c3506185898, type: 3}
@@ -5274,6 +5278,7 @@ MonoBehaviour:
   health: 1
   target: {fileID: 0}
   EnemyBody: {fileID: 267861179}
+  checkBox: {fileID: 0}
   lineMaterial: {fileID: 2100000, guid: d0653562e5a5053468d9a58ae508e8fa, type: 2}
   sphereMaterial: {fileID: 2100001, guid: 2ec66658b9de135428647d5bb59c198f, type: 2}
   bulletPrefab: {fileID: 2151867230420632495, guid: e3dba13aa9f886149b125c3506185898, type: 3}
@@ -5946,6 +5951,7 @@ MonoBehaviour:
   health: 1
   target: {fileID: 0}
   EnemyBody: {fileID: 105625206}
+  checkBox: {fileID: 0}
   lineMaterial: {fileID: 2100000, guid: d0653562e5a5053468d9a58ae508e8fa, type: 2}
   sphereMaterial: {fileID: 2100001, guid: 2ec66658b9de135428647d5bb59c198f, type: 2}
   bulletPrefab: {fileID: 2151867230420632495, guid: e3dba13aa9f886149b125c3506185898, type: 3}
@@ -7000,7 +7006,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 0
+  m_IsActive: 1
 --- !u!54 &921729346
 Rigidbody:
   m_ObjectHideFlags: 0
@@ -12906,6 +12912,7 @@ MonoBehaviour:
   health: 1
   target: {fileID: 0}
   EnemyBody: {fileID: 1703855551}
+  checkBox: {fileID: 0}
   lineMaterial: {fileID: 2100000, guid: d0653562e5a5053468d9a58ae508e8fa, type: 2}
   sphereMaterial: {fileID: 2100001, guid: 2ec66658b9de135428647d5bb59c198f, type: 2}
   bulletPrefab: {fileID: 2151867230420632495, guid: e3dba13aa9f886149b125c3506185898, type: 3}
@@ -13711,7 +13718,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 1
+  m_IsActive: 0
 --- !u!114 &78288339416956664
 MonoBehaviour:
   m_ObjectHideFlags: 0

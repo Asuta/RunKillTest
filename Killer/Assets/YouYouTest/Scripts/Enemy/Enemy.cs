@@ -31,16 +31,13 @@ public class Enemy : MonoBehaviour, ICanBeHit
         Debug.Log($"Enemy took {damage} damage, remaining health: {health}");
         if (health <= 0)
         {
-            Die();
+            OnDeath();
         }
     }
 
-    public void OnDeath()
-    {
-        GlobalEvent.CheckPointReset.Invoke(); ; //调用接口方法OnDeath()，实现死亡逻辑。
-    }
 
-    private void Die()
+
+    public void OnDeath()
     {
         Debug.Log("Enemy died!");
         //生成并 播放死亡特效

@@ -31,7 +31,7 @@ public class VRPlayer : MonoBehaviour, ICanBeHit
 
         // 订阅检查点重置事件
         GlobalEvent.CheckPointReset.AddListener(OnCheckPointReset);
-        
+
         // 订阅游戏模式变化事件
         GlobalEvent.IsPlayChange.AddListener(OnGameModeChange);
     }
@@ -40,7 +40,7 @@ public class VRPlayer : MonoBehaviour, ICanBeHit
     {
         // 取消订阅检查点重置事件
         GlobalEvent.CheckPointReset.RemoveListener(OnCheckPointReset);
-        
+
         // 取消订阅游戏模式变化事件
         GlobalEvent.IsPlayChange.RemoveListener(OnGameModeChange);
     }
@@ -54,9 +54,9 @@ public class VRPlayer : MonoBehaviour, ICanBeHit
     // Update is called once per frame
     void Update()
     {
-        if(Input.GetKeyDown(KeyCode.R)) 
+        if (Input.GetKeyDown(KeyCode.R))
         {
-            Respawn();
+            GlobalEvent.CheckPointReset.Invoke();
         }
 
     }
@@ -64,7 +64,7 @@ public class VRPlayer : MonoBehaviour, ICanBeHit
     private void Die()
     {
         if (isDead) return; // 如果已经死亡，则不再执行死亡逻辑
-        
+
         Debug.Log("Player died!");
         isDead = true; // 设置死亡标志
         // 显示红色面板
@@ -82,10 +82,10 @@ public class VRPlayer : MonoBehaviour, ICanBeHit
     {
         // 获取Rigidbody组件
         Rigidbody rb = this.GetComponent<Rigidbody>();
-        
+
         Vector3 respawnPosition = initialPosition;
         Vector3 respawnRotation = initialRotation;
-        
+
         // 如果有激活的检查点，使用检查点的位置和旋转
         if (GameManager.Instance != null && GameManager.Instance.nowActivateCheckPoint != null)
         {
@@ -97,7 +97,7 @@ public class VRPlayer : MonoBehaviour, ICanBeHit
         {
             Debug.Log("Player respawned at initial position!");
         }
-        
+
         // 重置玩家到检查点位置或初始位置
         rb.MovePosition(respawnPosition);
         rb.MoveRotation(Quaternion.Euler(respawnRotation));
