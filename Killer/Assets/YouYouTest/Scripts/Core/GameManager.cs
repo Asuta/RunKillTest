@@ -253,25 +253,10 @@ public class GameManager : MonoBehaviour
                 _vrEditorRig.gameObject.SetActive(false);
                 CustomLog.Log(needLog, "VR Editor Rig 已禁用");
             }
-
-            if (_vrPlayerRig != null)
-            {
-                _vrPlayerOrigin.gameObject.SetActive(false);
-                _vrPlayerOrigin.gameObject.SetActive(true);
-                _vrPlayerRig.gameObject.SetActive(true);
-                CustomLog.Log(needLog, "VR Player Rig 已激活");
-            }
         }
         else
         {
             // EditMode: 激活VR Editor，禁用VR Player
-            if (_vrPlayerRig != null)
-            {
-                _vrPlayerOrigin.enabled = false;
-                _vrPlayerRig.gameObject.SetActive(false);
-                CustomLog.Log(needLog, "VR Player Rig 已禁用");
-            }
-
             if (_vrEditorRig != null)
             {
                 _vrEditorRig.gameObject.SetActive(true);
