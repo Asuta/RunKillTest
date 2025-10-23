@@ -84,6 +84,16 @@ public class SaveTestt : MonoBehaviour
                 continue;
             }
 
+            // 检查GameObject是否处于激活状态，如果未激活则跳过保存
+            if (!mb.gameObject.activeInHierarchy)
+            {
+                if (enableDebugLog)
+                {
+                    Debug.Log($"对象 {mb.gameObject.name} 处于非激活状态，跳过保存");
+                }
+                continue;
+            }
+
             // 检查是否已经保存过同一个GameObject上的其他ISaveable组件
             // 我们将同一个GameObject上的所有ISaveable数据合并到一个ObjectSaveData中
             GameObject obj = mb.gameObject;
