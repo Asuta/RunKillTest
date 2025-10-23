@@ -17,7 +17,6 @@ public class VRPlayerSavable : MonoBehaviour, ISaveable
         public Vector3 position;
         public Quaternion rotation;
         public Vector3 scale;
-        public int health;
     }
 
     public string PrefabID => prefabID;
@@ -29,19 +28,11 @@ public class VRPlayerSavable : MonoBehaviour, ISaveable
     /// <returns>包含VRPlayer数据的对象</returns>
     public object CaptureState()
     {
-        VRPlayer vrPlayer = GetComponent<VRPlayer>();
-        if (vrPlayer == null)
-        {
-            Debug.LogError("VRPlayerSavable: 在同一个游戏对象上找不到VRPlayer组件！");
-            return null;
-        }
-
         return new VRPlayerSaveData
         {
             position = transform.position,
             rotation = transform.rotation,
-            scale = transform.localScale,
-            health = vrPlayer.health
+            scale = transform.localScale
         };
     }
 
@@ -79,13 +70,6 @@ public class VRPlayerSavable : MonoBehaviour, ISaveable
         }
         
         transform.localScale = data.scale;
-
-        // 恢复健康值
-        VRPlayer vrPlayer = GetComponent<VRPlayer>();
-        if (vrPlayer != null)
-        {
-            vrPlayer.health = data.health;
-        }
 
         Debug.Log($"VRPlayerSavable: '{gameObject.name}' 的状态已恢复。位置: {data.position}");
     }
