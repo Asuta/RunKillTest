@@ -31,6 +31,11 @@ public class EnemyCheckBox : MonoBehaviour
 
     private void OnCheckPointReset()
     {
+        ResetDetection();
+    }
+    
+    public void ResetDetection()
+    {
         isFinded = false;
     }
     
