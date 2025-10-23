@@ -9,6 +9,12 @@ public class GameManager : MonoBehaviour
 {
     public bool needLog;
     private float _menuButtonPressTime = 0f;
+    
+    /// <summary>
+    /// GameManager就绪事件，当GameManager完成初始化时触发
+    /// </summary>
+    public static event System.Action<bool> OnGameManagerReady;
+    
     // 单例实例
     private static GameManager _instance;
 
@@ -221,6 +227,10 @@ public class GameManager : MonoBehaviour
 
         // 注册模式按钮点击事件
         GlobalEvent.ModeButtonPoke.AddListener(OnModeButtonPoke);
+
+        // 通知所有监听者GameManager已就绪
+        OnGameManagerReady?.Invoke(_isPlayMode);
+        CustomLog.Log(needLog, $"GameManager已就绪，当前模式: {(_isPlayMode ? "游戏模式" : "编辑模式")}");
     }
 
     private void OnModeButtonPoke()

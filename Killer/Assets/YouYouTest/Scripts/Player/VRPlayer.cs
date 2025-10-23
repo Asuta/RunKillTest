@@ -34,6 +34,9 @@ public class VRPlayer : MonoBehaviour, ICanBeHit
 
         // 订阅游戏模式变化事件
         GlobalEvent.IsPlayChange.AddListener(OnGameModeChange);
+
+        // 订阅GameManager就绪事件
+        GameManager.OnGameManagerReady += OnGameManagerReady;
     }
 
     void OnDestroy()
@@ -43,6 +46,9 @@ public class VRPlayer : MonoBehaviour, ICanBeHit
 
         // 取消订阅游戏模式变化事件
         GlobalEvent.IsPlayChange.RemoveListener(OnGameModeChange);
+
+        // 取消订阅GameManager就绪事件
+        GameManager.OnGameManagerReady -= OnGameManagerReady;
     }
 
     private void OnCheckPointReset()
@@ -136,5 +142,12 @@ public class VRPlayer : MonoBehaviour, ICanBeHit
         }
 
         this.GetComponent<Rigidbody>().isKinematic = !isPlayMode;
+    }
+
+    private void OnGameManagerReady(bool initialMode)
+    {
+        // 当GameManager就绪时，应用初始游戏模式
+        OnGameModeChange(initialMode);
+        Debug.Log($"VRPlayer通过GameManager就绪事件初始化，当前模式: {(initialMode ? "游戏模式" : "编辑模式")}");
     }
 }
