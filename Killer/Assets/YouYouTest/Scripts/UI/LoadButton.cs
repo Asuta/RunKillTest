@@ -36,7 +36,7 @@ public class LoadButton : MonoBehaviour
     {
         Debug.Log("加载按钮被点击了！");
         // 调用SaveTestt单例的加载方法
-        SaveTestt.Instance.LoadSceneObjects();
+        SaveLoadManager.Instance.LoadSceneObjects();
     }
     
     // // 实现IPointerDownHandler接口，在鼠标按下时立即触发

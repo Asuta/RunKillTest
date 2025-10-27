@@ -2817,6 +2817,7 @@ GameObject:
   m_Component:
   - component: {fileID: 286741078}
   - component: {fileID: 286741077}
+  - component: {fileID: 286741079}
   m_Layer: 0
   m_Name: SaveManager
   m_TagString: Untagged
@@ -2839,6 +2840,7 @@ MonoBehaviour:
   saveFileName: SceneObjects.json
   autoSaveOnStart: 0
   enableDebugLog: 1
+  defaultSlotName: Default
 --- !u!4 &286741078
 Transform:
   m_ObjectHideFlags: 0
@@ -2854,6 +2856,19 @@ Transform:
   m_Children: []
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &286741079
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 286741076}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 3d3c772842eea5a4b874b1bcc3494432, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  achiveName: 
 --- !u!1 &298411289
 GameObject:
   m_ObjectHideFlags: 0

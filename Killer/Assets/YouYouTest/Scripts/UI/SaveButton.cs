@@ -36,7 +36,7 @@ public class SaveButton : MonoBehaviour
     {
         Debug.Log("保存按钮被点击了！");
         // 调用SaveTestt单例的保存方法
-        SaveTestt.Instance.SaveSceneObjects();
+        SaveLoadManager.Instance.SaveSceneObjects();
     }
     
     // // 实现IPointerDownHandler接口，在鼠标按下时立即触发
