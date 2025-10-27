@@ -1,5 +1,6 @@
 using UnityEngine;
 using System.Collections.Generic;
+using YouYouTest.CommandFramework;
 
 public class SaveTestt : MonoBehaviour
 {
@@ -54,6 +55,51 @@ public class SaveTestt : MonoBehaviour
         if (autoSaveOnStart)
         {
             SaveSceneObjects();
+        }
+    }
+    
+    /// <summary>
+    /// 清理场景中的存档对象和命令历史
+    /// </summary>
+    private void CleanupSceneBeforeLoad()
+    {
+        if (enableDebugLog)
+        {
+            Debug.Log("开始清理场景中的存档对象...");
+        }
+        
+        // 查找所有实现了存档接口的对象（包括非激活的）
+        MonoBehaviour[] allMonoBehaviours = Resources.FindObjectsOfTypeAll<MonoBehaviour>();
+        var savableObjects = new List<MonoBehaviour>();
+        
+        foreach (var mb in allMonoBehaviours)
+        {
+            if (mb is ISaveable)
+            {
+                savableObjects.Add(mb);
+            }
+        }
+        
+        if (enableDebugLog)
+        {
+            Debug.Log($"找到 {savableObjects.Count} 个存档对象需要清理");
+        }
+        
+        // 销毁所有存档对象
+        foreach (var savable in savableObjects)
+        {
+            if (savable != null && savable.gameObject != null)
+            {
+                DestroyImmediate(savable.gameObject);
+            }
+        }
+        
+        // 清空命令历史
+        CommandHistory.Instance.Clear();
+        
+        if (enableDebugLog)
+        {
+            Debug.Log("场景清理完成，已销毁所有存档对象并清空命令历史");
         }
     }
 
@@ -133,6 +179,9 @@ public class SaveTestt : MonoBehaviour
             Debug.LogWarning($"保存文件不存在: {saveFileName}");
             return;
         }
+        
+        // 在加载前先清理场景
+        CleanupSceneBeforeLoad();
         
         // 从文件读取数据
         string jsonData = fileManager.LoadFromFile(saveFileName);
