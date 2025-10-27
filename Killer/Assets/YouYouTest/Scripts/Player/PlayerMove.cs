@@ -459,13 +459,13 @@ public class PlayerMove : MonoBehaviour,IPlayerHeadProvider
         // 进行Box范围检测，查找tag为"enemy"的物体
         Collider[] hitColliders = Physics.OverlapBox(center, halfExtents, hitBoxTrigger.rotation);
 
-        bool hitEnemy = false;
+        // bool hitEnemy = false;
 
         foreach (Collider collider in hitColliders)
         {
             if (collider.CompareTag("Enemy"))
             {
-                hitEnemy = true;
+                // hitEnemy = true;
                 CustomLog.Log(needLog, "击中！");
                 // 对敌人造成伤害
                 Rigidbody enemyRb = collider.attachedRigidbody;
