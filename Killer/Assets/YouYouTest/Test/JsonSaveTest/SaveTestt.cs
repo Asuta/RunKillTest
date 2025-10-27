@@ -1,6 +1,9 @@
 using UnityEngine;
 using System.Collections.Generic;
 using YouYouTest.CommandFramework;
+#if UNITY_EDITOR
+using UnityEditor;
+#endif
 
 public class SaveTestt : MonoBehaviour
 {
@@ -68,10 +71,11 @@ public class SaveTestt : MonoBehaviour
             Debug.Log("开始清理场景中的存档对象...");
         }
         
-        // 查找所有实现了存档接口的对象（包括非激活的）
-        MonoBehaviour[] allMonoBehaviours = Resources.FindObjectsOfTypeAll<MonoBehaviour>();
+        // 查找场景中所有实现了存档接口的对象（只查找场景实例）
         var savableObjects = new List<MonoBehaviour>();
         
+        // 查找场景中所有MonoBehaviour组件（包括非激活的）
+        MonoBehaviour[] allMonoBehaviours = Object.FindObjectsByType<MonoBehaviour>(FindObjectsInactive.Include, FindObjectsSortMode.None);
         foreach (var mb in allMonoBehaviours)
         {
             if (mb is ISaveable)
