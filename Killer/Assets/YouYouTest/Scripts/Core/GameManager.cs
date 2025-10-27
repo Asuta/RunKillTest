@@ -58,9 +58,6 @@ public class GameManager : MonoBehaviour
     private Transform _vrPlayerRig;
     public Transform VrPlayerRig => _vrPlayerRig;
 
-    public XROrigin _vrPlayerOrigin;
-
-
     // VR editor rig
     [SerializeField]
     private Transform _vrEditorRig;
