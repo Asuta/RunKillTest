@@ -4028,6 +4028,7 @@ MonoBehaviour:
   SaveEntrys: []
   entrySample: {fileID: 1061230060}
   entryParent: {fileID: 1210998741}
+  addButton: {fileID: 0}
 --- !u!1 &346097925
 GameObject:
   m_ObjectHideFlags: 0
@@ -26024,9 +26025,9 @@ GameObject:
   - component: {fileID: 6081064423648242857}
   - component: {fileID: 6883938796752800290}
   - component: {fileID: 5509669951339037213}
-  - component: {fileID: 6649629664668060988}
   - component: {fileID: 5612646224275438132}
   - component: {fileID: 3745980089463081818}
+  - component: {fileID: 8956162778621348735}
   m_Layer: 5
   m_Name: ItemUI
   m_TagString: Untagged
@@ -26612,32 +26613,6 @@ CanvasRenderer:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 5347281768158716943}
   m_CullTransparentMesh: 0
---- !u!114 &6649629664668060988
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 6028775731381459455}
-  m_Enabled: 0
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 59f8146938fff824cb5fd77236b75775, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  m_Padding:
-    m_Left: 16
-    m_Right: 16
-    m_Top: 12
-    m_Bottom: 16
-  m_ChildAlignment: 1
-  m_Spacing: 10
-  m_ChildForceExpandWidth: 0
-  m_ChildForceExpandHeight: 0
-  m_ChildControlWidth: 1
-  m_ChildControlHeight: 0
-  m_ChildScaleWidth: 0
-  m_ChildScaleHeight: 0
-  m_ReverseArrangement: 0
 --- !u!4 &6664078700319513273
 Transform:
   m_ObjectHideFlags: 0
@@ -29945,6 +29920,19 @@ RectTransform:
   m_AnchoredPosition: {x: 0, y: 0}
   m_SizeDelta: {x: 294.1, y: 177.5}
   m_Pivot: {x: 0.5, y: 0.5}
+--- !u!114 &8956162778621348735
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 6028775731381459455}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 53035e8ca502ae04f8d12f277c62188a, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  SaveUI: {fileID: 336206245}
 --- !u!224 &8996759763874591053
 RectTransform:
   m_ObjectHideFlags: 0
