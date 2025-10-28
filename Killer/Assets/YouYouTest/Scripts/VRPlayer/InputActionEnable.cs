@@ -18,6 +18,6 @@ public class InputActionEnable : MonoBehaviour
     void OnDestroy()
     {
         // 禁用所有 actions
-        InputActionsManager.DisableAll();
+        // InputActionsManager.DisableAll();
     }
 }
