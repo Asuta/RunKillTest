@@ -8,6 +8,11 @@ public class SaveUI : MonoBehaviour
     public GameObject entrySample;
     public Transform entryParent;
     public Transform addButton;
+    public Transform setDeleteButton;
+
+    
+    [Header("删除按钮控制")]
+    public bool deleteButtonsActive = true;
 
     // Start is called once before the first execution of Update after the MonoBehaviour is created
     void Start()
@@ -29,6 +34,25 @@ public class SaveUI : MonoBehaviour
         else
         {
             Debug.LogError("addButton未设置");
+        }
+        
+        // 为setDeleteButton添加点击事件监听器
+        if (setDeleteButton != null)
+        {
+            UnityEngine.UI.Button button = setDeleteButton.GetComponent<UnityEngine.UI.Button>();
+            if (button != null)
+            {
+                button.onClick.RemoveAllListeners();
+                button.onClick.AddListener(ChangeActiveOfDeleteButton);
+            }
+            else
+            {
+                Debug.LogError("setDeleteButton上没有找到Button组件");
+            }
+        }
+        else
+        {
+            Debug.LogError("setDeleteButton未设置");
         }
     }
 
@@ -152,7 +176,7 @@ public class SaveUI : MonoBehaviour
         }
 
         // 查找Button组件并设置点击事件
-        UnityEngine.UI.Button[] buttons = entry.GetComponentsInChildren<UnityEngine.UI.Button>();
+        UnityEngine.UI.Button[] buttons = entry.GetComponentsInChildren<UnityEngine.UI.Button>(true);
         foreach (var button in buttons)
         {
             // 根据按钮名称设置不同的功能
@@ -170,6 +194,9 @@ public class SaveUI : MonoBehaviour
             {
                 button.onClick.RemoveAllListeners();
                 button.onClick.AddListener(() => OnDeleteButtonClicked(slotInfo.slotName));
+                
+                // 设置删除按钮的初始状态
+                button.gameObject.SetActive(deleteButtonsActive);
             }
         }
     }
@@ -289,5 +316,37 @@ public class SaveUI : MonoBehaviour
     void Update()
     {
 
+    }
+
+
+    [Button("切换删除按钮的active状态")]
+    public void ChangeActiveOfDeleteButton()
+    {
+        // 如果SaveEntrys为空，尝试重新初始化
+        if (SaveEntrys.Count == 0)
+        {
+            OnEnable();
+        }
+        
+        // 切换删除按钮状态
+        deleteButtonsActive = !deleteButtonsActive;
+        
+        // 遍历所有存档条目，设置删除按钮状态
+        foreach (GameObject entry in SaveEntrys)
+        {
+            if (entry != null)
+            {
+                UnityEngine.UI.Button[] buttons = entry.GetComponentsInChildren<UnityEngine.UI.Button>(true);
+                
+                foreach (UnityEngine.UI.Button button in buttons)
+                {
+                    // 检查是否为删除按钮
+                    if (button.name.ToLower().Contains("delete"))
+                    {
+                        button.gameObject.SetActive(deleteButtonsActive);
+                    }
+                }
+            }
+        }
     }
 }
