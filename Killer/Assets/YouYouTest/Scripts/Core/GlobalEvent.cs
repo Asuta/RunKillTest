@@ -71,6 +71,12 @@ public static class GlobalEvent
     public static readonly UnityEvent<bool> IsPlayChange = new UnityEvent<bool>();
 
 
+    /// <summary>
+    /// 存档读取事件
+    /// </summary>
+    public static readonly UnityEvent<string> OnLoadSaveChange = new UnityEvent<string>();
+
+
 
 
     /// sample event

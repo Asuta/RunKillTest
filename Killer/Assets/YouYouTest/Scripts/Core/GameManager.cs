@@ -210,6 +210,8 @@ public class GameManager : MonoBehaviour
 
     public CheckPoint nowActivateCheckPoint;
 
+    public string nowLoadSaveSlot; // 当前加载的存档槽
+
     // Start is called once before the first execution of Update after the MonoBehaviour is created
     void Start()
     {
@@ -225,9 +227,16 @@ public class GameManager : MonoBehaviour
         // 注册模式按钮点击事件
         GlobalEvent.ModeButtonPoke.AddListener(OnModeButtonPoke);
 
+        GlobalEvent.OnLoadSaveChange.AddListener(OnLoadSaveChange);
+
         // 通知所有监听者GameManager已就绪
         OnGameManagerReady?.Invoke(_isPlayMode);
         CustomLog.Log(needLog, $"GameManager已就绪，当前模式: {(_isPlayMode ? "游戏模式" : "编辑模式")}");
+    }
+
+    private void OnLoadSaveChange(string arg0)
+    {
+        nowLoadSaveSlot = arg0;
     }
 
     private void OnModeButtonPoke()
@@ -266,6 +275,7 @@ public class GameManager : MonoBehaviour
     {
         GlobalEvent.CheckPointActivate.RemoveListener(OnCheckPointActivate);
         GlobalEvent.ModeButtonPoke.RemoveListener(OnModeButtonPoke);
+        GlobalEvent.OnLoadSaveChange.RemoveListener(OnLoadSaveChange);
     }
 
     private void OnCheckPointActivate(CheckPoint checkPoint)

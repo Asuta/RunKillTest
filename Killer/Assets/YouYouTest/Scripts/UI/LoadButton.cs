@@ -35,8 +35,21 @@ public class LoadButton : MonoBehaviour
     void OnButtonClick()
     {
         Debug.Log("加载按钮被点击了！");
-        // 调用SaveTestt单例的加载方法
-        SaveLoadManager.Instance.LoadSceneObjects();
+        // 获取GameManager中的当前存档槽
+        string currentSaveSlot = GameManager.Instance.nowLoadSaveSlot;
+        
+        // 如果当前存档槽为空，使用默认值
+        if (string.IsNullOrEmpty(currentSaveSlot))
+        {
+            Debug.LogWarning("当前存档槽为空，使用默认存档槽");
+            SaveLoadManager.Instance.LoadSceneObjects();
+        }
+        else
+        {
+            Debug.Log($"从存档槽加载: {currentSaveSlot}");
+            // 调用SaveLoadManager单例的加载方法，传入当前存档槽
+            SaveLoadManager.Instance.LoadSceneObjects(currentSaveSlot);
+        }
     }
     
     // // 实现IPointerDownHandler接口，在鼠标按下时立即触发

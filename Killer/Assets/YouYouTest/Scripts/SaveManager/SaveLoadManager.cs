@@ -256,6 +256,46 @@ public class SaveLoadManager : MonoBehaviour
     }
     
     /// <summary>
+    /// 创建空档位（不包含任何对象）
+    /// </summary>
+    /// <param name="slotName">档位名称</param>
+    public void CreateEmptySaveSlot(string slotName)
+    {
+        if (enableDebugLog)
+        {
+            Debug.Log($"创建空档位: {slotName}");
+        }
+        
+        if (string.IsNullOrEmpty(slotName))
+        {
+            Debug.LogError("档位名称不能为空");
+            return;
+        }
+        
+        // 创建空的保存数据
+        SceneSaveData sceneData = new SceneSaveData
+        {
+            saveTime = System.DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss"),
+            objectCount = 0,
+            objects = new List<ObjectSaveData>()
+        };
+        
+        // 序列化为JSON
+        string jsonData = JsonUtility.ToJson(sceneData, true);
+        
+        // 生成文件名
+        string fileName = GenerateSaveFileName(slotName);
+        
+        // 保存到文件
+        bool success = fileManager.SaveToFile(fileName, jsonData);
+        
+        if (success && enableDebugLog)
+        {
+            Debug.Log($"成功创建空档位: {slotName}");
+        }
+    }
+    
+    /// <summary>
     /// 从JSON文件加载场景对象
     /// </summary>
     /// <param name="slotName">档位名称，如果为空则使用默认档位</param>
