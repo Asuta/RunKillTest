@@ -2,12 +2,10 @@ using UnityEngine;
 using UnityEngine.UI;
 using VInspector;
 using UnityEngine.EventSystems;
-using VInspector;
 
-public class ButtonModeChange : MonoBehaviour
+public class OpenSaveButton : MonoBehaviour
 {
     private Button button;
-    public GameObject SaveUI;
     
     // Start is called once before the first execution of Update after the MonoBehaviour is created
     void Start()
@@ -34,12 +32,11 @@ public class ButtonModeChange : MonoBehaviour
     }
     
     // 按钮点击事件处理方法（保留以防其他地方调用）
-    [Button]
     void OnButtonClick()
     {
         Debug.Log("按钮被点击了！");
         // 在这里添加按钮点击后要执行的逻辑
-        SaveUI.SetActive(!SaveUI.activeSelf);
+        GlobalEvent.ModeButtonPoke.Invoke();
     }
     
     // // 实现IPointerDownHandler接口，在鼠标按下时立即触发
