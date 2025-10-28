@@ -72,16 +72,19 @@ public class ObjectSaveManager : MonoBehaviour
             // 检查是否已经保存过同一个GameObject上的其他ISaveable组件
             // 我们将同一个GameObject上的所有ISaveable数据合并到一个ObjectSaveData中
             GameObject obj = mb.gameObject;
-            ObjectSaveData existingData = saveDataList.Find(data => data.objectName == obj.name);
+            ObjectSaveData existingData = saveDataList.Find(data =>
+                data.objectName == obj.name &&
+                data.position == obj.transform.position);
             
             if (existingData != null)
             {
-                // 如果已存在，只需更新customData
+                // 如果已存在（相同名称和位置），只需更新customData
                 MergeCustomData(existingData, saveable);
             }
             else
             {
                 // 如果不存在，创建新的保存数据
+                // 允许同名对象存在，只要位置不同就认为是不同的对象
                 ObjectSaveData newSaveData = new ObjectSaveData
                 {
                     prefabID = saveable.PrefabID,
