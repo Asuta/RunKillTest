@@ -9,6 +9,16 @@ public class Hook : MonoBehaviour
 
     //test
     public MeshRenderer shortSign;
+    public GameObject scopeMesh;
+    
+    private float _radius = 0.5f;
+    public float radius
+    {
+        get => _radius;
+        set => SetRadius(value);
+    }
+    
+    private float _lastRadiusValue; // 用于检测radius变化的临时变量
 
 
 
@@ -23,6 +33,16 @@ public class Hook : MonoBehaviour
         {
             Debug.LogError("Player camera reference is null in Hook.Start()");
         }
+
+        // 记录初始radius值
+        _lastRadiusValue = radius;
+
+        // 主动获取当前播放状态并设置scopeMesh
+        bool currentPlayState = GameManager.Instance.IsPlayMode;
+        OnPlayStateChange(currentPlayState);
+
+        // 监听播放状态改变事件
+        GlobalEvent.IsPlayChange.AddListener(OnPlayStateChange);
     }
 
     // Update is called once per frame
@@ -67,8 +87,32 @@ public class Hook : MonoBehaviour
                 shortSign.material.color = Color.blue;
             }
         }
+    }
 
+    /// <summary>
+    /// 设置radius值的事件驱动方法
+    /// </summary>
+    /// <param name="newRadius">新的radius值</param>
+    public void SetRadius(float newRadius)
+    {
+        if (!Mathf.Approximately(newRadius, _radius))
+        {
+            Debug.Log("hahaha");
+            _radius = newRadius;
+            _lastRadiusValue = newRadius;
+        }
+    }
 
+    /// <summary>
+    /// 在编辑器中值改变时调用（用于监听Inspector中的变化）
+    /// </summary>
+    void OnValidate()
+    {
+        if (!Mathf.Approximately(_radius, _lastRadiusValue))
+        {
+            Debug.Log("hahaha");
+            _lastRadiusValue = _radius;
+        }
     }
 
     // 当对象被禁用或销毁时，确保从列表中移除
@@ -87,6 +131,22 @@ public class Hook : MonoBehaviour
         {
             _isGreen = false;
             GameManager.Instance.UnregisterGreenHook(transform);
+        }
+
+        // 取消监听播放状态改变事件
+        GlobalEvent.IsPlayChange.RemoveListener(OnPlayStateChange);
+    }
+
+    /// <summary>
+    /// 播放状态改变事件处理方法
+    /// </summary>
+    /// <param name="isPlaying">播放状态，true为播放中，false为暂停</param>
+    private void OnPlayStateChange(bool isPlaying)
+    {
+        if (scopeMesh != null)
+        {
+            // 当播放状态为true时，禁用scopeMesh；为false时，启用scopeMesh
+            scopeMesh.SetActive(!isPlaying);
         }
     }
 
