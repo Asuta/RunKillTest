@@ -1,4 +1,5 @@
 using UnityEngine;
+using VInspector;
 
 public class Hook : MonoBehaviour
 {
@@ -100,6 +101,15 @@ public class Hook : MonoBehaviour
             Debug.Log("hahaha");
             _radius = newRadius;
             _lastRadiusValue = newRadius;
+            
+            // 更新lightDistance
+            lightDistance = newRadius;
+            
+            // 更新scopeMesh的scale（需要*2）
+            if (scopeMesh != null)
+            {
+                scopeMesh.transform.localScale = Vector3.one * (newRadius * 2f);
+            }
         }
     }
 
@@ -159,4 +169,14 @@ public class Hook : MonoBehaviour
         // 在对象位置绘制球体，使用lightDistance作为半径
         Gizmos.DrawWireSphere(transform.position, lightDistance);
     }
+
+
+    ///test
+    /// 
+    [Button("测试设置半径")]
+    public void TestSetRadius( float radius)
+    {
+        SetRadius(radius);
+    }
+
 }
