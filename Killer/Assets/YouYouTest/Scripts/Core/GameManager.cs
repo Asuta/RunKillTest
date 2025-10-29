@@ -68,7 +68,38 @@ public class GameManager : MonoBehaviour
     [SerializeField]
     private Transform vrEditorRigOffset;
 
-    public float vrEditorScale = 1;
+    private float _vrEditorScale = 1f;
+    
+    /// <summary>
+    /// VR编辑器缩放值
+    /// </summary>
+    public float VrEditorScale
+    {
+        get => _vrEditorScale;
+        set
+        {
+            if (Mathf.Approximately(_vrEditorScale, value)) return;
+            
+            float oldScale = _vrEditorScale;
+            _vrEditorScale = value;
+            
+            // 触发缩放变化事件
+            OnVrEditorScaleChanged?.Invoke(oldScale, _vrEditorScale);
+        }
+    }
+    
+    /// <summary>
+    /// VR编辑器缩放变化事件 (旧值, 新值)
+    /// </summary>
+    public event System.Action<float, float> OnVrEditorScaleChanged;
+    
+    /// <summary>
+    /// 触发缩放变化事件（供外部调用）
+    /// </summary>
+    public void TriggerScaleChanged(float oldScale, float newScale)
+    {
+        OnVrEditorScaleChanged?.Invoke(oldScale, newScale);
+    }
 
 
 
@@ -303,7 +334,7 @@ public class GameManager : MonoBehaviour
         // check mode change
         CheckModeChange();
 
-        vrEditorScale = vrEditorRigOffset.localScale.x;
+        VrEditorScale = vrEditorRigOffset.localScale.x;
 
     }
 

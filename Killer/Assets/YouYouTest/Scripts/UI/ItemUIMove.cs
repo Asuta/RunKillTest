@@ -17,12 +17,40 @@ public class ItemUIMove : MonoBehaviour
     private Vector3 originalOffset;
     private float originalMaxDistance;
     
+    // 当前缩放值（通过事件更新）
+    private float currentScale = 1f;
+    
     // Start is called once before the first execution of Update after the MonoBehaviour is created
     void Start()
     {
         // 保存原始值
         originalOffset = offset;
         originalMaxDistance = maxDistance;
+        
+        // 初始化当前缩放值
+        if (GameManager.Instance != null)
+        {
+            currentScale = GameManager.Instance.VrEditorScale;
+            // 注册缩放变化事件
+            GameManager.Instance.OnVrEditorScaleChanged += OnScaleChanged;
+        }
+    }
+    
+    void OnDestroy()
+    {
+        // 取消注册事件
+        if (GameManager.Instance != null)
+        {
+            GameManager.Instance.OnVrEditorScaleChanged -= OnScaleChanged;
+        }
+    }
+    
+    /// <summary>
+    /// 缩放变化事件处理
+    /// </summary>
+    private void OnScaleChanged(float oldScale, float newScale)
+    {
+        currentScale = newScale;
     }
 
     // Update is called once per frame
@@ -30,7 +58,7 @@ public class ItemUIMove : MonoBehaviour
     {
         if (moveTarget != null && GameManager.Instance != null)
         {
-            float scale = GameManager.Instance.vrEditorScale;
+            float scale = currentScale;
             
             // 根据缩放因子调整偏移和最大距离
             Vector3 scaledOffset = originalOffset * scale;

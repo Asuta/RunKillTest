@@ -254,6 +254,12 @@ public class EditorPlayerMove : MonoBehaviour
             // 缩放物体并移动位置，以使中心点保持不变
             rigT.localScale = new Vector3(newSize, newSize, newSize);
             rigT.position -= zoomVector;
+            
+            // 触发缩放变化事件
+            if (GameManager.Instance != null)
+            {
+                GameManager.Instance.TriggerScaleChanged(recordScale, newSize);
+            }
         }
         
         // 如果任意一个A键释放，停止缩放
