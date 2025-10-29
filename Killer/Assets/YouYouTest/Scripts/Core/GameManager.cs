@@ -282,16 +282,16 @@ public class GameManager : MonoBehaviour
     {
         CustomLog.Log(needLog, $"检查点激活: {checkPoint.name}");
 
-        // 如果已经有激活的检查点，将其状态设置为已激活
-        if (nowActivateCheckPoint != null)
+        // 如果已经有激活的检查点，将其状态重置为未激活
+        if (nowActivateCheckPoint != null && nowActivateCheckPoint != checkPoint)
         {
-            nowActivateCheckPoint.SetState(CheckPoint.CheckPointState.Activated);
+            nowActivateCheckPoint.SetState(CheckPoint.CheckPointState.Inactive);
         }
 
         nowActivateCheckPoint = checkPoint; // 存储激活的检查点引用
 
-        // 检查点已经在CheckPoint.cs中设置为Activating状态
-        // 这里不需要再次设置状态，保持Activating状态让其他逻辑处理
+        // 新的检查点已经在CheckPoint.cs中设置为Activated状态
+        // 这里不需要再次设置状态
     }
 
     // Update is called once per frame

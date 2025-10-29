@@ -4,17 +4,15 @@ using VInspector;
 
 public class CheckPoint : MonoBehaviour
 {
-    // 定义三种状态
+    // 定义两种状态
     public enum CheckPointState
     {
         Inactive,      // 未激活
-        Activating,    // 正在激活
-        Activated      // 激活过了
+        Activated      // 已激活
     }
 
     // 状态对应的颜色
     [SerializeField] private Color inactiveColor = Color.gray;
-    [SerializeField] private Color activatingColor = Color.yellow;
     [SerializeField] private Color activatedColor = Color.green;
 
     // 当前状态
@@ -42,10 +40,10 @@ public class CheckPoint : MonoBehaviour
     private void OnTriggerEnter(Collider other)
     {
         // 检查是否是玩家
-        if (other.CompareTag("Player") && currentState == CheckPointState.Inactive)
+        if (other.CompareTag("Player"))
         {
-            // 开始激活过程
-            SetState(CheckPointState.Activating);
+            // 直接激活检查点
+            SetState(CheckPointState.Activated);
             GlobalEvent.CheckPointActivate.Invoke(this);
         }
     }
@@ -57,9 +55,6 @@ public class CheckPoint : MonoBehaviour
         {
             case CheckPointState.Inactive:
                 material.color = inactiveColor;
-                break;
-            case CheckPointState.Activating:
-                material.color = activatingColor;
                 break;
             case CheckPointState.Activated:
                 material.color = activatedColor;
@@ -80,20 +75,14 @@ public class CheckPoint : MonoBehaviour
         return currentState;
     }
 
-    [Button("Set Activating")]
-    public void TestSetState()
-    {
-        SetState(CheckPointState.Activating);
-    }
-
     [Button("Set Activated")]
-    public void TestSetState2()
+    public void TestSetState()
     {
         SetState(CheckPointState.Activated);
     }
 
     [Button("Set Inactive")]
-    public void TestSetState3()
+    public void TestSetState2()
     {
         SetState(CheckPointState.Inactive);
     }
