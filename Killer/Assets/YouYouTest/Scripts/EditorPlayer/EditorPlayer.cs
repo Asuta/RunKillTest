@@ -82,41 +82,36 @@ public class EditorPlayer : MonoBehaviour
             }
         }
 
-        // 左手柄X键复制当前抓取/接触的物体
+        // 左手柄X键撤销
         if (InputActionsManager.Actions.XRILeftInteraction.PrimaryButton.WasPressedThisFrame())
         {
-            CopyLeftHandObject();
+            CommandHistory.Instance.Undo();
+            Debug.Log("左手柄X键按下：执行撤销操作");
         }
 
-        // 左手柄Y键复制当前抓取/接触的物体
+        // 左手柄Y键重做
         if (InputActionsManager.Actions.XRILeftInteraction.SecondaryButton.WasPressedThisFrame())
         {
-            CopyLeftHandObject();
+            CommandHistory.Instance.Redo();
+            Debug.Log("左手柄Y键按下：执行重做操作");
         }
 
-        // 左手柄X键松开时释放复制的物体
-        if (InputActionsManager.Actions.XRILeftInteraction.PrimaryButton.WasReleasedThisFrame())
-        {
-            ReleaseCopiedObject();
-        }
-
-        // 左手柄Y键松开时释放复制的物体
-        if (InputActionsManager.Actions.XRILeftInteraction.SecondaryButton.WasReleasedThisFrame())
-        {
-            ReleaseCopiedObject();
-        }
-
-        // 右手柄A键前进（重做），B键后退（撤销）
+        // 右手柄A键复制当前抓取/接触的物体
         if (InputActionsManager.Actions.XRIRightInteraction.PrimaryButton.WasPressedThisFrame())
         {
-            CommandHistory.Instance.Redo();
-            Debug.Log("右手柄A键按下：执行前进操作");
+            CopyRightHandObject();
         }
 
+        // 右手柄B键删除当前hold的物体
         if (InputActionsManager.Actions.XRIRightInteraction.SecondaryButton.WasPressedThisFrame())
         {
-            CommandHistory.Instance.Undo();
-            Debug.Log("右手柄B键按下：执行后退操作");
+            DeleteRightHandObject();
+        }
+
+        // 右手柄A键松开时释放复制的物体
+        if (InputActionsManager.Actions.XRIRightInteraction.PrimaryButton.WasReleasedThisFrame())
+        {
+            ReleaseRightCopiedObject();
         }
     }
     #endregion
@@ -474,7 +469,113 @@ public class EditorPlayer : MonoBehaviour
             }
             
             LeftHandRelease();
-            Debug.Log("释放复制的物体");
+            Debug.Log("释放左手复制的物体");
+        }
+    }
+
+    /// <summary>
+    /// 删除右手当前hold的物体
+    /// </summary>
+    private void DeleteRightHandObject()
+    {
+        if (rightHoldObject != null)
+        {
+            // 获取要删除的物体
+            GameObject objectToDelete = rightHoldObject.ObjectGameObject;
+
+            // 创建删除命令并执行
+            DeleteObjectCommand deleteCommand = new DeleteObjectCommand(objectToDelete);
+            CommandHistory.Instance.ExecuteCommand(deleteCommand);
+
+            // 如果当前正在抓取这个物体，需要先释放
+            if (rightGrabbedObject == rightHoldObject)
+            {
+                rightGrabbedObject.OnReleased(rightHand);
+                rightGrabbedObject = null;
+                rightCurrentGrabCommand = null;
+            }
+
+            // 清空hold状态
+            Debug.Log($"右手柄B键按下：删除物体 {objectToDelete.name}");
+            rightHoldObject = null;
+        }
+        else
+        {
+            Debug.Log("右手没有hold任何物体，无法删除");
+        }
+    }
+
+    /// <summary>
+    /// 复制右手当前抓取/接触的物体
+    /// </summary>
+    private void CopyRightHandObject()
+    {
+        // 优先复制正在抓取的物体
+        IGrabable sourceObject = rightGrabbedObject;
+        
+        // 如果没有抓取的物体，尝试复制hold的物体
+        if (sourceObject == null && rightHoldObject != null)
+        {
+            sourceObject = rightHoldObject;
+        }
+        
+        if (sourceObject != null)
+        {
+            GameObject originalObject = sourceObject.ObjectGameObject;
+            
+            // 在原始物体的位置和角度复制物体
+            currentDuplicateCommand = new DuplicateObjectCommand(originalObject, originalObject.transform.position, originalObject.transform.rotation);
+            
+            // 执行复制命令并添加到历史
+            CommandHistory.Instance.ExecuteCommand(currentDuplicateCommand);
+            
+            // 获取复制的物体
+            GameObject duplicatedObject = currentDuplicateCommand.GetDuplicatedObject();
+            
+            if (duplicatedObject != null)
+            {
+                // 设置相同的缩放
+                duplicatedObject.transform.localScale = originalObject.transform.localScale;
+                
+                // 如果右手已经抓取了其他物体，先释放
+                if (rightGrabbedObject != null)
+                {
+                    RightHandRelease();
+                }
+                
+                // 立即抓取复制的物体
+                RightHandGrab(duplicatedObject);
+                
+                Debug.Log($"复制物体: {originalObject.name} -> {duplicatedObject.name}");
+            }
+            else
+            {
+                Debug.LogWarning("复制物体失败");
+                currentDuplicateCommand = null;
+            }
+        }
+        else
+        {
+            Debug.Log("右手没有抓取或接触任何物体，无法复制");
+        }
+    }
+
+    /// <summary>
+    /// 释放右手复制的物体
+    /// </summary>
+    private void ReleaseRightCopiedObject()
+    {
+        if (rightGrabbedObject != null)
+        {
+            // 如果有复制命令，更新其最终位置和旋转
+            if (currentDuplicateCommand != null && rightGrabbedObject.ObjectGameObject == currentDuplicateCommand.GetDuplicatedObject())
+            {
+                currentDuplicateCommand.UpdateTransform(rightGrabbedObject.ObjectTransform.position, rightGrabbedObject.ObjectTransform.rotation);
+                currentDuplicateCommand = null;
+            }
+            
+            RightHandRelease();
+            Debug.Log("释放右手复制的物体");
         }
     }
     #endregion
