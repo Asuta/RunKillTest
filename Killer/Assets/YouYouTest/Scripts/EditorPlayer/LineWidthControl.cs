@@ -30,12 +30,12 @@ public class LineWidthControl : MonoBehaviour
     {
         if (leftCurveVisualController != null && GameManager.Instance != null)
         {
-            UpdateCurveVisualControllerWidth(leftCurveVisualController, originalLeftWidth, GameManager.Instance.vrEditorScale);
+            UpdateCurveVisualControllerWidth(leftCurveVisualController, originalLeftWidth, GameManager.Instance.VrEditorScale);
         }
 
         if (rightCurveVisualController != null && GameManager.Instance != null)
         {
-            UpdateCurveVisualControllerWidth(rightCurveVisualController, originalRightWidth, GameManager.Instance.vrEditorScale);
+            UpdateCurveVisualControllerWidth(rightCurveVisualController, originalRightWidth, GameManager.Instance.VrEditorScale);
         }
     }
 

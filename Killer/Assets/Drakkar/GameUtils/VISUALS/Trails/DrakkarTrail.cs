@@ -95,6 +95,14 @@ namespace Drakkar.GameUtils
 				Init();
 		}
 
+		private void OnEnable()
+		{
+			// 当对象重新启用时，自动启动拖尾
+			if (initialized && !active)
+			{
+				Begin();
+			}
+		}
 		private void OnDisable() => Clear();
 
 		private void OnDestroy()
