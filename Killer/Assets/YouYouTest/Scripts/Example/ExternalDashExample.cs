@@ -7,7 +7,7 @@ using UnityEngine;
 public class ExternalDashExample : MonoBehaviour
 {
     [Header("玩家引用")]
-    public VRPlayerMove playerMove; // 引用VRPlayerMove组件
+    public IDashProvider dashProvider; // 引用冲刺功能提供者接口
     
     [Header("测试设置")]
     public KeyCode testDashKey = KeyCode.Space; // 测试按键
@@ -33,14 +33,14 @@ public class ExternalDashExample : MonoBehaviour
     /// </summary>
     public void TriggerPlayerDash()
     {
-        if (playerMove != null)
+        if (dashProvider != null)
         {
-            playerMove.TriggerDash();
+            dashProvider.TriggerDash();
             Debug.Log("外部调用触发冲刺（默认方向）");
         }
         else
         {
-            Debug.LogWarning("未设置玩家引用！");
+            Debug.LogWarning("未设置冲刺功能提供者引用！");
         }
     }
     
@@ -49,14 +49,14 @@ public class ExternalDashExample : MonoBehaviour
     /// </summary>
     public void TriggerPlayerDashWithDirection()
     {
-        if (playerMove != null)
+        if (dashProvider != null)
         {
-            playerMove.TriggerDash(testDashDirection);
+            dashProvider.TriggerDash(testDashDirection);
             Debug.Log($"外部调用触发冲刺（方向: {testDashDirection}）");
         }
         else
         {
-            Debug.LogWarning("未设置玩家引用！");
+            Debug.LogWarning("未设置冲刺功能提供者引用！");
         }
     }
     
@@ -66,14 +66,14 @@ public class ExternalDashExample : MonoBehaviour
     /// <param name="direction">冲刺方向</param>
     public void TriggerPlayerDashWithDirection(Vector3 direction)
     {
-        if (playerMove != null)
+        if (dashProvider != null)
         {
-            playerMove.TriggerDash(direction);
+            dashProvider.TriggerDash(direction);
             Debug.Log($"外部调用触发冲刺（自定义方向: {direction}）");
         }
         else
         {
-            Debug.LogWarning("未设置玩家引用！");
+            Debug.LogWarning("未设置冲刺功能提供者引用！");
         }
     }
 }
