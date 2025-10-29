@@ -16,7 +16,7 @@ public class ManyButtonTest : MonoBehaviour
         
     }
 
-    [Button]
+    [Button(" 模式切换")]
     void Button1()
     {
         GlobalEvent.ModeButtonPoke.Invoke();
