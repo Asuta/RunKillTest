@@ -12020,6 +12020,10 @@ PrefabInstance:
       propertyPath: m_Name
       value: VRPlayer
       objectReference: {fileID: 0}
+    - target: {fileID: 5418067705289316385, guid: ff8543b951696c24787a12ae39e8cc6d, type: 3}
+      propertyPath: m_IsActive
+      value: 0
+      objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
@@ -21967,6 +21971,7 @@ GameObject:
   - component: {fileID: 1460187734633181927}
   - component: {fileID: 8223112171882798670}
   - component: {fileID: 1791249912}
+  - component: {fileID: 9167095900856961748}
   m_Layer: 2
   m_Name: EditorRig
   m_TagString: Untagged
@@ -30838,6 +30843,39 @@ MonoBehaviour:
   leftCheckSphere: {fileID: 1071562453528316187}
   rightHand: {fileID: 1585574482027425280}
   rightCheckSphere: {fileID: 6590754027943771977}
+--- !u!114 &9167095900856961748
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2913991994253522856}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 298a726c9f2595345b13c478de4e4763, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  leftHand: {fileID: 6192473740211445770}
+  rightHand: {fileID: 1585574482027425280}
+  enableTestMode: 1
+  showTestUI: 1
+  logSpeedOutput: 1
+  emaAlpha: 0.3
+  speedDeadZone: 0.1
+  speedMultiplier: 2
+  maxMoveSpeed: 5
+  minActiveTime: 0.15
+  decelerationRate: 5
+  useAmplitudeMode: 1
+  useRhythmMode: 0
+  usePhaseDetection: 0
+  peakThreshold: 0.3
+  frequencyWeight: 1.5
+  amplitudeWeight: 1
+  phaseBonus: 1.2
+  enableDebugLog: 0
+  showDebugInfo: 0
+  nowSpeed: 0
 --- !u!4 &9171353875955519944
 Transform:
   m_ObjectHideFlags: 0
