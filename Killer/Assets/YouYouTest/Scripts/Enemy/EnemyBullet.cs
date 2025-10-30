@@ -16,6 +16,9 @@ public class EnemyBullet : MonoBehaviour
     [SerializeField]
     private bool isBack;
     private bool currentEffectState; // 跟踪当前效果状态
+
+    // 起始点（用于基于线段的移动算法）
+    private Vector3 originPos;
     // Start在MonoBehaviour创建后，在第一次执行Update之前被调用一次
     void Start()
     {
@@ -23,8 +26,10 @@ public class EnemyBullet : MonoBehaviour
         currentEffectState = isBack;
         UpdateEffectState();
 
-        GlobalEvent.CheckPointReset.AddListener(OnCheckPointReset);
+        // 初始化起点为子弹生成时的位置
+        originPos = transform.position;
 
+        GlobalEvent.CheckPointReset.AddListener(OnCheckPointReset);
     }
 
     void OnDestroy()
@@ -37,11 +42,46 @@ public class EnemyBullet : MonoBehaviour
     // Update每帧调用一次
     void Update()
     {
-        // 向目标移动
+        // 向目标移动（使用投影基准 + 固定世界位移算法）
         if (target != null)
         {
-            Vector3 direction = (target.position - transform.position).normalized;
-            transform.position += direction * speed * Time.deltaTime;
+            // 如果 originPos 未初始化（Vector3.zero），则用当前位置作为起点
+            if (originPos == Vector3.zero)
+                originPos = transform.position;
+
+            Vector3 A = originPos;
+            Vector3 B = target.position;
+            Vector3 AB = B - A;
+            float currentDistance = AB.magnitude;
+            if (currentDistance <= Mathf.Epsilon)
+            {
+                transform.position = B;
+            }
+            else
+            {
+                Vector3 dir = AB / currentDistance;
+                // 将当前位置投影到 AB 线段上（夹制到 [A,B]）
+                float tProj = Vector3.Dot(transform.position - A, AB) / (currentDistance * currentDistance);
+                tProj = Mathf.Clamp01(tProj);
+                Vector3 projPoint = A + AB * tProj;
+
+                // 以投影点为基准沿直线移动固定的世界距离
+                float moveDistance = speed * Time.deltaTime;
+                float remaining = (B - projPoint).magnitude;
+                if (moveDistance >= remaining)
+                {
+                    // 到达目标
+                    transform.position = B;
+                }
+                else
+                {
+                    Vector3 movedPos = projPoint + dir * moveDistance;
+                    // 投影回线段并设置位置
+                    float tNew = Vector3.Dot(movedPos - A, AB) / (currentDistance * currentDistance);
+                    tNew = Mathf.Clamp01(tNew);
+                    transform.position = A + AB * tNew;
+                }
+            }
         }
         else if (isBack || target == null)
         {
@@ -94,6 +134,8 @@ public class EnemyBullet : MonoBehaviour
                 if (createEnemy.EnemyBody != null)
                 {
                     target = createEnemy.EnemyBody;
+                    // 反弹后以当前点作为新的起点
+                    originPos = transform.position;
                 }
                 else
                 {

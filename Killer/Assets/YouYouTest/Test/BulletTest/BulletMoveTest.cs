@@ -3,9 +3,7 @@ using UnityEngine;
 public class BulletMoveTest : MonoBehaviour
 {
     [Header("移动设置")]
-    public float speed = 10f; // 子弹移动速度（世界单位 / 秒） 
-    public float nowSpeed = 10f; // 当前速度
-    public float nowTime = 10f; // 当前用时
+    public float speed = 10f; // 子弹移动速度（世界单位 / 秒）
     public bool useDynamicTracking = true; // 是否启用动态追踪
 
     [Header("目标点设置")]
@@ -19,8 +17,6 @@ public class BulletMoveTest : MonoBehaviour
     // 内部状态：使用进度t（0..1）保证子弹始终在直线上
     private float progressT = 0f;
     private bool isMoving = true;
-    private Vector3 lastPosition; // 用于观测实际速度
-    private float timer; // 内部计时器
 
     void Start()
     {
@@ -42,10 +38,6 @@ public class BulletMoveTest : MonoBehaviour
         // 将子弹放置在A点并重置进度
         progressT = 0f;
         transform.position = pointA.position;
-        // 初始化速度观测基准
-        lastPosition = transform.position;
-        timer = 0f;
-        nowTime = 0f;
         isMoving = true;
     }
 
@@ -76,19 +68,6 @@ public class BulletMoveTest : MonoBehaviour
             Debug.DrawLine(pointA.position, pointB.position, debugLineColor);
         }
 
-        // 计算并记录实际速度（世界单位/秒）
-        if (Time.deltaTime > 0f)
-        {
-            nowSpeed = Vector3.Distance(transform.position, lastPosition) / Time.deltaTime;
-        }
-        lastPosition = transform.position;
-
-        // 更新计时器
-        if (isMoving)
-        {
-            timer += Time.deltaTime;
-            nowTime = timer;
-        }
     }
 
     /// <summary>
@@ -169,8 +148,6 @@ public class BulletMoveTest : MonoBehaviour
     {
         isMoving = false;
         transform.position = pointB.position;
-        nowTime = timer; // 记录最终用时
-        Debug.Log($"子弹已到达目标点B，用时: {nowTime:F2}秒");
         // Destroy(gameObject);
     }
 
