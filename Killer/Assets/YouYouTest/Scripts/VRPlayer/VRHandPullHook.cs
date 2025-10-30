@@ -10,18 +10,12 @@ public class VRHandPullHook : MonoBehaviour
     private Vector3 recordedPosition;
     private bool hasTriggered = false; // 标记是否已经触发过距离条件
     
-    // 画线相关
-    private Material lineMaterial;
-    private Mesh lineMesh;
     private bool shouldDrawLine = false;
 
     // Start is called once before the first execution of Update after the MonoBehaviour is created
     void Start()
     {
         hookDashProvider = GetComponent<IHookDashProvider>();
-        
-        // 初始化画线相关
-        InitializeLineDrawing();
     }
 
     // Update is called once per frame
@@ -73,16 +67,6 @@ public class VRHandPullHook : MonoBehaviour
         UpdateLineDrawing();
     }
     
-    void InitializeLineDrawing()
-    {
-        // 创建材质
-        lineMaterial = new Material(Shader.Find("Sprites/Default"));
-        lineMaterial.color = Color.yellow;
-        
-        // 创建网格
-        lineMesh = new Mesh();
-    }
-    
     void UpdateLineDrawing()
     {
         // 检测左手扳机键
@@ -119,36 +103,7 @@ public class VRHandPullHook : MonoBehaviour
         Vector3 handPosition = handT.position;
         Vector3 hookPosition = GameManager.Instance.ClosestAngleHook.position;
         
-        // 创建线条的顶点
-        Vector3[] vertices = new Vector3[2];
-        vertices[0] = handPosition;
-        vertices[1] = hookPosition;
-        
-        // 创建线条的索引
-        int[] indices = new int[2];
-        indices[0] = 0;
-        indices[1] = 1;
-        
-        // 更新网格
-        lineMesh.Clear();
-        lineMesh.vertices = vertices;
-        lineMesh.SetIndices(indices, MeshTopology.Lines, 0);
-        
-        // 绘制网格
-        Graphics.DrawMesh(lineMesh, Vector3.zero, Quaternion.identity, lineMaterial, 0);
-    }
-    
-    void OnDestroy()
-    {
-        // 清理资源
-        if (lineMaterial != null)
-        {
-            Destroy(lineMaterial);
-        }
-        
-        if (lineMesh != null)
-        {
-            Destroy(lineMesh);
-        }
+        // 使用MeshDrawUtility绘制黄色线条（使用新的简单线条方法）
+        MeshDrawUtility.DrawYellowLine(handPosition, hookPosition);
     }
 }
