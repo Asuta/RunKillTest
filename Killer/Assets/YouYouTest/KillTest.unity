@@ -11088,6 +11088,39 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   handT: {fileID: 1227418705}
+--- !u!114 &1128951758
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1128951746}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 298a726c9f2595345b13c478de4e4763, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  leftHand: {fileID: 1227418705}
+  rightHand: {fileID: 1866705230}
+  enableTestMode: 0
+  showTestUI: 0
+  logSpeedOutput: 0
+  emaAlpha: 0.3
+  speedDeadZone: 0.1
+  speedMultiplier: 2
+  maxMoveSpeed: 5
+  minActiveTime: 0.15
+  decelerationRate: 5
+  useAmplitudeMode: 1
+  useRhythmMode: 0
+  usePhaseDetection: 0
+  peakThreshold: 0.3
+  frequencyWeight: 1.5
+  amplitudeWeight: 1
+  phaseBonus: 1.2
+  enableDebugLog: 0
+  showDebugInfo: 0
+  nowSpeed: 0
 --- !u!1 &1132241837
 GameObject:
   m_ObjectHideFlags: 0
@@ -12016,13 +12049,21 @@ PrefabInstance:
       propertyPath: m_LocalEulerAnglesHint.z
       value: 0
       objectReference: {fileID: 0}
+    - target: {fileID: 5311021503675000901, guid: ff8543b951696c24787a12ae39e8cc6d, type: 3}
+      propertyPath: moveSpeed
+      value: 5
+      objectReference: {fileID: 0}
+    - target: {fileID: 5311021503675000901, guid: ff8543b951696c24787a12ae39e8cc6d, type: 3}
+      propertyPath: AddMoveSpeed
+      value: 0
+      objectReference: {fileID: 0}
     - target: {fileID: 5418067705289316385, guid: ff8543b951696c24787a12ae39e8cc6d, type: 3}
       propertyPath: m_Name
       value: VRPlayer
       objectReference: {fileID: 0}
     - target: {fileID: 5418067705289316385, guid: ff8543b951696c24787a12ae39e8cc6d, type: 3}
       propertyPath: m_IsActive
-      value: 0
+      value: 1
       objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
@@ -12031,6 +12072,9 @@ PrefabInstance:
     - targetCorrespondingSourceObject: {fileID: 5418067705289316385, guid: ff8543b951696c24787a12ae39e8cc6d, type: 3}
       insertIndex: -1
       addedObject: {fileID: 1128951757}
+    - targetCorrespondingSourceObject: {fileID: 5418067705289316385, guid: ff8543b951696c24787a12ae39e8cc6d, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 1128951758}
   m_SourcePrefab: {fileID: 100100000, guid: ff8543b951696c24787a12ae39e8cc6d, type: 3}
 --- !u!1 &1282089140
 GameObject:
@@ -16168,6 +16212,11 @@ MeshFilter:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1850933367}
   m_Mesh: {fileID: 10202, guid: 0000000000000000e000000000000000, type: 0}
+--- !u!4 &1866705230 stripped
+Transform:
+  m_CorrespondingSourceObject: {fileID: 8369710678299479157, guid: ff8543b951696c24787a12ae39e8cc6d, type: 3}
+  m_PrefabInstance: {fileID: 1228243036}
+  m_PrefabAsset: {fileID: 0}
 --- !u!1 &1876164332
 GameObject:
   m_ObjectHideFlags: 0
@@ -30863,7 +30912,7 @@ MonoBehaviour:
   emaAlpha: 0.3
   speedDeadZone: 0.1
   speedMultiplier: 2
-  maxMoveSpeed: 5
+  maxMoveSpeed: 9.97
   minActiveTime: 0.15
   decelerationRate: 5
   useAmplitudeMode: 1

@@ -120,6 +120,9 @@ public class VRHandSpeed : MonoBehaviour
     private float lastPeakTime = 0f;
     private bool lastPeakWasLeft = false;
     private bool isAlternating = false;
+
+    // 指定接口
+    private IMoveSpeedProvider moveSpeedProvider;
     #endregion
 
     #region Unity生命周期
@@ -136,6 +139,8 @@ public class VRHandSpeed : MonoBehaviour
         {
             Debug.Log("VR手速控制系统已启动 - 测试模式");
         }
+
+        moveSpeedProvider = GetComponent<IMoveSpeedProvider>();
     }
 
     void Update()
@@ -167,6 +172,12 @@ public class VRHandSpeed : MonoBehaviour
         
         // 更新公开的速度变量
         nowSpeed = currentMoveSpeed;
+
+        // 通过接口将速度传递给VRPlayerMove
+        if (moveSpeedProvider != null)
+        {
+            moveSpeedProvider.SetAdditionalMoveSpeed(currentMoveSpeed);
+        }
 
         // 输出速度日志
         if (logSpeedOutput)

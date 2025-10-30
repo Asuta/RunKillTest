@@ -1,6 +1,6 @@
 using UnityEngine;
 
-public class VRPlayerMove : MonoBehaviour, IPlayerHeadProvider, IDashProvider, IHookDashProvider
+public class VRPlayerMove : MonoBehaviour, IPlayerHeadProvider, IDashProvider, IHookDashProvider, IMoveSpeedProvider
 {
     #region 组件引用
     public Transform leftHand;
@@ -14,6 +14,8 @@ public class VRPlayerMove : MonoBehaviour, IPlayerHeadProvider, IDashProvider, I
     #region 移动设置
     [Header("移动设置")]
     public float moveSpeed = 3f;
+    public float AddMoveSpeed = 3f;
+    public float AddMoveSpeedMultiplier = 3f;
     public float decelerationSpeed = 5f; // 减速速度
     public float extraGravity = 10f; // 额外重力
     public Vector3 moveDirection;
@@ -204,13 +206,28 @@ public class VRPlayerMove : MonoBehaviour, IPlayerHeadProvider, IDashProvider, I
         {
             // 归一化移动方向并应用速度到刚体，只控制x和z轴，保持y轴速度不变
             Vector3 normalizedDirection = moveDirection.normalized;
-            Vector3 horizontalVelocity = new Vector3(normalizedDirection.x * moveSpeed, thisRb.linearVelocity.y, normalizedDirection.z * moveSpeed);
+
+            // 计算实际移动速度：基础速度 + 额外速度（只有在需要移动时才添加额外速度）
+            float actualMoveSpeed = moveSpeed;
+            if (moveSpeed > 0 && AddMoveSpeed > 0)
+            {
+                actualMoveSpeed += AddMoveSpeed;
+            }
+
+            Vector3 horizontalVelocity = new Vector3(normalizedDirection.x * actualMoveSpeed, thisRb.linearVelocity.y, normalizedDirection.z * actualMoveSpeed);
             thisRb.linearVelocity = horizontalVelocity;
         }
         else if (currentState == MovementState.WallSliding)
         {
             // 贴墙滑行状态：按照投影向量方向自动滑行，摇杆输入不起作用，Y轴速度为0
-            Vector3 wallSlideVelocity = new Vector3(wallSlideDirection.x * moveSpeed * 1.2f, 0, wallSlideDirection.z * moveSpeed * 1.2f);
+            // 计算实际移动速度：基础速度 + 额外速度（只有在需要移动时才添加额外速度）
+            float actualMoveSpeed = moveSpeed;
+            if (moveSpeed > 0 && AddMoveSpeed > 0)
+            {
+                actualMoveSpeed += AddMoveSpeed;
+            }
+
+            Vector3 wallSlideVelocity = new Vector3(wallSlideDirection.x * actualMoveSpeed * 1.2f, 0, wallSlideDirection.z * actualMoveSpeed * 1.2f);
             thisRb.linearVelocity = wallSlideVelocity;
         }
     }
@@ -309,7 +326,14 @@ public class VRPlayerMove : MonoBehaviour, IPlayerHeadProvider, IDashProvider, I
         if (currentState == MovementState.WallSliding)
         {
             // 使用头部的前方方向作为速度方向，保持速度大小不变
-            Vector3 horizontalVelocity = head.forward.normalized * moveSpeed;
+            // 计算实际移动速度：基础速度 + 额外速度（只有在需要移动时才添加额外速度）
+            float actualMoveSpeed = moveSpeed;
+            if (moveSpeed > 0 && AddMoveSpeed > 0)
+            {
+                actualMoveSpeed += AddMoveSpeed;
+            }
+
+            Vector3 horizontalVelocity = head.forward.normalized * actualMoveSpeed;
 
             // 给刚体一个向上的速度和横向速度来实现贴墙跳跃
             thisRb.linearVelocity = new Vector3(horizontalVelocity.x, jumpForce, horizontalVelocity.z);
@@ -367,28 +391,6 @@ public class VRPlayerMove : MonoBehaviour, IPlayerHeadProvider, IDashProvider, I
                currentState != MovementState.Dashing;
     }
 
-    /// <summary>
-    /// 外部调用触发冲刺
-    /// </summary>
-    public void TriggerDash()
-    {
-        if (CanDash())
-        {
-            StartDash();
-        }
-    }
-
-    /// <summary>
-    /// 外部调用触发冲刺，可指定方向
-    /// </summary>
-    /// <param name="direction">冲刺方向</param>
-    public void TriggerDash(Vector3 direction)
-    {
-        if (CanDash())
-        {
-            StartDash(direction);
-        }
-    }
 
     void StartDash()
     {
@@ -435,7 +437,14 @@ public class VRPlayerMove : MonoBehaviour, IPlayerHeadProvider, IDashProvider, I
             Vector3 headForward = head.forward;
             headForward.y = 0; // 确保只在水平面上
             headForward = headForward.normalized;
-            thisRb.linearVelocity = headForward * moveSpeed;
+            // 计算实际移动速度：基础速度 + 额外速度（只有在需要移动时才添加额外速度）
+            float actualMoveSpeed = moveSpeed;
+            if (moveSpeed > 0 && AddMoveSpeed > 0)
+            {
+                actualMoveSpeed += AddMoveSpeed;
+            }
+
+            thisRb.linearVelocity = headForward * actualMoveSpeed;
         }
 
         if (IsGrounded())
@@ -569,24 +578,6 @@ public class VRPlayerMove : MonoBehaviour, IPlayerHeadProvider, IDashProvider, I
         }
     }
 
-    public void OutHandleHookDash()
-    {
-        // 检测hook冲刺输入（使用左摇杆的按下事件）
-        if (CanHookDash())
-        {
-            StartHookDash();
-        }
-
-        // 更新hook冲刺计时器
-        if (currentState == MovementState.HookDashing)
-        {
-            hookDashTimer -= Time.deltaTime;
-            if (hookDashTimer <= 0f)
-            {
-                EndHookDash();
-            }
-        }
-    }
 
     private bool CanHookDash()
     {
@@ -734,7 +725,14 @@ public class VRPlayerMove : MonoBehaviour, IPlayerHeadProvider, IDashProvider, I
             return;
 
         // 贴墙滑行状态：按照投影向量方向自动滑行，Y轴速度为0
-        Vector3 wallSlideVelocity = new Vector3(wallSlideDirection.x * moveSpeed * 1.2f, 0, wallSlideDirection.z * moveSpeed * 1.2f);
+        // 计算实际移动速度：基础速度 + 额外速度（只有在需要移动时才添加额外速度）
+        float actualMoveSpeed = moveSpeed;
+        if (moveSpeed > 0 && AddMoveSpeed > 0)
+        {
+            actualMoveSpeed += AddMoveSpeed;
+        }
+
+        Vector3 wallSlideVelocity = new Vector3(wallSlideDirection.x * actualMoveSpeed * 1.2f, 0, wallSlideDirection.z * actualMoveSpeed * 1.2f);
         thisRb.linearVelocity = wallSlideVelocity;
     }
     #endregion
@@ -852,9 +850,76 @@ public class VRPlayerMove : MonoBehaviour, IPlayerHeadProvider, IDashProvider, I
     #endregion
 
     #region 接口实现
+    /// <summary>
+    /// 获取玩家头部Transform
+    /// </summary>
+    /// <returns>头部Transform</returns>
     public Transform GetPlayerHead()
     {
         return head;
+    }
+
+    /// <summary>
+    /// 外部调用触发冲刺
+    /// </summary>
+    public void TriggerDash()
+    {
+        if (CanDash())
+        {
+            StartDash();
+        }
+    }
+
+    /// <summary>
+    /// 外部调用触发冲刺，可指定方向
+    /// </summary>
+    /// <param name="direction">冲刺方向</param>
+    public void TriggerDash(Vector3 direction)
+    {
+        if (CanDash())
+        {
+            StartDash(direction);
+        }
+    }
+
+    /// <summary>
+    /// 外部调用处理hook冲刺
+    /// </summary>
+    public void OutHandleHookDash()
+    {
+        // 检测hook冲刺输入（使用左摇杆的按下事件）
+        if (CanHookDash())
+        {
+            StartHookDash();
+        }
+
+        // 更新hook冲刺计时器
+        if (currentState == MovementState.HookDashing)
+        {
+            hookDashTimer -= Time.deltaTime;
+            if (hookDashTimer <= 0f)
+            {
+                EndHookDash();
+            }
+        }
+    }
+
+    /// <summary>
+    /// 设置额外的移动速度加成
+    /// </summary>
+    /// <param name="additionalSpeed">要添加的额外速度</param>
+    public void SetAdditionalMoveSpeed(float additionalSpeed)
+    {
+        AddMoveSpeed = additionalSpeed * AddMoveSpeedMultiplier;
+    }
+
+    /// <summary>
+    /// 获取当前的实际移动速度（基础速度 + 额外速度）
+    /// </summary>
+    /// <returns>实际移动速度</returns>
+    public float GetActualMoveSpeed()
+    {
+        return moveSpeed + AddMoveSpeed;
     }
     #endregion
 }
