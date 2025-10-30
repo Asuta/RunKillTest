@@ -1,6 +1,6 @@
 using UnityEngine;
 
-public class VRPlayerMove : MonoBehaviour, IPlayerHeadProvider, IDashProvider
+public class VRPlayerMove : MonoBehaviour, IPlayerHeadProvider, IDashProvider, IHookDashProvider
 {
     #region 组件引用
     public Transform leftHand;
@@ -554,6 +554,25 @@ public class VRPlayerMove : MonoBehaviour, IPlayerHeadProvider, IDashProvider
         bool hookDashInput = InputActionsManager.Actions.XRILeftInteraction.ScaleToggle.IsPressed();
 
         if (hookDashInput && CanHookDash())
+        {
+            StartHookDash();
+        }
+
+        // 更新hook冲刺计时器
+        if (currentState == MovementState.HookDashing)
+        {
+            hookDashTimer -= Time.deltaTime;
+            if (hookDashTimer <= 0f)
+            {
+                EndHookDash();
+            }
+        }
+    }
+
+    public void OutHandleHookDash()
+    {
+        // 检测hook冲刺输入（使用左摇杆的按下事件）
+        if (CanHookDash())
         {
             StartHookDash();
         }

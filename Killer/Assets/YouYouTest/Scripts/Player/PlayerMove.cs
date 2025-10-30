@@ -57,7 +57,7 @@ public class PlayerMove : MonoBehaviour,IPlayerHeadProvider
     // hook冲刺相关
     private Transform hookTarget; // 目标hook的Transform
     private float hookDashTimer = 0f; // hook冲刺计时器
-    private float hookDashDuration = 0.3f; // hook冲刺持续时间
+    private float hookDashDuration = 1f; // hook冲刺持续时间
     private Vector3 hookDashDirection; // hook冲刺方向
 
     // log setting
