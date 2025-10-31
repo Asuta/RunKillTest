@@ -1,4 +1,6 @@
 using UnityEngine;
+using UnityEngine.XR;
+using System.Collections.Generic;
 
 /// <summary>
 /// VR手速控制系统 - 通过检测双手移动速度来控制玩家移动
@@ -80,13 +82,29 @@ public class VRHandSpeed : MonoBehaviour
     public bool enableDebugLog = false;
     public bool showDebugInfo = true;
     public float nowSpeed;
+    
+    [Header("速度计算方法")]
+    [Tooltip("是否使用XRNodeState.TryGetVelocity获取速度，否则使用位置差分法")]
+    public bool UseXRVelocity
+    {
+        get { return useXRVelocity; }
+        set { useXRVelocity = value; }
+    }
     #endregion
 
     #region 私有变量 - 速度计算
-    // 位置记录（使用local position）
+    // 位置记录（使用local position）- 作为回退方案
     private Vector3 lastLeftHandLocalPos;
     private Vector3 lastRightHandLocalPos;
     private bool isFirstFrame = true;
+
+    // XR节点状态
+    private XRNodeState leftHandNodeState;
+    private XRNodeState rightHandNodeState;
+    public bool useXRVelocity = true; // 是否使用XR速度数据
+    
+    // 静态列表，避免每帧创建新对象
+    private static List<XRNodeState> nodeStates = new List<XRNodeState>();
 
     // EMA滤波后的速度
     private float smoothedLeftSpeed;
@@ -173,6 +191,9 @@ public class VRHandSpeed : MonoBehaviour
         // 更新公开的速度变量
         nowSpeed = currentMoveSpeed;
 
+        //debug graph
+        DebugGraph.Log("Speed", currentMoveSpeed);
+
         // 通过接口将速度传递给VRPlayerMove
         if (moveSpeedProvider != null)
         {
@@ -189,6 +210,15 @@ public class VRHandSpeed : MonoBehaviour
         if (showDebugInfo)
             UpdateDebugInfo();
     }
+    
+    /// <summary>
+    /// 获取当前使用的速度计算方法
+    /// </summary>
+    /// <returns>速度计算方法的描述</returns>
+    public string GetVelocityMethod()
+    {
+        return useXRVelocity ? "XRNodeState.TryGetVelocity" : "位置差分法";
+    }
     #endregion
 
     #region 速度计算
@@ -197,27 +227,78 @@ public class VRHandSpeed : MonoBehaviour
     /// </summary>
     void CalculateHandSpeeds()
     {
-        if (isFirstFrame)
+        float leftSpeed = 0f;
+        float rightSpeed = 0f;
+        bool leftSuccess = false;
+        bool rightSuccess = false;
+
+        // 尝试使用XRNodeState获取速度
+        if (useXRVelocity)
         {
-            lastLeftHandLocalPos = leftHand.localPosition;
-            lastRightHandLocalPos = rightHand.localPosition;
-            isFirstFrame = false;
-            return;
+            // 获取所有节点状态
+            nodeStates.Clear();
+            InputTracking.GetNodeStates(nodeStates);
+            
+            // 查找左手速度
+            foreach (var node in nodeStates)
+            {
+                if (node.nodeType == XRNode.LeftHand)
+                {
+                    leftHandNodeState = node;
+                    if (node.TryGetVelocity(out Vector3 leftVelocity))
+                    {
+                        leftSpeed = leftVelocity.magnitude;
+                        leftSuccess = true;
+                    }
+                    break;
+                }
+            }
+
+            // 查找右手速度
+            foreach (var node in nodeStates)
+            {
+                if (node.nodeType == XRNode.RightHand)
+                {
+                    rightHandNodeState = node;
+                    if (node.TryGetVelocity(out Vector3 rightVelocity))
+                    {
+                        rightSpeed = rightVelocity.magnitude;
+                        rightSuccess = true;
+                    }
+                    break;
+                }
+            }
         }
 
-        float deltaTime = Time.deltaTime;
+        // 如果XR速度获取失败，回退到位置差分法
+        if (!leftSuccess || !rightSuccess)
+        {
+            if (isFirstFrame)
+            {
+                lastLeftHandLocalPos = leftHand.localPosition;
+                lastRightHandLocalPos = rightHand.localPosition;
+                isFirstFrame = false;
+                return;
+            }
 
-        // 计算左手速度（位置差分法，使用local position）
-        Vector3 leftDelta = leftHand.localPosition - lastLeftHandLocalPos;
-        float leftSpeed = leftDelta.magnitude / deltaTime;
+            float deltaTime = Time.deltaTime;
 
-        // 计算右手速度（位置差分法，使用local position）
-        Vector3 rightDelta = rightHand.localPosition - lastRightHandLocalPos;
-        float rightSpeed = rightDelta.magnitude / deltaTime;
+            // 计算左手速度（位置差分法，使用local position）
+            if (!leftSuccess)
+            {
+                Vector3 leftDelta = leftHand.localPosition - lastLeftHandLocalPos;
+                leftSpeed = leftDelta.magnitude / deltaTime;
+                lastLeftHandLocalPos = leftHand.localPosition;
+            }
 
-        // 更新位置记录
-        lastLeftHandLocalPos = leftHand.localPosition;
-        lastRightHandLocalPos = rightHand.localPosition;
+            // 计算右手速度（位置差分法，使用local position）
+            if (!rightSuccess)
+            {
+                Vector3 rightDelta = rightHand.localPosition - lastRightHandLocalPos;
+                rightSpeed = rightDelta.magnitude / deltaTime;
+                lastRightHandLocalPos = rightHand.localPosition;
+            }
+        }
 
         // 保存原始速度用于峰值检测
         lastLeftSpeed = leftSpeed;
@@ -225,7 +306,9 @@ public class VRHandSpeed : MonoBehaviour
 
         if (enableDebugLog)
         {
-            Debug.Log($"左手瞬时速度: {leftSpeed:F3} m/s, 右手瞬时速度: {rightSpeed:F3} m/s");
+            string leftMethod = leftSuccess ? "XR" : "位置差分";
+            string rightMethod = rightSuccess ? "XR" : "位置差分";
+            Debug.Log($"左手瞬时速度({leftMethod}): {leftSpeed:F3} m/s, 右手瞬时速度({rightMethod}): {rightSpeed:F3} m/s");
         }
     }
 
