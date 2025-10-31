@@ -6,6 +6,12 @@ public class VRPlayerRotateControl : MonoBehaviour
     public Transform vrCameraOffset;
     private Quaternion originalLocalRotation;
     private bool rotated = false;
+    // Inspector 可调的旋转角度（度），和过渡时长（秒）
+    [Header("旋转设置")]
+    public float rotationAngle = 20f;
+    public float rotationDuration = 0.2f;
+
+    private Coroutine rotateCoroutine;
 
     // Start is called once before the first execution of Update after the MonoBehaviour is created
     void Start()
@@ -62,9 +68,14 @@ public class VRPlayerRotateControl : MonoBehaviour
         }
 
         float sign = Mathf.Sign(Vector3.SignedAngle(transform.forward, -flatNormal.normalized, Vector3.up));
-        float angle = 20f * sign;
+        float angle = rotationAngle * sign;
 
-        vrCameraOffset.localRotation = originalLocalRotation * Quaternion.Euler(0f, 0f, angle);
+        Quaternion target = originalLocalRotation * Quaternion.Euler(0f, 0f, angle);
+
+        // 停止任何正在运行的旋转协程，启动新的平滑旋转
+        if (rotateCoroutine != null)
+            StopCoroutine(rotateCoroutine);
+        rotateCoroutine = StartCoroutine(RotateTo(target, rotationDuration));
         rotated = true;
     }
 
@@ -81,9 +92,40 @@ public class VRPlayerRotateControl : MonoBehaviour
 
         if (!rotated) return;
 
-        // 恢复原始局部旋转
-        vrCameraOffset.localRotation = originalLocalRotation;
-        rotated = false;
+        // 停止任何正在运行的旋转协程，启动恢复旋转
+        if (rotateCoroutine != null)
+            StopCoroutine(rotateCoroutine);
+        rotateCoroutine = StartCoroutine(RotateTo(originalLocalRotation, rotationDuration, () => { rotated = false; }));
+    }
+
+    private System.Collections.IEnumerator RotateTo(Quaternion target, float duration, System.Action onComplete = null)
+    {
+        if (vrCameraOffset == null)
+        {
+            onComplete?.Invoke();
+            yield break;
+        }
+
+        if (duration <= 0f)
+        {
+            vrCameraOffset.localRotation = target;
+            onComplete?.Invoke();
+            yield break;
+        }
+
+        Quaternion start = vrCameraOffset.localRotation;
+        float t = 0f;
+        while (t < duration)
+        {
+            t += Time.deltaTime;
+            float f = Mathf.Clamp01(t / duration);
+            vrCameraOffset.localRotation = Quaternion.Slerp(start, target, f);
+            yield return null;
+        }
+
+        vrCameraOffset.localRotation = target;
+        onComplete?.Invoke();
+        rotateCoroutine = null;
     }
 
     /// <summary>
