@@ -35,7 +35,7 @@ public class VRHandSpeedTest : MonoBehaviour
         // 如果没有设置VRHandSpeed系统，尝试获取
         if (handSpeedSystem == null)
         {
-            handSpeedSystem = FindObjectOfType<VRHandSpeed>();
+            handSpeedSystem = FindFirstObjectByType<VRHandSpeed>();
         }
         
         // 设置VRHandSpeed系统的手部引用

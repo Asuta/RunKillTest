@@ -376,13 +376,13 @@ public class PlayerMove : MonoBehaviour,IPlayerHeadProvider
 
     void EndHookDash()
     {
-        // 到达hook位置后进入浮空状态，并归零速度
+        // 到达hook位置后进入浮空状态，并设置速度为6
         currentState = MovementState.Falling;
         if (thisRb != null)
         {
-            thisRb.linearVelocity = thisRb.linearVelocity.normalized * 6f;
+            thisRb.linearVelocity = thisRb.linearVelocity.normalized * 10f;
         }
-        CustomLog.Log(needLog, "结束hook冲刺，速度归零，进入浮空状态");
+        CustomLog.Log(needLog, "结束hook冲刺，速度设置为6，进入浮空状态");
     }
 
     void HandleHookDashMovement()
@@ -390,21 +390,27 @@ public class PlayerMove : MonoBehaviour,IPlayerHeadProvider
         if (currentState == MovementState.HookDashing && thisRb != null && hookTarget != null)
         {
             Debug.Log("Hook冲刺中");
-            // 以冲刺速度冲向hook目标位置（使用立体的实际方向，包含Y轴分量）
-            Vector3 hookDashVelocity = hookDashDirection * dashSpeed;
-            thisRb.linearVelocity = hookDashVelocity;
-
-            // 检查是否到达hook位置附近
+            // 在FixedUpdate中根据距离调整移动，避免高速下直接越过目标
             float distanceToHook = Vector3.Distance(transform.position, hookTarget.position);
-            if (distanceToHook < 1f) // 到达目标附近
+            float step = dashSpeed * Time.fixedDeltaTime;
+            // 如果本次步进会到达或超过目标位置，则直接移动到目标并结束hook冲刺，避免穿透或跳过
+            if (distanceToHook <= step)
             {
+                // 精确移动到目标位置（FixedUpdate 中使用 MovePosition 更安全）
+                thisRb.MovePosition(hookTarget.position);
                 EndHookDash();
+            }
+            else
+            {
+                // 以冲刺速度冲向hook目标位置（使用立体的实际方向，包含Y轴分量）
+                Vector3 hookDashVelocity = hookDashDirection * dashSpeed;
+                thisRb.linearVelocity = hookDashVelocity;
             }
         }
         else
         {
             // log state信息
-            Debug.Log($"当前状态: {currentState}, hookTarget: {(hookTarget != null ? hookTarget.name : "null")}");
+            // Debug.Log($"当前状态: {currentState}, hookTarget: {(hookTarget != null ? hookTarget.name : "null")}");
 
 
         }
@@ -632,7 +638,8 @@ public class PlayerMove : MonoBehaviour,IPlayerHeadProvider
                 // 计算速度在法线平面上的投影向量
                 if (thisRb != null)
                 {
-                    Vector3 velocity = thisRb.linearVelocity;
+                    Vector3 velocity = thisRb.linearVelocity; 
+                    CustomLog.Log(needLog, $"当前速度: {velocity}");
                     Vector3 projection = Vector3.ProjectOnPlane(velocity, normal);
 
                     // Y轴归零，变成水平向量

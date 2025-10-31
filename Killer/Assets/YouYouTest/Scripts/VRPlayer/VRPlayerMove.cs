@@ -613,15 +613,22 @@ public class VRPlayerMove : MonoBehaviour, IPlayerHeadProvider, IDashProvider, I
     {
         if (currentState == MovementState.HookDashing && thisRb != null && hookTarget != null)
         {
-            // 以冲刺速度冲向hook目标位置（使用立体的实际方向，包含Y轴分量）
-            Vector3 hookDashVelocity = hookDashDirection * dashSpeed;
-            thisRb.linearVelocity = hookDashVelocity;
-
-            // 检查是否到达hook位置附近
+            Debug.Log("Hook冲刺中");
+            // 在FixedUpdate中根据距离调整移动，避免高速下直接越过目标
             float distanceToHook = Vector3.Distance(transform.position, hookTarget.position);
-            if (distanceToHook < 1f) // 到达目标附近
+            float step = dashSpeed * Time.fixedDeltaTime;
+            // 如果本次步进会到达或超过目标位置，则直接移动到目标并结束hook冲刺，避免穿透或跳过
+            if (distanceToHook <= step)
             {
+                // 精确移动到目标位置（FixedUpdate 中使用 MovePosition 更安全）
+                thisRb.MovePosition(hookTarget.position);
                 EndHookDash();
+            }
+            else
+            {
+                // 以冲刺速度冲向hook目标位置（使用立体的实际方向，包含Y轴分量）
+                Vector3 hookDashVelocity = hookDashDirection * dashSpeed;
+                thisRb.linearVelocity = hookDashVelocity;
             }
         }
     }

@@ -101,7 +101,7 @@ public class VRHandSpeed : MonoBehaviour
     // XR节点状态
     private XRNodeState leftHandNodeState;
     private XRNodeState rightHandNodeState;
-    public bool useXRVelocity = true; // 是否使用XR速度数据
+    private bool useXRVelocity = true; // 是否使用XR速度数据 
     
     // 静态列表，避免每帧创建新对象
     private static List<XRNodeState> nodeStates = new List<XRNodeState>();

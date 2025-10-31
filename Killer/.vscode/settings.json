@@ -64,5 +64,19 @@
     "explorer.fileNesting.patterns": {
         "*.sln": "*.csproj",
     },
-    "dotnet.defaultSolution": "Killer.sln"
+    "dotnet.defaultSolution": "Killer.sln",
+    "github.copilot.chat.openai.apiKey": "ff6f58874b564065ac5b00666117c77a.1wpz0IsVn8LRwliy",
+    "github.copilot.chat.openai.endpoint": "https://open.bigmodel.cn/api/coding/paas/v4",
+    "github.copilot.chat.openai.model": "glm-4-coding",
+    "github.copilot.chat.customOAIModels": {
+        "my-local-model": {
+            "name": "Local LLaMA",
+            "url": "http://localhost:11434/v1",
+            "toolCalling": true,
+            "vision": false,
+            "maxInputTokens": 4096,
+            "maxOutputTokens": 2048,
+            "requiresAPIKey": false
+        }
+    }
 }
