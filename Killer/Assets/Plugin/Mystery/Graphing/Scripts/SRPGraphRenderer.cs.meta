@@ -1,0 +1,19 @@
+fileFormatVersion: 2
+guid: e2206cf1f5c0a7d489ea1d25a1d3e719
+timeCreated: 1591545420
+licenseType: Store
+MonoImporter:
+  serializedVersion: 2
+  defaultReferences: []
+  executionOrder: 0
+  icon: {instanceID: 0}
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 
+AssetOrigin:
+  serializedVersion: 1
+  productId: 21970
+  packageName: Squiggle
+  packageVersion: 4.2.4
+  assetPath: Assets/Mystery/Graphing/Scripts/SRPGraphRenderer.cs
+  uploadId: 417663

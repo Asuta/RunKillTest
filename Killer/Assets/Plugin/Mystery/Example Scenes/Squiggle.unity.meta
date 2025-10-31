@@ -1,0 +1,34 @@
+fileFormatVersion: 2
+guid: 56362e404a4e02d41a1093e8eb2dc875
+labels:
+- Monitor
+- Component
+- Debug
+- Track
+- Graph
+- Value
+- Console
+- Draw
+- Watch
+- Visual
+- Data
+- Log
+- Renderer
+- Shader
+- Editor
+- Maker
+- Analyze
+- Debugger
+- Debugging
+- Grapher
+DefaultImporter:
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 
+AssetOrigin:
+  serializedVersion: 1
+  productId: 21970
+  packageName: Squiggle
+  packageVersion: 4.2.4
+  assetPath: Assets/Mystery/Example Scenes/Squiggle.unity
+  uploadId: 417663

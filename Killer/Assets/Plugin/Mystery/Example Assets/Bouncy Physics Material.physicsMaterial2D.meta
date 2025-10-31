@@ -1,0 +1,34 @@
+fileFormatVersion: 2
+guid: 627710c02b0f9574da485c4a63dc6c63
+labels:
+- Monitor
+- Component
+- Debug
+- Track
+- Graph
+- Value
+- Console
+- Draw
+- Watch
+- Visual
+- Data
+- Log
+- Renderer
+- Shader
+- Editor
+- Maker
+- Analyze
+- Debugger
+- Debugging
+- Grapher
+NativeFormatImporter:
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 
+AssetOrigin:
+  serializedVersion: 1
+  productId: 21970
+  packageName: Squiggle
+  packageVersion: 4.2.4
+  assetPath: Assets/Mystery/Example Assets/Bouncy Physics Material.physicsMaterial2D
+  uploadId: 417663
