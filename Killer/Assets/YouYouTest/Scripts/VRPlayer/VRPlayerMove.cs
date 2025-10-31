@@ -605,7 +605,7 @@ public class VRPlayerMove : MonoBehaviour, IPlayerHeadProvider, IDashProvider, I
         currentState = MovementState.Falling;
         if (thisRb != null)
         {
-            thisRb.linearVelocity = thisRb.linearVelocity.normalized * 6f;
+            thisRb.linearVelocity = thisRb.linearVelocity.normalized * 10f;
         }
     }
 
