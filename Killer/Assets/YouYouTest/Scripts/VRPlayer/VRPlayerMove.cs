@@ -1,6 +1,7 @@
+using System;
 using UnityEngine;
 
-public class VRPlayerMove : MonoBehaviour, IPlayerHeadProvider, IDashProvider, IHookDashProvider, IMoveSpeedProvider
+public class VRPlayerMove : MonoBehaviour, IPlayerHeadProvider, IDashProvider, IHookDashProvider, IMoveSpeedProvider, IWallSlidingProvider
 {
     #region 组件引用
     public Transform leftHand;
@@ -81,6 +82,9 @@ public class VRPlayerMove : MonoBehaviour, IPlayerHeadProvider, IDashProvider, I
     #region 调试设置
     // log setting
     public bool needLog = false;
+
+
+
     #endregion
 
     #region Unity生命周期
@@ -665,6 +669,9 @@ public class VRPlayerMove : MonoBehaviour, IPlayerHeadProvider, IDashProvider, I
         }
 
         CustomLog.Log(needLog, "进入贴墙滑行状态");
+        
+        // 触发进入贴墙滑行事件
+        OnEnterWallSliding?.Invoke();
     }
 
     void ExitWallSliding()
@@ -687,6 +694,9 @@ public class VRPlayerMove : MonoBehaviour, IPlayerHeadProvider, IDashProvider, I
                 currentState = MovementState.Falling;
 
             CustomLog.Log(needLog, "退出贴墙滑行状态");
+            
+            // 触发退出贴墙滑行事件
+            OnExitWallSliding?.Invoke();
         }
     }
 
@@ -928,5 +938,14 @@ public class VRPlayerMove : MonoBehaviour, IPlayerHeadProvider, IDashProvider, I
     {
         return moveSpeed + AddMoveSpeed;
     }
+
+    public event Action OnEnterWallSliding;
+    public event Action OnExitWallSliding;
+    
+
+
+
+
+
     #endregion
 }

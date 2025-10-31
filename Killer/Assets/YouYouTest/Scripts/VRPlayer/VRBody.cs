@@ -11,15 +11,18 @@ public class VRBody : MonoBehaviour
 
     }
 
-    // Update is called once per frame
-    void Update()
+
+    /// <summary>
+    /// LateUpdate is called every frame, if the Behaviour is enabled.
+    /// It is called after all Update functions have been called.
+    /// </summary>
+    void LateUpdate()
     {
         if (isFollowing)
         {
             var targetPosition = Target.position + offset;
             transform.position = targetPosition;
         }
-
     }
 
     public void StartFollow()
