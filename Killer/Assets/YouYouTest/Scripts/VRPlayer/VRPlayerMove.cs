@@ -55,6 +55,7 @@ public class VRPlayerMove : MonoBehaviour, IPlayerHeadProvider, IDashProvider, I
     private Vector3 previousHandLocalPosition;
     #endregion
 
+
     #region Hook冲刺设置
     // hook冲刺相关
     private Transform hookTarget; // 目标hook的Transform
@@ -77,13 +78,14 @@ public class VRPlayerMove : MonoBehaviour, IPlayerHeadProvider, IDashProvider, I
     private Vector3 wallNormal; // 存储墙面法线
     private float wallSlideTimer = 0f; // 贴墙计时器
     private Vector3 wallSlideDirection; // 存储贴墙滑行方向（投影向量）
+        
     #endregion
 
     #region 调试设置
     // log setting
     public bool needLog = false;
-
-
+        public event Action<Vector3> OnEnterWallSliding;
+        public event Action<Vector3> OnExitWallSliding;
 
     #endregion
 
@@ -670,8 +672,8 @@ public class VRPlayerMove : MonoBehaviour, IPlayerHeadProvider, IDashProvider, I
 
         CustomLog.Log(needLog, "进入贴墙滑行状态");
         
-        // 触发进入贴墙滑行事件
-        OnEnterWallSliding?.Invoke();
+        // 触发进入贴墙滑行事件，传递墙面法线
+        OnEnterWallSliding?.Invoke(normal);
     }
 
     void ExitWallSliding()
@@ -695,8 +697,8 @@ public class VRPlayerMove : MonoBehaviour, IPlayerHeadProvider, IDashProvider, I
 
             CustomLog.Log(needLog, "退出贴墙滑行状态");
             
-            // 触发退出贴墙滑行事件
-            OnExitWallSliding?.Invoke();
+            // 触发退出贴墙滑行事件，传回当前记录的墙面法线
+            OnExitWallSliding?.Invoke(wallNormal);
         }
     }
 
@@ -939,8 +941,8 @@ public class VRPlayerMove : MonoBehaviour, IPlayerHeadProvider, IDashProvider, I
         return moveSpeed + AddMoveSpeed;
     }
 
-    public event Action OnEnterWallSliding;
-    public event Action OnExitWallSliding;
+    // events declared in the interface-compatible form earlier; remove older parameterless declarations
+    // (kept for compatibility with IWallSlidingProvider as Action<Vector3>)
     
 
 
