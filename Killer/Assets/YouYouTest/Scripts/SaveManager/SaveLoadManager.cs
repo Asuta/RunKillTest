@@ -47,9 +47,24 @@ public class SaveLoadManager : MonoBehaviour
     [SerializeField] private bool enableDebugLog = true;
     [SerializeField] private string defaultSlotName = "Default";
     
+    [Header("过程加载设置")]
+    [SerializeField] private bool useProgressiveLoading = true;
+    [SerializeField] private float progressiveLoadingDuration = 3.0f; // 加载持续时间（秒）
+    [SerializeField] private float minObjectsPerFrame = 1; // 每帧最少加载对象数
+    [SerializeField] private float maxObjectsPerFrame = 50; // 每帧最多加载对象数
+    
     // 管理器实例
     private FileSaveManager fileManager;
     private ObjectSaveManager objectManager;
+    
+    // 过程加载状态
+    private bool isLoading = false;
+    private Coroutine loadingCoroutine = null;
+    
+    // 加载进度事件
+    public System.Action<float, int, int> OnLoadingProgress; // 进度(0-1), 当前加载数量, 总数量
+    public System.Action OnLoadingComplete; // 加载完成
+    public System.Action<string> OnLoadingError; // 加载错误
     
     private void Start()
     {
@@ -301,6 +316,12 @@ public class SaveLoadManager : MonoBehaviour
     /// <param name="slotName">档位名称，如果为空则使用默认档位</param>
     public void LoadSceneObjects(string slotName = null)
     {
+        if (isLoading)
+        {
+            Debug.LogWarning("已有加载任务在进行中，忽略新的加载请求");
+            return;
+        }
+        
         if (enableDebugLog)
         {
             Debug.Log("开始加载场景对象...");
@@ -313,11 +334,9 @@ public class SaveLoadManager : MonoBehaviour
         if (!fileManager.FileExists(fileName))
         {
             Debug.LogWarning($"保存文件不存在: {fileName}");
+            OnLoadingError?.Invoke($"保存文件不存在: {fileName}");
             return;
         }
-        
-        // 在加载前先清理场景
-        CleanupSceneBeforeLoad();
         
         // 从文件读取数据
         string jsonData = fileManager.LoadFromFile(fileName);
@@ -325,6 +344,7 @@ public class SaveLoadManager : MonoBehaviour
         if (string.IsNullOrEmpty(jsonData))
         {
             Debug.LogError("无法读取保存文件!");
+            OnLoadingError?.Invoke("无法读取保存文件!");
             return;
         }
         
@@ -336,6 +356,7 @@ public class SaveLoadManager : MonoBehaviour
             if (sceneData == null || sceneData.objects == null)
             {
                 Debug.LogError("无法解析保存文件数据!");
+                OnLoadingError?.Invoke("无法解析保存文件数据!");
                 return;
             }
             
@@ -344,28 +365,254 @@ public class SaveLoadManager : MonoBehaviour
                 Debug.Log($"准备加载 {sceneData.objectCount} 个对象 (保存时间: {sceneData.saveTime})");
             }
             
-            // 清除现有的ObjectIdentifier对象（可选）
-            // objectManager.ClearExistingObjects();
+            // 在加载前先清理场景
+            CleanupSceneBeforeLoad();
             
-            // 加载每个对象
-            int loadedCount = 0;
-            foreach (ObjectSaveData objectData in sceneData.objects)
+            // 根据设置选择加载方式
+            if (useProgressiveLoading && sceneData.objectCount > 0)
             {
-                if (objectManager.LoadSingleObject(objectData))
-                {
-                    loadedCount++;
-                }
+                // 使用过程加载
+                StartProgressiveLoading(sceneData);
             }
-            
-            if (enableDebugLog)
+            else
             {
-                Debug.Log($"成功加载 {loadedCount}/{sceneData.objectCount} 个对象");
+                // 使用即时加载（原有逻辑）
+                LoadObjectsImmediately(sceneData);
             }
         }
         catch (System.Exception e)
         {
             Debug.LogError($"加载数据时出错: {e.Message}");
+            OnLoadingError?.Invoke($"加载数据时出错: {e.Message}");
         }
+    }
+    
+    /// <summary>
+    /// 立即加载所有对象（原有逻辑）
+    /// </summary>
+    /// <param name="sceneData">场景数据</param>
+    private void LoadObjectsImmediately(SceneSaveData sceneData)
+    {
+        // 清除现有的ObjectIdentifier对象（可选）
+        // objectManager.ClearExistingObjects();
+        
+        // 加载每个对象
+        int loadedCount = 0;
+        foreach (ObjectSaveData objectData in sceneData.objects)
+        {
+            if (objectManager.LoadSingleObject(objectData))
+            {
+                loadedCount++;
+            }
+        }
+        
+        if (enableDebugLog)
+        {
+            Debug.Log($"成功加载 {loadedCount}/{sceneData.objectCount} 个对象");
+        }
+        
+        OnLoadingComplete?.Invoke();
+    }
+    
+    /// <summary>
+    /// 开始过程加载
+    /// </summary>
+    /// <param name="sceneData">场景数据</param>
+    private void StartProgressiveLoading(SceneSaveData sceneData)
+    {
+        if (loadingCoroutine != null)
+        {
+            StopCoroutine(loadingCoroutine);
+        }
+        
+        loadingCoroutine = StartCoroutine(ProgressiveLoadingCoroutine(sceneData));
+    }
+    
+    /// <summary>
+    /// 过程加载协程
+    /// </summary>
+    /// <param name="sceneData">场景数据</param>
+    /// <returns></returns>
+    private System.Collections.IEnumerator ProgressiveLoadingCoroutine(SceneSaveData sceneData)
+    {
+        isLoading = true;
+        
+        int totalObjects = sceneData.objects.Count;
+        
+        if (enableDebugLog)
+        {
+            Debug.Log($"开始过程加载，目标时长: {progressiveLoadingDuration}秒，对象数量: {totalObjects}");
+        }
+        
+        // 清除现有的ObjectIdentifier对象（可选）
+        // objectManager.ClearExistingObjects();
+        
+        int loadedCount = 0;
+        float startTime = Time.time;
+        
+        // 智能计算加载策略
+        float estimatedFrameRate = 60f; // 默认60fps
+        float totalFrames = progressiveLoadingDuration * estimatedFrameRate;
+        
+        // 如果对象数量很少，使用基于时间的加载策略
+        if (totalObjects <= totalFrames)
+        {
+            // 对象数量少于总帧数，使用基于时间的加载
+            yield return StartCoroutine(TimeBasedLoading(sceneData, totalObjects, startTime));
+        }
+        else
+        {
+            // 对象数量较多，使用基于帧的加载
+            yield return StartCoroutine(FrameBasedLoading(sceneData, totalObjects, startTime, totalFrames));
+        }
+        
+        // 加载完成
+        isLoading = false;
+        loadingCoroutine = null;
+        
+        float totalTime = Time.time - startTime;
+        
+        if (enableDebugLog)
+        {
+            Debug.Log($"过程加载完成! 成功加载 {loadedCount}/{totalObjects} 个对象，总用时: {totalTime:F2}秒");
+        }
+        
+        OnLoadingComplete?.Invoke();
+    }
+    
+    /// <summary>
+    /// 基于时间的加载策略（适用于对象数量较少的情况）
+    /// </summary>
+    private System.Collections.IEnumerator TimeBasedLoading(SceneSaveData sceneData, int totalObjects, float startTime)
+    {
+        int loadedCount = 0;
+        
+        if (enableDebugLog)
+        {
+            Debug.Log("使用基于时间的加载策略");
+        }
+        
+        while (loadedCount < totalObjects)
+        {
+            float elapsedTime = Time.time - startTime;
+            float targetProgress = Mathf.Clamp01(elapsedTime / progressiveLoadingDuration);
+            int targetCount = Mathf.FloorToInt(targetProgress * totalObjects);
+            
+            // 加载当前进度应该加载的对象
+            while (loadedCount < targetCount && loadedCount < totalObjects)
+            {
+                ObjectSaveData objectData = sceneData.objects[loadedCount];
+                if (objectManager.LoadSingleObject(objectData))
+                {
+                    loadedCount++;
+                }
+                else
+                {
+                    // 即使加载失败也要增加计数，避免死循环
+                    loadedCount++;
+                }
+                
+                // 更新进度
+                float progress = (float)loadedCount / totalObjects;
+                OnLoadingProgress?.Invoke(progress, loadedCount, totalObjects);
+                
+                if (enableDebugLog)
+                {
+                    Debug.Log($"加载进度: {progress:P1} ({loadedCount}/{totalObjects}) - 已用时: {elapsedTime:F2}秒");
+                }
+            }
+            
+            // 等待下一帧
+            yield return null;
+        }
+    }
+    
+    /// <summary>
+    /// 基于帧的加载策略（适用于对象数量较多的情况）
+    /// </summary>
+    private System.Collections.IEnumerator FrameBasedLoading(SceneSaveData sceneData, int totalObjects, float startTime, float totalFrames)
+    {
+        int loadedCount = 0;
+        
+        // 计算每帧应该加载的对象数量
+        float objectsPerFrame = totalObjects / totalFrames;
+        
+        // 限制每帧加载对象数量
+        objectsPerFrame = Mathf.Clamp(objectsPerFrame, minObjectsPerFrame, maxObjectsPerFrame);
+        
+        if (enableDebugLog)
+        {
+            Debug.Log($"使用基于帧的加载策略，每帧加载对象数量: {objectsPerFrame:F2}");
+        }
+        
+        // 分帧加载对象
+        while (loadedCount < totalObjects)
+        {
+            // 计算这一帧应该加载的对象数量
+            int objectsToLoadThisFrame = Mathf.CeilToInt(objectsPerFrame);
+            objectsToLoadThisFrame = Mathf.Min(objectsToLoadThisFrame, totalObjects - loadedCount);
+            
+            // 加载这一帧的对象
+            for (int i = 0; i < objectsToLoadThisFrame && loadedCount < totalObjects; i++)
+            {
+                ObjectSaveData objectData = sceneData.objects[loadedCount];
+                if (objectManager.LoadSingleObject(objectData))
+                {
+                    loadedCount++;
+                }
+                else
+                {
+                    // 即使加载失败也要增加计数，避免死循环
+                    loadedCount++;
+                }
+            }
+            
+            // 计算进度
+            float progress = (float)loadedCount / totalObjects;
+            float elapsedTime = Time.time - startTime;
+            
+            // 触发进度事件
+            OnLoadingProgress?.Invoke(progress, loadedCount, totalObjects);
+            
+            if (enableDebugLog && loadedCount % 50 == 0) // 每50个对象输出一次日志
+            {
+                Debug.Log($"加载进度: {progress:P1} ({loadedCount}/{totalObjects}) - 已用时: {elapsedTime:F2}秒");
+            }
+            
+            // 如果还有对象未加载，等待下一帧
+            if (loadedCount < totalObjects)
+            {
+                yield return null;
+            }
+        }
+    }
+    
+    /// <summary>
+    /// 停止当前加载
+    /// </summary>
+    public void StopLoading()
+    {
+        if (loadingCoroutine != null)
+        {
+            StopCoroutine(loadingCoroutine);
+            loadingCoroutine = null;
+        }
+        
+        isLoading = false;
+        
+        if (enableDebugLog)
+        {
+            Debug.Log("已停止加载");
+        }
+    }
+    
+    /// <summary>
+    /// 获取当前加载状态
+    /// </summary>
+    /// <returns>是否正在加载</returns>
+    public bool IsLoading()
+    {
+        return isLoading;
     }
     
     /// <summary>

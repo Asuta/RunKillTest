@@ -4295,6 +4295,10 @@ MonoBehaviour:
   autoSaveOnStart: 0
   enableDebugLog: 1
   defaultSlotName: Default
+  useProgressiveLoading: 1
+  progressiveLoadingDuration: 3
+  minObjectsPerFrame: 0
+  maxObjectsPerFrame: 0
 --- !u!4 &286741078
 Transform:
   m_ObjectHideFlags: 0
