@@ -9,12 +9,12 @@ public class GameManager : MonoBehaviour
 {
     public bool needLog;
     private float _menuButtonPressTime = 0f;
-    
+
     /// <summary>
     /// GameManager就绪事件，当GameManager完成初始化时触发
     /// </summary>
     public static event System.Action<bool> OnGameManagerReady;
-    
+
     // 单例实例
     private static GameManager _instance;
 
@@ -69,7 +69,7 @@ public class GameManager : MonoBehaviour
     private Transform vrEditorRigOffset;
 
     private float _vrEditorScale = 1f;
-    
+
     /// <summary>
     /// VR编辑器缩放值
     /// </summary>
@@ -79,20 +79,20 @@ public class GameManager : MonoBehaviour
         set
         {
             if (Mathf.Approximately(_vrEditorScale, value)) return;
-            
+
             float oldScale = _vrEditorScale;
             _vrEditorScale = value;
-            
+
             // 触发缩放变化事件
             OnVrEditorScaleChanged?.Invoke(oldScale, _vrEditorScale);
         }
     }
-    
+
     /// <summary>
     /// VR编辑器缩放变化事件 (旧值, 新值)
     /// </summary>
     public event System.Action<float, float> OnVrEditorScaleChanged;
-    
+
     /// <summary>
     /// 触发缩放变化事件（供外部调用）
     /// </summary>
@@ -105,8 +105,14 @@ public class GameManager : MonoBehaviour
 
     // 是否为PlayMode
     [SerializeField]
+    [Tooltip("设置默认的游戏模式：true=游戏模式，false=编辑模式")]
     private bool _isPlayMode;
     public bool IsPlayMode => _isPlayMode;
+
+    [SerializeField]
+    [Tooltip("设置是否可以切换模式")]
+    private bool _canSwitchMode;
+    public bool CanSwitchMode => _canSwitchMode;
 
 
     [SerializeField]
@@ -273,6 +279,13 @@ public class GameManager : MonoBehaviour
     private void OnModeButtonPoke()
     {
         CustomLog.Log(needLog, "模式按钮点击");
+
+        // 检查是否允许切换模式
+        if (!_canSwitchMode)
+        {
+            CustomLog.LogWarning(needLog, "模式切换已被禁用");
+            return;
+        }
 
         // 切换PlayMode状态
         _isPlayMode = !_isPlayMode;
