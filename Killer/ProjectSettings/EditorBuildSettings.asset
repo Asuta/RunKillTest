@@ -6,6 +6,9 @@ EditorBuildSettings:
   serializedVersion: 2
   m_Scenes:
   - enabled: 1
+    path: Assets/YouYouTest/StartScene.unity
+    guid: 724cd71958e34e84a8fdc210790605e3
+  - enabled: 1
     path: Assets/YouYouTest/KillScene.unity
     guid: 0e11ac72076dc844b92c47e152518c13
   - enabled: 0

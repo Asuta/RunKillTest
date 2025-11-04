@@ -28,9 +28,9 @@ public class ManyButtonTest : MonoBehaviour
         Debug.Log("Button2");
     }
 
-    [Button]
-    void Button3()
+    [Button("enter play scene and load target json")]
+    void Button3(string jsonName)
     {
-        Debug.Log("Button3");
+        
     }
 }
