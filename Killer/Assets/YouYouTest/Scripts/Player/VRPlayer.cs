@@ -21,6 +21,10 @@ public class VRPlayer : MonoBehaviour, ICanBeHit
     private Vector3 initialRotation; // 存储初始旋转
     private bool isDead = false; // 标记玩家是否处于死亡状态
     public GameObject grabBody;
+    
+    // 菜单键长按时间跟踪
+    private float menuButtonPressTime = 0f;
+    private const float MENU_HOLD_THRESHOLD = 0.3f; // 菜单键长按阈值
 
     // Start is called once before the first execution of Update after the MonoBehaviour is created
     void Start()
@@ -60,11 +64,26 @@ public class VRPlayer : MonoBehaviour, ICanBeHit
     // Update is called once per frame
     void Update()
     {
-        if (Input.GetKeyDown(KeyCode.R) || InputActionsManager.Actions.XRILeftInteraction.Menu.IsPressed())
+        // R键保持原有行为（按下即触发）
+        if (Input.GetKeyDown(KeyCode.R))
         {
             GlobalEvent.CheckPointReset.Invoke();
         }
-
+        
+        // 菜单键改为长按0.3秒后触发
+        if (InputActionsManager.Actions.XRILeftInteraction.Menu.IsPressed())
+        {
+            menuButtonPressTime += Time.deltaTime;
+            if (menuButtonPressTime >= MENU_HOLD_THRESHOLD)
+            {
+                GlobalEvent.CheckPointReset.Invoke();
+                menuButtonPressTime = 0f; // 重置时间
+            }
+        }
+        else
+        {
+            menuButtonPressTime = 0f; // 松开时重置时间
+        }
     }
 
     private void Die()

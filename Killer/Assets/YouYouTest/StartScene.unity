@@ -2763,6 +2763,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 60e568e2449e51141a697ab06094af03, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  subUI: {fileID: 722412272}
   moveTarget: {fileID: 763046957}
   offset: {x: 0, y: 0, z: 0}
   offset2: {x: 0, y: 0.36, z: 0}
