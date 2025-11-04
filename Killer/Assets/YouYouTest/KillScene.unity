@@ -11515,10 +11515,10 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   needLog: 0
-  _vrPlayerRig: {fileID: 0}
   _vrEditorRig: {fileID: 4226674471386617843}
   vrEditorRigOffset: {fileID: 4821350112615201696}
   _isPlayMode: 0
+  _canSwitchMode: 1
   _playerCameraT: {fileID: 0}
   _greenHooks: []
   _closestAngleHook: {fileID: 0}
@@ -24951,6 +24951,7 @@ GameObject:
   - component: {fileID: 8223112171882798670}
   - component: {fileID: 1791249912}
   - component: {fileID: 9167095900856961748}
+  - component: {fileID: 9167095900856961749}
   m_Layer: 2
   m_Name: EditorRig
   m_TagString: Untagged
@@ -33916,6 +33917,20 @@ MonoBehaviour:
   enableDebugLog: 0
   showDebugInfo: 0
   nowSpeed: 0
+--- !u!114 &9167095900856961749
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2913991994253522856}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 921a7b7608156ae45a342f5dd40af946, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  vrEditorRigOffset: {fileID: 4821350112615201696}
+  vrEditorRigO: {fileID: 4226674471386617843}
 --- !u!4 &9171353875955519944
 Transform:
   m_ObjectHideFlags: 0

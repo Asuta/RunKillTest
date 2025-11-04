@@ -31,12 +31,17 @@ public class ManyButtonTest : MonoBehaviour
     }
 
     [Button("enter play scene and load target json")]
-    void Button3(string jsonName)
+    void Button3(string jsonName ="slot One")
     {
         // 将要加载的存档槽名写入 GameManager，SceneLoadManager 或者后续的加载回调会读取它
         if (GameManager.Instance != null)
         {
             GameManager.Instance.nowLoadSaveSlot = jsonName;
+        }
+        else
+        {
+            Debug.LogError("GameManager 实例不存在，无法设置存档槽名");
+            return;
         }
 
         // 如果已经在目标场景，直接触发加载
@@ -45,6 +50,8 @@ public class ManyButtonTest : MonoBehaviour
             if (SaveLoadManager.Instance != null)
             {
                 SaveLoadManager.Instance.LoadSceneObjects(jsonName);
+                // 修复：使用公共方法而不是直接赋值
+                GameManager.Instance.SetCanSwitchMode(true);
             }
             else
             {
@@ -61,13 +68,17 @@ public class ManyButtonTest : MonoBehaviour
             {
                 SceneManager.sceneLoaded -= onLoaded;
 
-                if (SaveLoadManager.Instance != null)
+                if (SaveLoadManager.Instance != null && GameManager.Instance != null)
                 {
                     SaveLoadManager.Instance.LoadSceneObjects(jsonName);
+                    // 修复：使用公共方法而不是直接赋值
+                    GameManager.Instance.SetCanSwitchMode(true);
+                    // 设置为非PlayMode（编辑模式）
+                    GameManager.Instance.SetPlayMode(false);
                 }
                 else
                 {
-                    Debug.LogWarning("场景已切换到 KillScene，但 SaveLoadManager 实例尚不可用，已设置 nowLoadSaveSlot 等待初始化。");
+                    Debug.LogWarning("场景已切换到 KillScene，但 SaveLoadManager 或 GameManager 实例尚不可用。");
                 }
             }
         };

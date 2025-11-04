@@ -53,10 +53,10 @@ public class GameManager : MonoBehaviour
         DontDestroyOnLoad(gameObject);
     }
 
-    // VR player rig
-    [SerializeField]
-    private Transform _vrPlayerRig;
-    public Transform VrPlayerRig => _vrPlayerRig;
+    // // VR player rig
+    // [SerializeField]
+    // private Transform _vrPlayerRig;
+    // public Transform VrPlayerRig => _vrPlayerRig;
 
     // VR editor rig
     [SerializeField]
@@ -113,6 +113,55 @@ public class GameManager : MonoBehaviour
     [Tooltip("设置是否可以切换模式")]
     private bool _canSwitchMode;
     public bool CanSwitchMode => _canSwitchMode;
+
+    /// <summary>
+    /// 设置是否可以切换模式
+    /// </summary>
+    /// <param name="canSwitch">是否可以切换模式</param>
+    public void SetCanSwitchMode(bool canSwitch)
+    {
+        _canSwitchMode = canSwitch;
+        CustomLog.Log(needLog, $"模式切换已{(canSwitch ? "启用" : "禁用")}");
+    }
+
+    /// <summary>
+    /// 设置游戏模式
+    /// </summary>
+    /// <param name="isPlayMode">true=游戏模式，false=编辑模式</param>
+    public void SetPlayMode(bool isPlayMode)
+    {
+        if (_isPlayMode == isPlayMode)
+        {
+            CustomLog.Log(needLog, $"模式已经是{(isPlayMode ? "游戏模式" : "编辑模式")}，无需切换");
+            return;
+        }
+
+        _isPlayMode = isPlayMode;
+        CustomLog.Log(needLog, $"设置模式: {(_isPlayMode ? "PlayMode" : "EditMode")}");
+
+        // 触发播放状态改变事件
+        GlobalEvent.IsPlayChange.Invoke(_isPlayMode);
+
+        // 根据状态激活/禁用对应的Rig
+        if (_isPlayMode)
+        {
+            // PlayMode: 激活VR Player，禁用VR Editor
+            if (_vrEditorRig != null)
+            {
+                _vrEditorRig.gameObject.SetActive(false);
+                CustomLog.Log(needLog, "VR Editor Rig 已禁用");
+            }
+        }
+        else
+        {
+            // EditMode: 激活VR Editor，禁用VR Player
+            if (_vrEditorRig != null)
+            {
+                _vrEditorRig.gameObject.SetActive(true);
+                CustomLog.Log(needLog, "VR Editor Rig 已激活");
+            }
+        }
+    }
 
 
     [SerializeField]
@@ -172,6 +221,46 @@ public class GameManager : MonoBehaviour
             {
                 _closestAngleHook = null;
             }
+        }
+    }
+
+    // 注册 VR Editor Rig（供场景中的对象主动注册）
+    public void RegisterVrEditorRig(Transform rig)
+    {
+        if (rig == null) return;
+        if (_vrEditorRig == rig) return;
+
+        _vrEditorRig = rig;
+        CustomLog.Log(needLog, $"VR Editor Rig 已注册: {rig.name}");
+    }
+
+    public void UnregisterVrEditorRig(Transform rig)
+    {
+        if (rig == null) return;
+        if (_vrEditorRig == rig)
+        {
+            CustomLog.Log(needLog, $"VR Editor Rig 已注销: {rig.name}");
+            _vrEditorRig = null;
+        }
+    }
+
+    // 注册/注销 VR Editor Rig Offset
+    public void RegisterVrEditorRigOffset(Transform offset)
+    {
+        if (offset == null) return;
+        if (vrEditorRigOffset == offset) return;
+
+        vrEditorRigOffset = offset;
+        CustomLog.Log(needLog, $"VR Editor Rig Offset 已注册: {offset.name}");
+    }
+
+    public void UnregisterVrEditorRigOffset(Transform offset)
+    {
+        if (offset == null) return;
+        if (vrEditorRigOffset == offset)
+        {
+            CustomLog.Log(needLog, $"VR Editor Rig Offset 已注销: {offset.name}");
+            vrEditorRigOffset = null;
         }
     }
 
@@ -347,7 +436,11 @@ public class GameManager : MonoBehaviour
         // check mode change
         CheckModeChange();
 
-        VrEditorScale = vrEditorRigOffset.localScale.x;
+        // vrEditorRigOffset 可能在场景切换时被销毁或变为 null，先检查再访问
+        if (vrEditorRigOffset != null)
+        {
+            VrEditorScale = vrEditorRigOffset.localScale.x;
+        }
 
     }
 
