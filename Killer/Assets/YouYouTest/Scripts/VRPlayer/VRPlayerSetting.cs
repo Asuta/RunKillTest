@@ -15,7 +15,14 @@ public class VRPlayerSetting : MonoBehaviour
     // Start is called once before the first execution of Update after the MonoBehaviour is created
     void Awake()
     {
-        GameManager.Instance.PlayerCameraT = playerCameraT;
+        // 确保GameManager实例存在
+        if (GameManager.Instance != null)
+        {
+            GameManager.Instance.PlayerCameraT = playerCameraT;
+            
+            // 主动获取当前游戏模式并进行设置
+            OnGameModeChange(GameManager.Instance.IsPlayMode);
+        }
         
         // 订阅游戏模式变化事件
         GlobalEvent.IsPlayChange.AddListener(OnGameModeChange);
