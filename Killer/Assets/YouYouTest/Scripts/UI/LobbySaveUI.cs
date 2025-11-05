@@ -204,30 +204,35 @@ public class LobbySaveUI : MonoBehaviour
     }
 
     /// <summary>
-    /// 加载按钮点击事件（改为先切换到 KillScene 再加载指定存档）
+    /// 加载按钮点击事件
     /// </summary>
     /// <param name="slotName">档位名称</param>
     private void OnLoadButtonClicked(string slotName)
     {
-        // 把要加载的存档槽名写入 GameManager，以便在目标场景初始化时读取
+        Debug.Log($"加载存档: {slotName}");
+
+        // 先把要加载的存档槽名写入 GameManager，后续场景/加载逻辑会读取它
         if (GameManager.Instance != null)
         {
             GameManager.Instance.nowLoadSaveSlot = slotName;
         }
         else
         {
-            Debug.LogError("GameManager 实例不存在，无法设置存档槽名");
-            return;
+            Debug.LogWarning("GameManager 实例不存在，无法设置 nowLoadSaveSlot");
         }
 
-        // 如果已经在目标场景，立即尝试加载
+        // 如果已经在目标场景，直接加载存档并触发相关状态
         if (SceneManager.GetActiveScene().name == "KillScene")
         {
             if (SaveLoadManager.Instance != null)
             {
                 SaveLoadManager.Instance.LoadSceneObjects(slotName);
-                // 使用 GameManager 的公共方法而不是直接赋值
-                GameManager.Instance.SetCanSwitchMode(true);
+                if (GameManager.Instance != null)
+                {
+                    GameManager.Instance.SetCanSwitchMode(true);
+                }
+                // 通知其他监听者已切换/加载存档
+                GlobalEvent.OnLoadSaveChange.Invoke(slotName);
             }
             else
             {
@@ -237,7 +242,7 @@ public class LobbySaveUI : MonoBehaviour
             return;
         }
 
-        // 在场景加载完成后再调用加载存档，使用局部回调并在调用后移除订阅
+        // 不在 KillScene 时：在场景加载完成后执行加载逻辑
         UnityAction<Scene, LoadSceneMode> onLoaded = null;
         onLoaded = (scene, mode) =>
         {
@@ -245,16 +250,22 @@ public class LobbySaveUI : MonoBehaviour
             {
                 SceneManager.sceneLoaded -= onLoaded;
 
-                if (SaveLoadManager.Instance != null && GameManager.Instance != null)
+                if (SaveLoadManager.Instance != null)
                 {
                     SaveLoadManager.Instance.LoadSceneObjects(slotName);
-                    GameManager.Instance.SetCanSwitchMode(true);
-                    // 切换到播放场景后，按 ManyButtonTest 的逻辑把 PlayMode 设为 false（如果需要）
-                    GameManager.Instance.SetPlayMode(false);
+                    // 通知其他监听者
+                    GlobalEvent.OnLoadSaveChange.Invoke(slotName);
                 }
                 else
                 {
-                    Debug.LogWarning("场景已切换到 KillScene，但 SaveLoadManager 或 GameManager 实例尚不可用。");
+                    Debug.LogWarning("场景已切换到 KillScene，但 SaveLoadManager 实例尚不可用。");
+                }
+
+                if (GameManager.Instance != null)
+                {
+                    GameManager.Instance.SetCanSwitchMode(true);
+                    // 设置为非PlayMode（保持与 Button3 行为一致）
+                    GameManager.Instance.SetPlayMode(false);
                 }
             }
         };
