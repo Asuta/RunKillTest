@@ -113,7 +113,7 @@ public class VRPlayerMove : MonoBehaviour, IPlayerHeadProvider, IDashProvider, I
     {
         // 直接使用强类型属性访问 actions
         Vector2 moveInput = InputActionsManager.Actions.XRILeftLocomotion.Move.ReadValue<Vector2>();
-        Debug.LogError("左摇杆输入: " + moveInput);
+        // Debug.LogError("左摇杆输入: " + moveInput);
 
         // 计算移动方向
         CalculateMovement(moveInput);
@@ -186,7 +186,7 @@ public class VRPlayerMove : MonoBehaviour, IPlayerHeadProvider, IDashProvider, I
 
             // 根据摇杆输入和头部朝向计算移动方向
             moveDirection = handForward * moveInput.y + handRight * moveInput.x;
-            Debug.LogError("计算移动方向: " + moveDirection);
+            // Debug.LogError("计算移动方向: " + moveDirection);
         }
     }
 
@@ -200,7 +200,7 @@ public class VRPlayerMove : MonoBehaviour, IPlayerHeadProvider, IDashProvider, I
 
         // 检查是否有摇杆输入
         bool hasInput = moveDirection.magnitude > 0.1f;
-        Debug.LogError("是否有摇杆输入: " + moveDirection.magnitude);
+        // Debug.LogError("是否有摇杆输入: " + moveDirection.magnitude);
 
         if (IsGrounded() && !hasInput)
         {
