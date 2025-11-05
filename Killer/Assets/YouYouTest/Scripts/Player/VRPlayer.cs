@@ -22,9 +22,9 @@ public class VRPlayer : MonoBehaviour, ICanBeHit
     private bool isDead = false; // 标记玩家是否处于死亡状态
     public GameObject grabBody;
     
-    // 菜单键长按时间跟踪
-    private float menuButtonPressTime = 0f;
-    private const float MENU_HOLD_THRESHOLD = 0.3f; // 菜单键长按阈值
+    // 菜单键和左手扳机键组合检测
+    private bool menuButtonPressed = false;
+    private bool leftTriggerPressed = false;
 
     // Start is called once before the first execution of Update after the MonoBehaviour is created
     void Start()
@@ -77,20 +77,32 @@ public class VRPlayer : MonoBehaviour, ICanBeHit
             GlobalEvent.CheckPointReset.Invoke();
         }
         
-        // 菜单键改为长按0.3秒后触发
-        if (InputActionsManager.Actions.XRILeftInteraction.Menu.IsPressed())
+        // 检测菜单键和左手扳机键的组合按下
+        bool menuCurrentlyPressed = InputActionsManager.Actions.XRILeftInteraction.Menu.IsPressed();
+        float leftTriggerValue = InputActionsManager.Actions.XRILeftInteraction.ActivateValue.ReadValue<float>();
+        bool leftTriggerCurrentlyPressed = leftTriggerValue > 0.1f;
+        
+        // 检测菜单键短按（用于开启UI）
+        if (InputActionsManager.Actions.XRILeftInteraction.Menu.WasPressedThisFrame())
         {
-            menuButtonPressTime += Time.deltaTime;
-            if (menuButtonPressTime >= MENU_HOLD_THRESHOLD)
+            // 这里可以添加开启UI的逻辑
+            Debug.Log("菜单键短按 - 开启UI");
+        }
+        
+        // 检测菜单键和左手扳机键同时按下（用于reset功能）
+        if (menuCurrentlyPressed && leftTriggerCurrentlyPressed)
+        {
+            if (!menuButtonPressed || !leftTriggerPressed)
             {
+                // 两个键刚刚同时按下
                 GlobalEvent.CheckPointReset.Invoke();
-                menuButtonPressTime = 0f; // 重置时间
+                Debug.Log("菜单键+左手扳机键同时按下 - 触发Reset");
             }
         }
-        else
-        {
-            menuButtonPressTime = 0f; // 松开时重置时间
-        }
+        
+        // 更新按键状态
+        menuButtonPressed = menuCurrentlyPressed;
+        leftTriggerPressed = leftTriggerCurrentlyPressed;
     }
 
     private void Die()
