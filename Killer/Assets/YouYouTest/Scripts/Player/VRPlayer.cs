@@ -41,6 +41,13 @@ public class VRPlayer : MonoBehaviour, ICanBeHit
 
         // 订阅GameManager就绪事件
         GameManager.OnGameManagerReady += OnGameManagerReady;
+        
+        // 主动获取GameManager的playmode并设置一次OnGameModeChange
+        if (GameManager.Instance != null)
+        {
+            OnGameModeChange(GameManager.Instance.IsPlayMode);
+            Debug.Log($"VRPlayer主动获取GameManager模式，当前模式: {(GameManager.Instance.IsPlayMode ? "游戏模式" : "编辑模式")}");
+        }
     }
 
     void OnDestroy()
