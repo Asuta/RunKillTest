@@ -17,6 +17,12 @@ public class SlotNameText : MonoBehaviour
     void Start()
     {
         GlobalEvent.OnLoadSaveChange.AddListener(OnLoadSaveChange);
+        
+        // 主动获取当前存档名称并设置
+        if (GameManager.Instance != null && !string.IsNullOrEmpty(GameManager.Instance.nowLoadSaveSlot))
+        {
+            textMeshPro.text = "now load: " + GameManager.Instance.nowLoadSaveSlot;
+        }
     }
 
     private void OnLoadSaveChange(string arg0)
