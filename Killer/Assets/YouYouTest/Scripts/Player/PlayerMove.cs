@@ -1,7 +1,7 @@
 using UnityEngine;
 using System.Collections;
 
-public class PlayerMove : MonoBehaviour,IPlayerHeadProvider
+public class PlayerMove : MonoBehaviour,IPlayerHeadProvider, IBounceCubeProvider
 {
     #region 移动设置
     [Header("移动设置")]
@@ -832,6 +832,22 @@ public class PlayerMove : MonoBehaviour,IPlayerHeadProvider
     public Transform GetPlayerHead()
     {
         return playerHead;
+    }
+    #endregion
+
+    #region IBounceCubeProvider 实现
+    /// <summary>
+    /// 当进入弹跳状态时，传出当前弹跳面的法线（世界坐标）
+    /// </summary>
+    /// <param name="normal">弹跳面的法线</param>
+    public void OutHandleBounceCube(Vector3 normal)
+    {
+        Debug.Log("PlayerMove触发弹跳方块，法线：" + normal);
+        // 在这里可以添加具体的弹跳逻辑
+        if (thisRb != null)
+        {
+            thisRb.linearVelocity = normal;
+        }
     }
     #endregion
 }

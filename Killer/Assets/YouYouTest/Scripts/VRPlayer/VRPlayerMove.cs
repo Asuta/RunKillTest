@@ -1,7 +1,7 @@
 using System;
 using UnityEngine;
 
-public class VRPlayerMove : MonoBehaviour, IPlayerHeadProvider, IDashProvider, IHookDashProvider, IMoveSpeedProvider, IWallSlidingProvider
+public class VRPlayerMove : MonoBehaviour, IPlayerHeadProvider, IDashProvider, IHookDashProvider, IMoveSpeedProvider, IWallSlidingProvider, IBounceCubeProvider
 {
     #region 组件引用
     public Transform leftHand;
@@ -78,14 +78,14 @@ public class VRPlayerMove : MonoBehaviour, IPlayerHeadProvider, IDashProvider, I
     private Vector3 wallNormal; // 存储墙面法线
     private float wallSlideTimer = 0f; // 贴墙计时器
     private Vector3 wallSlideDirection; // 存储贴墙滑行方向（投影向量）
-        
+
     #endregion
 
     #region 调试设置
     // log setting
     public bool needLog = false;
-        public event Action<Vector3> OnEnterWallSliding;
-        public event Action<Vector3> OnExitWallSliding;
+    public event Action<Vector3> OnEnterWallSliding;
+    public event Action<Vector3> OnExitWallSliding;
 
     #endregion
 
@@ -674,7 +674,7 @@ public class VRPlayerMove : MonoBehaviour, IPlayerHeadProvider, IDashProvider, I
         }
 
         CustomLog.Log(needLog, "进入贴墙滑行状态");
-        
+
         // 触发进入贴墙滑行事件，传递墙面法线
         OnEnterWallSliding?.Invoke(normal);
     }
@@ -699,7 +699,7 @@ public class VRPlayerMove : MonoBehaviour, IPlayerHeadProvider, IDashProvider, I
                 currentState = MovementState.Falling;
 
             CustomLog.Log(needLog, "退出贴墙滑行状态");
-            
+
             // 触发退出贴墙滑行事件，传回当前记录的墙面法线
             OnExitWallSliding?.Invoke(wallNormal);
         }
@@ -944,13 +944,19 @@ public class VRPlayerMove : MonoBehaviour, IPlayerHeadProvider, IDashProvider, I
         return moveSpeed + AddMoveSpeed;
     }
 
+    public void OutHandleBounceCube(Vector3 normal)
+    {
+        Debug.Log("触发弹跳方块，法线：" + normal);
+        if (thisRb != null)
+        {
+            thisRb.linearVelocity = normal;
+        }
+    }
+
     // events declared in the interface-compatible form earlier; remove older parameterless declarations
     // (kept for compatibility with IWallSlidingProvider as Action<Vector3>)
-    
-
-
-
 
 
     #endregion
 }
+
