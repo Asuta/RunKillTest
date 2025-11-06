@@ -20,6 +20,11 @@ public class EditorPlayer : MonoBehaviour
     private DuplicateObjectCommand currentDuplicateCommand = null; // 当前复制命令
 
     private Collider[] hitColliders = new Collider[10]; // 用于OverlapSphereNonAlloc的碰撞器数组
+    
+    // 跟踪菜单键状态的变量
+    private bool menuKeyPressed = false;
+    private float menuKeyPressTime = 0f;
+    private const float QUICK_PRESS_THRESHOLD = 0.2f; // 快速按下的时间阈值（秒）
     #endregion
 
     #region Unity 生命周期方法
@@ -35,11 +40,41 @@ public class EditorPlayer : MonoBehaviour
         // 检测左右手附近的可抓取对象
         CheckForGrabableObjects();
 
-        // 左手柄菜单键（Menu）
+        // 检测左手柄菜单键按下
         if (InputActionsManager.Actions.XRILeftInteraction.Menu.WasPressedThisFrame())
         {
+            menuKeyPressed = true;
+            menuKeyPressTime = Time.time;
             Debug.Log("左手柄菜单键按下");
-            UITarget.SetActive(!UITarget.activeSelf);
+        }
+        
+        // 检测左手柄菜单键抬起（只有快速按下后抬起的情况）
+        if (InputActionsManager.Actions.XRILeftInteraction.Menu.WasReleasedThisFrame() && menuKeyPressed)
+        {
+            float pressDuration = Time.time - menuKeyPressTime;
+            menuKeyPressed = false;
+            
+            // 只有按下时间小于阈值才认为是快速按下
+            if (pressDuration < QUICK_PRESS_THRESHOLD)
+            {
+                Debug.Log($"左手柄菜单键快速抬起，按下时长: {pressDuration:F2}秒");
+                
+                // 切换UITarget的active状态
+                if (UITarget != null)
+                {
+                    bool newState = !UITarget.activeSelf;
+                    UITarget.SetActive(newState);
+                    Debug.Log("UITarget状态切换为: " + (newState ? "激活" : "禁用"));
+                }
+                else
+                {
+                    Debug.LogWarning("UITarget为空");
+                }
+            }
+            else
+            {
+                Debug.Log($"左手柄菜单键长按后抬起，按下时长: {pressDuration:F2}秒，不触发UI切换");
+            }
         }
 
         // 左手扳机按下时抓取物体
