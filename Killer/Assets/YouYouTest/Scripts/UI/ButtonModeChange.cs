@@ -7,7 +7,7 @@ using VInspector;
 public class ButtonModeChange : MonoBehaviour
 {
     private Button button;
-    public GameObject SaveUI;
+
     
     // Start is called once before the first execution of Update after the MonoBehaviour is created
     void Start()
@@ -37,19 +37,20 @@ public class ButtonModeChange : MonoBehaviour
     [Button]
     void OnButtonClick()
     {
-        Debug.Log("按钮被点击了！");
-        // 在这里添加按钮点击后要执行的逻辑
-        SaveUI.SetActive(!SaveUI.activeSelf);
+        // 获取GameManager实例并切换模式
+        if (GameManager.Instance != null)
+        {
+            // 切换到相反的模式
+            GameManager.Instance.SetPlayMode(!GameManager.Instance.IsPlayMode);
+            Debug.Log($"按钮点击切换模式: {(GameManager.Instance.IsPlayMode ? "游戏模式" : "编辑模式")}");
+        }
+        else
+        {
+            Debug.LogWarning("GameManager实例未找到，无法切换模式");
+        }
     }
     
-    // // 实现IPointerDownHandler接口，在鼠标按下时立即触发
-    // public void OnPointerDown(PointerEventData eventData)
-    // {
-    //     Debug.Log("按钮被按下（鼠标还未抬起）！");
-    //     // 在鼠标按下时立即执行逻辑
-    //     GlobalEvent.CreateButtonPoke.Invoke(createPrefab,transform);
-    // }
-    
+
     // 当对象被销毁时移除事件监听，防止内存泄漏
     void OnDestroy()
     {
