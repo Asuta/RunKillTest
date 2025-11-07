@@ -16,6 +16,12 @@ public class NewVRMove : MonoBehaviour
     public Vector3 residualVelocity;
     public float speedDecay;
 
+    public Vector3 finalVelocity;
+    public float finalVelocityMultiplier;
+
+    public Rigidbody rigidbody;
+
+
 
 
 
@@ -119,6 +125,16 @@ public class NewVRMove : MonoBehaviour
         {
             Debug.DrawLine(linePosition.position, linePosition.position + residualVelocity * 11f, Color.red, 0.1f);
         }
+
+
+        finalVelocity = residualVelocity + leftDirection + rightDirection;
+
+        if (linePosition != null)
+        {
+            Debug.DrawLine(linePosition.position, linePosition.position + finalVelocity * 11f, Color.green, 0.1f);
+        }
+
+        rigidbody.linearVelocity = finalVelocity * finalVelocityMultiplier;
     }
 
     // 用于检测grip键状态变化
