@@ -43233,7 +43233,7 @@ MonoBehaviour:
   speedDecay: 0.4
   finalVelocity: {x: 0, y: 0, z: 0}
   finalVelocityMultiplier: 33
-  rigidbody: {fileID: 8452711748080353600}
+  thisRb: {fileID: 8452711748080353600}
   linePosition: {fileID: 627479998}
   lerpSpeed: 5
 --- !u!1 &9206708421677744238

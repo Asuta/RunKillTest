@@ -19,7 +19,7 @@ public class NewVRMove : MonoBehaviour
     public Vector3 finalVelocity;
     public float finalVelocityMultiplier;
 
-    public Rigidbody rigidbody;
+    public Rigidbody thisRb;
 
 
 
@@ -37,8 +37,8 @@ public class NewVRMove : MonoBehaviour
     void Start()
     {
         // 初始化grip状态
-        lastLeftGrip = 0f;
-        lastRightGrip = 0f;
+        lastLeftGripPressed = false;
+        lastRightGripPressed = false;
     }
 
     // Update is called once per frame
@@ -50,9 +50,9 @@ public class NewVRMove : MonoBehaviour
     // LateUpdate is called after all Update functions have been called
     void LateUpdate()
     {
-        // 先读取当前grip值（但不要在读取后马上覆盖球体位置）
-        float leftGrip = InputActionsManager.Actions.XRILeftInteraction.SelectValue.ReadValue<float>();
-        float rightGrip = InputActionsManager.Actions.XRIRightInteraction.SelectValue.ReadValue<float>();
+        // 读取当前grip状态（布尔值）
+        bool leftGripPressed = InputActionsManager.Actions.XRILeftInteraction.Select.IsPressed();
+        bool rightGripPressed = InputActionsManager.Actions.XRIRightInteraction.Select.IsPressed();
 
         // 1) 先基于当前sphere与target的"真实位置"计算方向向量（**必须在修改球体位置之前计算**）
         if (leftSphere != null && leftSphereTarget != null)
@@ -76,24 +76,24 @@ public class NewVRMove : MonoBehaviour
         }
 
         // 2) 在把球体位置写回target之前，检测"松手瞬间"，把当时捕获到的方向累加到residualVelocity
-        if (lastLeftGrip > 0.1f && leftGrip <= 0.1f)
+        if (lastLeftGripPressed && !leftGripPressed)
         {
             residualVelocity += leftDirection;
             Debug.Log("左手松开（捕获前一帧位置），累加leftDirection到residualVelocity: " + leftDirection);
         }
 
-        if (lastRightGrip > 0.1f && rightGrip <= 0.1f)
+        if (lastRightGripPressed && !rightGripPressed)
         {
             residualVelocity += rightDirection;
             Debug.Log("右手松开（捕获前一帧位置），累加rightDirection到residualVelocity: " + rightDirection);
         }
 
         // 3) 更新grip历史状态（用于下一帧检测）
-        lastLeftGrip = leftGrip;
-        lastRightGrip = rightGrip;
+        lastLeftGripPressed = leftGripPressed;
+        lastRightGripPressed = rightGripPressed;
 
         // 4) 现在执行跟随逻辑（Lerp 或 直接设置）
-        if (leftGrip > 0.1f && leftSphere != null && leftSphereTarget != null)
+        if (leftGripPressed && leftSphere != null && leftSphereTarget != null)
         {
             leftSphere.position = Vector3.Lerp(leftSphere.position, leftSphereTarget.position, lerpSpeed * Time.deltaTime);
             leftSphere.rotation = Quaternion.Slerp(leftSphere.rotation, leftSphereTarget.rotation, lerpSpeed * Time.deltaTime);
@@ -105,7 +105,7 @@ public class NewVRMove : MonoBehaviour
             leftSphere.rotation = leftSphereTarget.rotation;
         }
 
-        if (rightGrip > 0.1f && rightSphere != null && rightSphereTarget != null)
+        if (rightGripPressed && rightSphere != null && rightSphereTarget != null)
         {
             rightSphere.position = Vector3.Lerp(rightSphere.position, rightSphereTarget.position, lerpSpeed * Time.deltaTime);
             rightSphere.rotation = Quaternion.Slerp(rightSphere.rotation, rightSphereTarget.rotation, lerpSpeed * Time.deltaTime);
@@ -127,17 +127,28 @@ public class NewVRMove : MonoBehaviour
         }
 
 
-        finalVelocity = residualVelocity + leftDirection + rightDirection;
+        // 只有在对应grip键按住时才将方向向量加到最终速度中
+        Vector3 activeDirection = Vector3.zero;
+        if (leftGripPressed)
+        {
+            activeDirection += leftDirection;
+        }
+        if (rightGripPressed)
+        {
+            activeDirection += rightDirection;
+        }
+        
+        finalVelocity = residualVelocity + activeDirection;
 
         if (linePosition != null)
         {
             Debug.DrawLine(linePosition.position, linePosition.position + finalVelocity * 11f, Color.green, 0.1f);
         }
 
-        rigidbody.linearVelocity = finalVelocity * finalVelocityMultiplier;
+        thisRb.linearVelocity = finalVelocity * finalVelocityMultiplier;
     }
 
     // 用于检测grip键状态变化
-    private float lastLeftGrip;
-    private float lastRightGrip;
+    private bool lastLeftGripPressed;
+    private bool lastRightGripPressed;
 }
