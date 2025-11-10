@@ -17,7 +17,7 @@ public class EditorPlayer : MonoBehaviour
     public IGrabable rightGrabbedObject = null; // 右手当前抓取的物体
     private GrabCommand leftCurrentGrabCommand = null; // 左手当前抓取命令
     private GrabCommand rightCurrentGrabCommand = null; // 右手当前抓取命令
-    private DuplicateObjectCommand currentDuplicateCommand = null; // 当前复制命令
+    private YouYouTest.CommandFramework.CombinedCreateAndMoveCommand currentDuplicateCommand = null; // 当前复制命令（合并创建与移动）
 
     private Collider[] hitColliders = new Collider[10]; // 用于OverlapSphereNonAlloc的碰撞器数组
     
@@ -198,8 +198,18 @@ public class EditorPlayer : MonoBehaviour
             return;
         }
 
-        // 创建抓取命令，记录抓取前的状态
-        leftCurrentGrabCommand = new GrabCommand(cubeMove.ObjectTransform, cubeMove.ObjectTransform.position, cubeMove.ObjectTransform.rotation);
+        // 创建抓取命令，记录抓取前的状态（如果是刚复制的物体，则合并到复制命令，不创建单独的 GrabCommand）
+        bool isDuplicated = currentDuplicateCommand != null && currentDuplicateCommand.GetCreatedObject() == targetObject;
+        if (!isDuplicated)
+        {
+            leftCurrentGrabCommand = new GrabCommand(cubeMove.ObjectTransform, cubeMove.ObjectTransform.position, cubeMove.ObjectTransform.rotation);
+        }
+        else
+        {
+            // 对于刚复制出来并立即抓取的物体，使用 currentDuplicateCommand 来记录最终位置，
+            // 因此这里不生成单独的 GrabCommand，避免在历史中产生两条命令（Create + Move）
+            leftCurrentGrabCommand = null;
+        }
 
         // 抓取这个物体
         leftGrabbedObject = cubeMove;
@@ -295,8 +305,18 @@ public class EditorPlayer : MonoBehaviour
             return;
         }
 
-        // 创建抓取命令，记录抓取前的状态
-        rightCurrentGrabCommand = new GrabCommand(cubeMove.ObjectTransform, cubeMove.ObjectTransform.position, cubeMove.ObjectTransform.rotation);
+        // 创建抓取命令，记录抓取前的状态（如果是刚复制的物体，则合并到复制命令，不创建单独的 GrabCommand）
+        bool isDuplicated = currentDuplicateCommand != null && currentDuplicateCommand.GetCreatedObject() == targetObject;
+        if (!isDuplicated)
+        {
+            rightCurrentGrabCommand = new GrabCommand(cubeMove.ObjectTransform, cubeMove.ObjectTransform.position, cubeMove.ObjectTransform.rotation);
+        }
+        else
+        {
+            // 对于刚复制出来并立即抓取的物体，使用 currentDuplicateCommand 来记录最终位置，
+            // 因此这里不生成单独的 GrabCommand，避免在历史中产生两条命令（Create + Move）
+            rightCurrentGrabCommand = null;
+        }
 
         // 抓取这个物体
         rightGrabbedObject = cubeMove;
@@ -452,14 +472,14 @@ public class EditorPlayer : MonoBehaviour
         {
             GameObject originalObject = sourceObject.ObjectGameObject;
             
-            // 在原始物体的位置和角度复制物体
-            currentDuplicateCommand = new DuplicateObjectCommand(originalObject, originalObject.transform.position, originalObject.transform.rotation);
+            // 在原始物体的位置和角度复制物体（使用合并命令：创建 + 移动）
+            currentDuplicateCommand = new YouYouTest.CommandFramework.CombinedCreateAndMoveCommand(originalObject, originalObject.transform.position, originalObject.transform.rotation);
             
             // 执行复制命令并添加到历史
             CommandHistory.Instance.ExecuteCommand(currentDuplicateCommand);
             
-            // 获取复制的物体
-            GameObject duplicatedObject = currentDuplicateCommand.GetDuplicatedObject();
+            // 获取创建的物体实例
+            GameObject duplicatedObject = currentDuplicateCommand.GetCreatedObject();
             
             if (duplicatedObject != null)
             {
@@ -497,7 +517,7 @@ public class EditorPlayer : MonoBehaviour
         if (leftGrabbedObject != null)
         {
             // 如果有复制命令，更新其最终位置和旋转
-            if (currentDuplicateCommand != null && leftGrabbedObject.ObjectGameObject == currentDuplicateCommand.GetDuplicatedObject())
+            if (currentDuplicateCommand != null && leftGrabbedObject.ObjectGameObject == currentDuplicateCommand.GetCreatedObject())
             {
                 currentDuplicateCommand.UpdateTransform(leftGrabbedObject.ObjectTransform.position, leftGrabbedObject.ObjectTransform.rotation);
                 currentDuplicateCommand = null;
@@ -558,14 +578,14 @@ public class EditorPlayer : MonoBehaviour
         {
             GameObject originalObject = sourceObject.ObjectGameObject;
             
-            // 在原始物体的位置和角度复制物体
-            currentDuplicateCommand = new DuplicateObjectCommand(originalObject, originalObject.transform.position, originalObject.transform.rotation);
+            // 在原始物体的位置和角度复制物体（使用合并命令：创建 + 移动）
+            currentDuplicateCommand = new YouYouTest.CommandFramework.CombinedCreateAndMoveCommand(originalObject, originalObject.transform.position, originalObject.transform.rotation);
             
             // 执行复制命令并添加到历史
             CommandHistory.Instance.ExecuteCommand(currentDuplicateCommand);
             
-            // 获取复制的物体
-            GameObject duplicatedObject = currentDuplicateCommand.GetDuplicatedObject();
+            // 获取创建的物体实例
+            GameObject duplicatedObject = currentDuplicateCommand.GetCreatedObject();
             
             if (duplicatedObject != null)
             {
@@ -603,7 +623,7 @@ public class EditorPlayer : MonoBehaviour
         if (rightGrabbedObject != null)
         {
             // 如果有复制命令，更新其最终位置和旋转
-            if (currentDuplicateCommand != null && rightGrabbedObject.ObjectGameObject == currentDuplicateCommand.GetDuplicatedObject())
+            if (currentDuplicateCommand != null && rightGrabbedObject.ObjectGameObject == currentDuplicateCommand.GetCreatedObject())
             {
                 currentDuplicateCommand.UpdateTransform(rightGrabbedObject.ObjectTransform.position, rightGrabbedObject.ObjectTransform.rotation);
                 currentDuplicateCommand = null;
