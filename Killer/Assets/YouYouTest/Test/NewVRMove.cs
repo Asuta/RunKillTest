@@ -57,8 +57,10 @@ public class NewVRMove : MonoBehaviour
         // 1) 先基于当前sphere与target的"真实位置"计算方向向量（**必须在修改球体位置之前计算**）
         if (leftSphere != null && leftSphereTarget != null)
         {
-            leftDirection = leftSphere.position - leftSphereTarget.position;
-            leftDirection = new Vector3(leftDirection.x, 0, leftDirection.z); // 只保留水平分量
+            Vector3 rawLeftDirection = leftSphere.position - leftSphereTarget.position;
+            float leftMagnitude = rawLeftDirection.magnitude; // 记录原始长度
+            Vector3 leftHorizontalDirection = new Vector3(rawLeftDirection.x, 0, rawLeftDirection.z).normalized; // 拍平并归一化得到方向
+            leftDirection = leftHorizontalDirection * leftMagnitude; // 用方向加上原始长度
         }
         else
         {
@@ -67,8 +69,10 @@ public class NewVRMove : MonoBehaviour
 
         if (rightSphere != null && rightSphereTarget != null)
         {
-            rightDirection = rightSphere.position - rightSphereTarget.position;
-            rightDirection = new Vector3(rightDirection.x, 0, rightDirection.z); // 只保留水平分量
+            Vector3 rawRightDirection = rightSphere.position - rightSphereTarget.position;
+            float rightMagnitude = rawRightDirection.magnitude; // 记录原始长度
+            Vector3 rightHorizontalDirection = new Vector3(rawRightDirection.x, 0, rawRightDirection.z).normalized; // 拍平并归一化得到方向
+            rightDirection = rightHorizontalDirection * rightMagnitude; // 用方向加上原始长度
         }
         else
         {
