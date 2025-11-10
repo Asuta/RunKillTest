@@ -15,6 +15,7 @@ public class NewVRMove : MonoBehaviour
 
     public Vector3 residualVelocity;
     public float speedDecay;
+    public float speedDecayAdd;
 
     public Vector3 finalVelocity;
     public float finalVelocityMultiplier;
@@ -121,7 +122,9 @@ public class NewVRMove : MonoBehaviour
         }
 
         // 5) 每帧都让residualVelocity以speedDecay衰减（使用MoveTowards避免反向）
-        residualVelocity = Vector3.MoveTowards(residualVelocity, Vector3.zero, speedDecay * Time.deltaTime);
+        // 当任意grip键按住时，使用增加的衰减速度
+        float currentSpeedDecay = (leftGripPressed || rightGripPressed) ? speedDecay + speedDecayAdd : speedDecay;
+        residualVelocity = Vector3.MoveTowards(residualVelocity, Vector3.zero, currentSpeedDecay * Time.deltaTime);
 
         // 日志与可视化（只显示residualVelocity）
         Debug.Log("当前residualVelocity: " + residualVelocity);

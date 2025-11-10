@@ -42661,7 +42661,7 @@ CapsuleCollider:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 6225746108458209435}
-  m_Material: {fileID: 0}
+  m_Material: {fileID: 13400000, guid: 911581225f0d8414aa37fb501130fe69, type: 2}
   m_IncludeLayers:
     serializedVersion: 2
     m_Bits: 0
@@ -43231,6 +43231,7 @@ MonoBehaviour:
   rightDirection: {x: 0, y: 0, z: 0}
   residualVelocity: {x: 0, y: 0, z: 0}
   speedDecay: 0.4
+  speedDecayAdd: 0.8
   finalVelocity: {x: 0, y: 0, z: 0}
   finalVelocityMultiplier: 33
   thisRb: {fileID: 8452711748080353600}
