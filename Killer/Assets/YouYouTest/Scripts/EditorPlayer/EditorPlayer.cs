@@ -136,20 +136,21 @@ public class EditorPlayer : MonoBehaviour
             Debug.Log("左手柄Y键按下：执行重做操作");
         }
 
-        // 右手柄A键复制当前抓取/接触的物体
+        // 右手柄A键复制当前抓取/接触的物体（已移至B键）
         if (InputActionsManager.Actions.XRIRightInteraction.PrimaryButton.WasPressedThisFrame())
+        {
+            // A键的复制/抓取功能已迁移至 B 键；保留方法以备将来使用
+            // 留空以暂时禁用 A 键的复制行为
+        }
+ 
+        // 右手柄B键复制当前抓取/接触的物体（替代原删除功能）
+        if (InputActionsManager.Actions.XRIRightInteraction.SecondaryButton.WasPressedThisFrame())
         {
             CopyRightHandObject();
         }
-
-        // 右手柄B键删除当前hold的物体
-        if (InputActionsManager.Actions.XRIRightInteraction.SecondaryButton.WasPressedThisFrame())
-        {
-            DeleteRightHandObject();
-        }
-
-        // 右手柄A键松开时释放复制的物体
-        if (InputActionsManager.Actions.XRIRightInteraction.PrimaryButton.WasReleasedThisFrame())
+ 
+        // 右手柄B键松开时释放复制的物体（对应复制从 B 键开始）
+        if (InputActionsManager.Actions.XRIRightInteraction.SecondaryButton.WasReleasedThisFrame())
         {
             ReleaseRightCopiedObject();
         }

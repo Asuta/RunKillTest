@@ -8,7 +8,8 @@ using YouYouTest.OutlineSystem;
 /// </summary>
 public class HandOutlineController : MonoBehaviour
 {
-    [SerializeField] private Color hoverColor = Color.blue;
+    [SerializeField] private Color hoverColor = Color.yellow;
+    [SerializeField] private Color selectColor = Color.yellow;
 
     // 为左右手分别维护描边接收器，以支持单实例管理两只手的描边状态
     private OutlineReceiver hoveredReceiverLeft;
