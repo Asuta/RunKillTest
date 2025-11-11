@@ -21929,7 +21929,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 11157fa1687ed83478e61eb77dd3e8ae, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  SaveUI: {fileID: 0}
 --- !u!222 &2292678460809845028
 CanvasRenderer:
   m_ObjectHideFlags: 0
@@ -22092,7 +22091,7 @@ Camera:
   m_HDR: 1
   m_AllowMSAA: 1
   m_AllowDynamicResolution: 0
-  m_ForceIntoRT: 0
+  m_ForceIntoRT: 1
   m_OcclusionCulling: 1
   m_StereoConvergence: 10
   m_StereoSeparation: 0.022
@@ -29796,6 +29795,8 @@ GameObject:
   - component: {fileID: 6085358990231381432}
   - component: {fileID: 6799901830672784344}
   - component: {fileID: 2131199362614535575}
+  - component: {fileID: 6799901830672784345}
+  - component: {fileID: 6799901830672784346}
   m_Layer: 0
   m_Name: Main Camera
   m_TagString: MainCamera
@@ -29982,6 +29983,50 @@ MonoBehaviour:
       m_Action: Rotation
       m_Flags: 0
     m_Flags: 0
+--- !u!114 &6799901830672784345
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 6692762120149633022}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 7bb42831ee5422f409e7f24f9e7488ea, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  stage: 1
+  renderingStrategy: 0
+  renderingMode: 0
+  outlineLayerMask: -1
+  primaryBufferSizeMode: 0
+  primaryRendererScale: 0.75
+  primarySizeReference: 800
+  blurShift: 1
+  dilateShift: 1
+  dilateIterations: 1
+  dilateQuality: 0
+  blurIterations: 1
+  blurType: 1
+--- !u!114 &6799901830672784346
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 6692762120149633022}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 4d8f37d6bd3ba01498fdf0f039d9faec, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  targetCamera: {fileID: 0}
+  raycastMask:
+    serializedVersion: 2
+    m_Bits: 4294967295
+  hoverColor: {r: 0, g: 0, b: 1, a: 1}
+  clickColor: {r: 1, g: 0, b: 0, a: 1}
+  maxDistance: 100
 --- !u!114 &6809008849923178041
 MonoBehaviour:
   m_ObjectHideFlags: 0

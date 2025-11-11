@@ -1,7 +1,7 @@
 using UnityEngine;
 using UnityEngine.XR.Interaction.Toolkit.Interactors.Visuals;
 
-public class LineWidthControl : MonoBehaviour
+public class RayLineWidthControl : MonoBehaviour
 {
     // 存储原始宽度的变量
     private float originalLeftWidth = 0.005f; // 默认线条宽度
