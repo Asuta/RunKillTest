@@ -22752,6 +22752,7 @@ GameObject:
   - component: {fileID: 8223112171882798670}
   - component: {fileID: 1791249912}
   - component: {fileID: 9167095900856961749}
+  - component: {fileID: 9167095900856961750}
   m_Layer: 2
   m_Name: EditorRig
   m_TagString: Untagged
@@ -34452,6 +34453,7 @@ MonoBehaviour:
   leftCheckSphere: {fileID: 1071562453528316187}
   rightHand: {fileID: 1585574482027425280}
   rightCheckSphere: {fileID: 6590754027943771977}
+  handOutlineController: {fileID: 9167095900856961750}
 --- !u!114 &9167095900856961749
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -34466,6 +34468,19 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   vrEditorRigOffset: {fileID: 4821350112615201696}
   vrEditorRigO: {fileID: 4226674471386617843}
+--- !u!114 &9167095900856961750
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2913991994253522856}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 87b02a06951ebfa48b9b7a6512849ce7, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  hoverColor: {r: 0, g: 0, b: 1, a: 1}
 --- !u!4 &9171353875955519944
 Transform:
   m_ObjectHideFlags: 0

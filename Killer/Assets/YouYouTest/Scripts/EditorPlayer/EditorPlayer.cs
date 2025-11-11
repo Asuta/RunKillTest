@@ -22,10 +22,8 @@ public class EditorPlayer : MonoBehaviour
 
     private Collider[] hitColliders = new Collider[10]; // 用于OverlapSphereNonAlloc的碰撞器数组
     
-    // 描边系统相关字段
-    [SerializeField] private Color hoverColor = Color.blue;
-    private OutlineReceiver leftHoveredReceiver;
-    private OutlineReceiver rightHoveredReceiver;
+    // 描边系统相关字段（单实例管理左右手）
+    [SerializeField] private HandOutlineController handOutlineController;
     
     // 跟踪菜单键状态的变量
     private bool menuKeyPressed = false;
@@ -220,6 +218,8 @@ public class EditorPlayer : MonoBehaviour
         // 抓取这个物体
         leftGrabbedObject = cubeMove;
         cubeMove.OnGrabbed(leftHand);
+        // 立即更新描边控制器，确保程序化抓取也能同步描边状态
+        handOutlineController?.UpdateTarget(true, leftHoldObject, leftHoldObject, leftGrabbedObject);
         Debug.Log($"左手抓取了物体: {targetObject.name}");
     }
 
@@ -247,17 +247,20 @@ public class EditorPlayer : MonoBehaviour
         // 通知对象左手释放，由对象内部决定是否完全释放或切换到另一只手
         leftGrabbedObject.OnReleased(leftHand);
 
+        // 立刻更新描边控制器（将 grabbedObject 传 null），防止程序化抓取后无法恢复描边的问题
+        handOutlineController?.UpdateTarget(true, leftHoldObject, leftHoldObject, null);
+    
         // 完成抓取命令并添加到历史
         if (leftCurrentGrabCommand != null)
         {
             // 设置最终位置和旋转
             leftCurrentGrabCommand.SetEndTransform(leftGrabbedObject.ObjectTransform.position, leftGrabbedObject.ObjectTransform.rotation);
-
+    
             // 执行命令并添加到历史
             CommandHistory.Instance.ExecuteCommand(leftCurrentGrabCommand);
             Debug.Log($"左手抓取命令已执行: {leftGrabbedObject.ObjectGameObject.name} 从 {leftCurrentGrabCommand}");
         }
-
+    
         Debug.Log($"左手松开了抓取的物体: {leftGrabbedObject.ObjectGameObject.name}");
         leftGrabbedObject = null;
         leftCurrentGrabCommand = null;
@@ -327,6 +330,8 @@ public class EditorPlayer : MonoBehaviour
         // 抓取这个物体
         rightGrabbedObject = cubeMove;
         cubeMove.OnGrabbed(rightHand);
+        // 立即更新描边控制器，确保程序化抓取也能同步描边状态
+        handOutlineController?.UpdateTarget(false, rightHoldObject, rightHoldObject, rightGrabbedObject);
         Debug.Log($"右手抓取了物体: {targetObject.name}");
     }
 
@@ -354,17 +359,20 @@ public class EditorPlayer : MonoBehaviour
         // 通知对象右手释放，由对象内部决定是否完全释放或切换到另一只手
         rightGrabbedObject.OnReleased(rightHand);
 
+        // 立刻更新描边控制器（将 grabbedObject 传 null），防止程序化抓取后无法恢复描边的问题
+        handOutlineController?.UpdateTarget(false, rightHoldObject, rightHoldObject, null);
+    
         // 完成抓取命令并添加到历史
         if (rightCurrentGrabCommand != null)
         {
             // 设置最终位置和旋转
             rightCurrentGrabCommand.SetEndTransform(rightGrabbedObject.ObjectTransform.position, rightGrabbedObject.ObjectTransform.rotation);
-
+    
             // 执行命令并添加到历史
             CommandHistory.Instance.ExecuteCommand(rightCurrentGrabCommand);
             Debug.Log($"右手抓取命令已执行: {rightGrabbedObject.ObjectGameObject.name} 从 {rightCurrentGrabCommand}");
         }
-
+    
         Debug.Log($"右手松开了抓取的物体: {rightGrabbedObject.ObjectGameObject.name}");
         rightGrabbedObject = null;
         rightCurrentGrabCommand = null;
@@ -380,16 +388,14 @@ public class EditorPlayer : MonoBehaviour
         // 检测左手附近的可抓取对象
         IGrabable previousLeftHoldObject = leftHoldObject;
         leftHoldObject = DetectGrabableObject(leftCheckSphere);
-        
-        // 更新左手描边状态（包括hold和grabbed的对象）
-        UpdateOutlineState(ref leftHoveredReceiver, previousLeftHoldObject, leftHoldObject, leftGrabbedObject);
+        // 使用单实例 HandOutlineController 管理描边显示（传入手侧标识）
+        handOutlineController?.UpdateTarget(true, previousLeftHoldObject, leftHoldObject, leftGrabbedObject);
 
         // 检测右手附近的可抓取对象
         IGrabable previousRightHoldObject = rightHoldObject;
         rightHoldObject = DetectGrabableObject(rightCheckSphere);
-        
-        // 更新右手描边状态（包括hold和grabbed的对象）
-        UpdateOutlineState(ref rightHoveredReceiver, previousRightHoldObject, rightHoldObject, rightGrabbedObject);
+        // 使用单实例 HandOutlineController 管理描边显示（传入手侧标识）
+        handOutlineController?.UpdateTarget(false, previousRightHoldObject, rightHoldObject, rightGrabbedObject);
     }
 
     /// <summary>
@@ -431,56 +437,8 @@ public class EditorPlayer : MonoBehaviour
         // 没有找到IGrabable对象，返回null
         return null;
     }
-
-    /// <summary>
-    /// 更新描边状态
-    /// </summary>
-    /// <param name="hoveredReceiver">当前hover的接收器引用</param>
-    /// <param name="previousHoldObject">之前hold的对象</param>
-    /// <param name="currentHoldObject">当前hold的对象</param>
-    /// <param name="grabbedObject">当前抓取的对象</param>
-    private void UpdateOutlineState(ref OutlineReceiver hoveredReceiver, IGrabable previousHoldObject, IGrabable currentHoldObject, IGrabable grabbedObject)
-    {
-        // 确定应该显示描边的对象（优先级：grabbedObject > currentHoldObject）
-        IGrabable targetObject = grabbedObject != null ? grabbedObject : currentHoldObject;
-        IGrabable previousTargetObject = previousHoldObject;
-
-        // 如果之前有grabbed对象，也要考虑清除
-        if (grabbedObject == null && previousHoldObject == null && hoveredReceiver != null)
-        {
-            // 这种情况可能是从grabbed状态变为无状态
-            hoveredReceiver.SetState(OutlineState.None, Color.clear);
-            hoveredReceiver = null;
-            return;
-        }
-
-        // 如果目标对象发生了变化
-        if (previousTargetObject != targetObject)
-        {
-            // 清除之前对象的hover状态
-            if (previousTargetObject != null && hoveredReceiver != null)
-            {
-                hoveredReceiver.SetState(OutlineState.None, Color.clear);
-                hoveredReceiver = null;
-            }
-
-            // 设置新对象的hover状态
-            if (targetObject != null)
-            {
-                GameObject targetGameObject = targetObject.ObjectGameObject;
-                if (targetGameObject != null)
-                {
-                    OutlineReceiver receiver = targetGameObject.GetComponentInParent<OutlineReceiver>();
-                    if (receiver != null)
-                    {
-                        receiver.SetState(OutlineState.Hover, hoverColor);
-                        hoveredReceiver = receiver;
-                    }
-                }
-            }
-        }
-    }
     #endregion
+
 
     #region 物体删除方法
     /// <summary>
@@ -698,21 +656,4 @@ public class EditorPlayer : MonoBehaviour
     }
     #endregion
 
-    #region 描边系统清理
-    private void OnDisable()
-    {
-        // 清理所有描边状态
-        if (leftHoveredReceiver != null)
-        {
-            leftHoveredReceiver.Restore();
-            leftHoveredReceiver = null;
-        }
-
-        if (rightHoveredReceiver != null)
-        {
-            rightHoveredReceiver.Restore();
-            rightHoveredReceiver = null;
-        }
-    }
-    #endregion
 }
