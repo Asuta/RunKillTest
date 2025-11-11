@@ -1,4 +1,3 @@
-using System.Collections.Generic;
 using UnityEngine;
 using EPOOutline;
 
@@ -13,17 +12,8 @@ namespace YouYouTest.OutlineSystem
         [SerializeField] private Color clickColor = Color.red;
         [SerializeField] private float maxDistance = 100f;
 
-        private Outlinable hovered;
-        private Outlinable clicked;
-        private Dictionary<Outlinable, OriginalColors> originalColors = new Dictionary<Outlinable, OriginalColors>();
-
-        private struct OriginalColors
-        {
-            public Color single;
-            public Color front;
-            public Color back;
-            public bool stored;
-        }
+        private OutlineReceiver hoveredReceiver;
+        private OutlineReceiver clickedReceiver;
 
         private void Awake()
         {
@@ -35,7 +25,7 @@ namespace YouYouTest.OutlineSystem
         {
             DoRaycast();
             HandleInput();
-            CleanupDestroyedKeys();
+            CleanupDestroyedReceivers();
         }
 
         private void DoRaycast()
@@ -46,8 +36,8 @@ namespace YouYouTest.OutlineSystem
             var ray = targetCamera.ScreenPointToRay(Input.mousePosition);
             if (Physics.Raycast(ray, out var hit, maxDistance, raycastMask))
             {
-                var o = hit.collider.gameObject.GetComponentInParent<Outlinable>();
-                SetHovered(o);
+                var receiver = hit.collider.gameObject.GetComponentInParent<OutlineReceiver>();
+                SetHovered(receiver);
             }
             else
             {
@@ -55,163 +45,76 @@ namespace YouYouTest.OutlineSystem
             }
         }
 
-        private void SetHovered(Outlinable o)
+        private void SetHovered(OutlineReceiver receiver)
         {
-            if (hovered == o)
+            if (hoveredReceiver == receiver)
                 return;
 
-            if (hovered != null && hovered != clicked)
-                RestoreColors(hovered);
+            if (hoveredReceiver != null && hoveredReceiver != clickedReceiver)
+                hoveredReceiver.Restore();
 
-            hovered = o;
+            hoveredReceiver = receiver;
 
-            if (hovered != null && hovered != clicked)
-            {
-                StoreOriginalIfNeeded(hovered);
-                ApplyColor(hovered, hoverColor);
-            }
+            if (hoveredReceiver != null && hoveredReceiver != clickedReceiver)
+                hoveredReceiver.OnHover(hoverColor);
         }
 
         private void HandleInput()
         {
             if (Input.GetMouseButtonDown(0))
             {
-                if (hovered != null)
-                    SetClicked(hovered);
+                if (hoveredReceiver != null)
+                    SetClicked(hoveredReceiver);
                 else
                     ClearClicked();
             }
         }
 
-        private void SetClicked(Outlinable o)
+        private void SetClicked(OutlineReceiver receiver)
         {
-            if (clicked == o)
+            if (clickedReceiver == receiver)
                 return;
 
-            if (clicked != null)
-                RestoreColors(clicked);
+            if (clickedReceiver != null)
+                clickedReceiver.Restore();
 
-            clicked = o;
+            clickedReceiver = receiver;
 
-            if (clicked != null)
-            {
-                StoreOriginalIfNeeded(clicked);
-                ApplyColor(clicked, clickColor);
-            }
+            if (clickedReceiver != null)
+                clickedReceiver.OnClick(clickColor);
         }
 
         private void ClearClicked()
         {
-            if (clicked != null)
+            if (clickedReceiver != null)
             {
-                RestoreColors(clicked);
-                clicked = null;
+                clickedReceiver.Restore();
+                clickedReceiver = null;
 
-                if (hovered != null)
-                {
-                    StoreOriginalIfNeeded(hovered);
-                    ApplyColor(hovered, hoverColor);
-                }
+                if (hoveredReceiver != null)
+                    hoveredReceiver.OnHover(hoverColor);
             }
         }
 
-        private void StoreOriginalIfNeeded(Outlinable o)
+        private void CleanupDestroyedReceivers()
         {
-            if (o == null)
-                return;
+            if (hoveredReceiver != null && hoveredReceiver.Equals(null))
+                hoveredReceiver = null;
 
-            if (originalColors.TryGetValue(o, out var existing) && existing.stored)
-                return;
-
-            var oc = new OriginalColors();
-            if (o.RenderStyle == RenderStyle.Single)
-            {
-                oc.single = o.OutlineParameters.Color;
-            }
-            else
-            {
-                oc.front = o.FrontParameters.Color;
-                oc.back = o.BackParameters.Color;
-            }
-
-            oc.stored = true;
-            originalColors[o] = oc;
-        }
-
-        private void ApplyColor(Outlinable o, Color color)
-        {
-            if (o == null)
-                return;
-
-            if (o.RenderStyle == RenderStyle.Single)
-                o.OutlineParameters.Color = color;
-            else
-            {
-                o.FrontParameters.Color = color;
-                o.BackParameters.Color = color;
-            }
-        }
-
-        private void RestoreColors(Outlinable o)
-        {
-            if (o == null)
-                return;
-
-            if (!originalColors.TryGetValue(o, out var oc))
-                return;
-
-            if (o.RenderStyle == RenderStyle.Single)
-                o.OutlineParameters.Color = oc.single;
-            else
-            {
-                o.FrontParameters.Color = oc.front;
-                o.BackParameters.Color = oc.back;
-            }
-
-            originalColors.Remove(o);
-        }
-
-        private void CleanupDestroyedKeys()
-        {
-            var toRemove = new List<Outlinable>();
-            foreach (var kv in originalColors)
-            {
-                if (kv.Key == null)
-                    toRemove.Add(kv.Key);
-            }
-
-            foreach (var k in toRemove)
-                originalColors.Remove(k);
-
-            if (hovered != null && hovered.Equals(null))
-                hovered = null;
-
-            if (clicked != null && clicked.Equals(null))
-                clicked = null;
+            if (clickedReceiver != null && clickedReceiver.Equals(null))
+                clickedReceiver = null;
         }
 
         private void OnDisable()
         {
-            // restore all stored colors
-            foreach (var kv in new List<KeyValuePair<Outlinable, OriginalColors>>(originalColors))
-            {
-                if (kv.Key == null)
-                    continue;
+            if (hoveredReceiver != null)
+                hoveredReceiver.Restore();
 
-                var o = kv.Key;
-                var oc = kv.Value;
-                if (o.RenderStyle == RenderStyle.Single)
-                    o.OutlineParameters.Color = oc.single;
-                else
-                {
-                    o.FrontParameters.Color = oc.front;
-                    o.BackParameters.Color = oc.back;
-                }
-            }
+            if (clickedReceiver != null)
+                clickedReceiver.Restore();
 
-            originalColors.Clear();
-            hovered = null;
-            clicked = null;
+            hoveredReceiver = null;
+            clickedReceiver = null;
         }
     }
 }
