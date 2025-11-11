@@ -35,7 +35,9 @@ namespace YouYouTest.OutlineSystem
             if (outlinable == null)
                 return;
     
-            // 显示描边并设置颜色（hover/click 时启用描边）
+            // 启用整个 Outlinable 脚本并设置颜色（hover/click 时启用描边）
+            outlinable.enabled = true;
+            
             if (outlinable.RenderStyle == RenderStyle.Single)
             {
                 outlinable.OutlineParameters.Color = color;
@@ -96,17 +98,8 @@ namespace YouYouTest.OutlineSystem
             if (!IsValid)
                 return;
     
-            if (outlinable.RenderStyle == RenderStyle.Single)
-            {
-                // 不在 hover 或 selected 时隐藏描边
-                outlinable.OutlineParameters.Enabled = false;
-            }
-            else
-            {
-                // 不在 hover 或 selected 时隐藏描边
-                outlinable.FrontParameters.Enabled = false;
-                outlinable.BackParameters.Enabled = false;
-            }
+            // 禁用整个 Outlinable 脚本来隐藏描边
+            outlinable.enabled = false;
     
             currentState = OutlineState.None;
         }
