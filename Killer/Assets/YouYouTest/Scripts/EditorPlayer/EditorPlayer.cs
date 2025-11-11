@@ -1,6 +1,7 @@
 using UnityEngine;
 using YouYouTest.CommandFramework;
 using YouYouTest.OutlineSystem;
+using YouYouTest;
 
 public class EditorPlayer : MonoBehaviour
 {
@@ -157,7 +158,7 @@ public class EditorPlayer : MonoBehaviour
 
     #region 左手操作方法
     /// <summary>
-    /// 左手抓取物体
+    /// 左手抓取物体（重构：使用工具方法以减少重复代码）
     /// </summary>
     /// <param name="targetObject">要抓取的物体</param>
     public void LeftHandGrab(GameObject targetObject)
@@ -168,108 +169,55 @@ public class EditorPlayer : MonoBehaviour
             return;
         }
 
-        IGrabable cubeMove = null;
-
-        // 首先尝试在目标对象上查找IGrabable组件
-        cubeMove = targetObject.GetComponent<IGrabable>();
-
-        // 如果没找到，尝试在附加的刚体上查找
-        if (cubeMove == null)
-        {
-            Rigidbody rigidbody = targetObject.GetComponent<Rigidbody>();
-            if (rigidbody != null)
-            {
-                cubeMove = rigidbody.GetComponent<IGrabable>();
-            }
-        }
-
+        // 从工具类获取 IGrabable（支持直接在 GameObject 或其刚体上查找）
+        IGrabable cubeMove = EditorPlayerHelpers.GetGrabableFromGameObject(targetObject);
         if (cubeMove == null)
         {
             Debug.LogWarning($"目标物体 {targetObject.name} 没有IGrabable组件，无法抓取");
             return;
         }
 
-        // 检查这个物体是否已经被右手抓取
+        // 双手同时抓取检查与已有抓取冲突
         if (rightGrabbedObject == cubeMove)
         {
-            // 允许双手同时抓取（对所有 IGrabable 生效），不清空右手状态与命令
             Debug.Log($"物体 {targetObject.name} 已被右手抓取，允许双手同时抓取");
         }
-        // 如果左手已经抓取了其他物体，先完成当前抓取命令
         else if (leftGrabbedObject != null && leftGrabbedObject != cubeMove)
         {
             Debug.LogWarning("左手已经抓取了其他物体，请先释放");
             return;
         }
 
-        // 创建抓取命令，记录抓取前的状态（如果是刚复制的物体，则合并到复制命令，不创建单独的 GrabCommand）
-        bool isDuplicated = currentDuplicateCommand != null && currentDuplicateCommand.GetCreatedObject() == targetObject;
-        if (!isDuplicated)
+        // 根据是否为复制刚创建的物体决定是否生成单独的 GrabCommand
+        leftCurrentGrabCommand = EditorPlayerHelpers.CreateGrabCommandIfNotDuplicated(currentDuplicateCommand, cubeMove);
+
+        // 抓取并更新描边
+        leftGrabbedObject = cubeMove;
+
+        // 防御性检查：确保 leftHand 已在 Inspector 分配，避免运行时 NullReferenceException
+        if (leftHand == null)
         {
-            leftCurrentGrabCommand = new GrabCommand(cubeMove.ObjectTransform, cubeMove.ObjectTransform.position, cubeMove.ObjectTransform.rotation);
-        }
-        else
-        {
-            // 对于刚复制出来并立即抓取的物体，使用 currentDuplicateCommand 来记录最终位置，
-            // 因此这里不生成单独的 GrabCommand，避免在历史中产生两条命令（Create + Move）
-            leftCurrentGrabCommand = null;
+            Debug.LogError("EditorPlayer.leftHand 未分配，请在 Inspector 中为 EditorPlayer 组件设置 leftHand 引用");
+            return;
         }
 
-        // 抓取这个物体
-        leftGrabbedObject = cubeMove;
         cubeMove.OnGrabbed(leftHand);
-        // 立即更新描边控制器，确保程序化抓取也能同步描边状态
         handOutlineController?.UpdateTarget(true, leftHoldObject, leftHoldObject, leftGrabbedObject);
         Debug.Log($"左手抓取了物体: {targetObject.name}");
     }
 
     /// <summary>
-    /// 左手释放物体
+    /// 左手释放物体（重构：委托给工具方法处理释放及命令提交）
     /// </summary>
     public void LeftHandRelease()
     {
-        if (leftGrabbedObject == null)
-        {
-            Debug.LogWarning("左手没有抓取任何物体");
-            return;
-        }
-
-        // 若底层对象已被销毁（Unity null），安全清理并退出
-        var leftHost = leftGrabbedObject as MonoBehaviour;
-        if (leftHost == null)
-        {
-            Debug.LogWarning("左手抓取的对象已被销毁，跳过释放与命令记录");
-            leftGrabbedObject = null;
-            leftCurrentGrabCommand = null;
-            return;
-        }
-
-        // 通知对象左手释放，由对象内部决定是否完全释放或切换到另一只手
-        leftGrabbedObject.OnReleased(leftHand);
-
-        // 立刻更新描边控制器（将 grabbedObject 传 null），防止程序化抓取后无法恢复描边的问题
-        handOutlineController?.UpdateTarget(true, leftHoldObject, leftHoldObject, null);
-    
-        // 完成抓取命令并添加到历史
-        if (leftCurrentGrabCommand != null)
-        {
-            // 设置最终位置和旋转
-            leftCurrentGrabCommand.SetEndTransform(leftGrabbedObject.ObjectTransform.position, leftGrabbedObject.ObjectTransform.rotation);
-    
-            // 执行命令并添加到历史
-            CommandHistory.Instance.ExecuteCommand(leftCurrentGrabCommand);
-            Debug.Log($"左手抓取命令已执行: {leftGrabbedObject.ObjectGameObject.name} 从 {leftCurrentGrabCommand}");
-        }
-    
-        Debug.Log($"左手松开了抓取的物体: {leftGrabbedObject.ObjectGameObject.name}");
-        leftGrabbedObject = null;
-        leftCurrentGrabCommand = null;
+        EditorPlayerHelpers.ReleaseGrab(ref leftGrabbedObject, ref leftCurrentGrabCommand, leftHand, true, handOutlineController);
     }
     #endregion
 
     #region 右手操作方法
     /// <summary>
-    /// 右手抓取物体
+    /// 右手抓取物体（重构：使用工具方法以减少重复代码）
     /// </summary>
     /// <param name="targetObject">要抓取的物体</param>
     public void RightHandGrab(GameObject targetObject)
@@ -280,102 +228,45 @@ public class EditorPlayer : MonoBehaviour
             return;
         }
 
-        IGrabable cubeMove = null;
-
-        // 首先尝试在目标对象上查找IGrabable组件
-        cubeMove = targetObject.GetComponent<IGrabable>();
-
-        // 如果没找到，尝试在附加的刚体上查找
-        if (cubeMove == null)
-        {
-            Rigidbody rigidbody = targetObject.GetComponent<Rigidbody>();
-            if (rigidbody != null)
-            {
-                cubeMove = rigidbody.GetComponent<IGrabable>();
-            }
-        }
-
+        IGrabable cubeMove = EditorPlayerHelpers.GetGrabableFromGameObject(targetObject);
         if (cubeMove == null)
         {
             Debug.LogWarning($"目标物体 {targetObject.name} 没有IGrabable组件，无法抓取");
             return;
         }
 
-        // 检查这个物体是否已经被左手抓取
         if (leftGrabbedObject == cubeMove)
         {
-            // 允许双手同时抓取（对所有 IGrabable 生效），不清空左手状态与命令
             Debug.Log($"物体 {targetObject.name} 已被左手抓取，允许双手同时抓取");
         }
-        // 如果右手已经抓取了其他物体，先完成当前抓取命令
         else if (rightGrabbedObject != null && rightGrabbedObject != cubeMove)
         {
             Debug.LogWarning("右手已经抓取了其他物体，请先释放");
             return;
         }
 
-        // 创建抓取命令，记录抓取前的状态（如果是刚复制的物体，则合并到复制命令，不创建单独的 GrabCommand）
-        bool isDuplicated = currentDuplicateCommand != null && currentDuplicateCommand.GetCreatedObject() == targetObject;
-        if (!isDuplicated)
+        rightCurrentGrabCommand = EditorPlayerHelpers.CreateGrabCommandIfNotDuplicated(currentDuplicateCommand, cubeMove);
+
+        rightGrabbedObject = cubeMove;
+
+        // 防御性检查：确保 rightHand 已在 Inspector 分配，避免运行时 NullReferenceException
+        if (rightHand == null)
         {
-            rightCurrentGrabCommand = new GrabCommand(cubeMove.ObjectTransform, cubeMove.ObjectTransform.position, cubeMove.ObjectTransform.rotation);
-        }
-        else
-        {
-            // 对于刚复制出来并立即抓取的物体，使用 currentDuplicateCommand 来记录最终位置，
-            // 因此这里不生成单独的 GrabCommand，避免在历史中产生两条命令（Create + Move）
-            rightCurrentGrabCommand = null;
+            Debug.LogError("EditorPlayer.rightHand 未分配，请在 Inspector 中为 EditorPlayer 组件设置 rightHand 引用");
+            return;
         }
 
-        // 抓取这个物体
-        rightGrabbedObject = cubeMove;
         cubeMove.OnGrabbed(rightHand);
-        // 立即更新描边控制器，确保程序化抓取也能同步描边状态
         handOutlineController?.UpdateTarget(false, rightHoldObject, rightHoldObject, rightGrabbedObject);
         Debug.Log($"右手抓取了物体: {targetObject.name}");
     }
 
     /// <summary>
-    /// 右手释放物体
+    /// 右手释放物体（重构：委托给工具方法处理释放及命令提交）
     /// </summary>
     public void RightHandRelease()
     {
-        if (rightGrabbedObject == null)
-        {
-            Debug.LogWarning("右手没有抓取任何物体");
-            return;
-        }
-        // 若底层对象已被销毁（Unity null），安全清理并退出
-        var rightHost = rightGrabbedObject as MonoBehaviour;
-        if (rightHost == null)
-        {
-            Debug.LogWarning("右手抓取的对象已被销毁，跳过释放与命令记录");
-            rightGrabbedObject = null;
-            rightCurrentGrabCommand = null;
-            return;
-        }
-
-
-        // 通知对象右手释放，由对象内部决定是否完全释放或切换到另一只手
-        rightGrabbedObject.OnReleased(rightHand);
-
-        // 立刻更新描边控制器（将 grabbedObject 传 null），防止程序化抓取后无法恢复描边的问题
-        handOutlineController?.UpdateTarget(false, rightHoldObject, rightHoldObject, null);
-    
-        // 完成抓取命令并添加到历史
-        if (rightCurrentGrabCommand != null)
-        {
-            // 设置最终位置和旋转
-            rightCurrentGrabCommand.SetEndTransform(rightGrabbedObject.ObjectTransform.position, rightGrabbedObject.ObjectTransform.rotation);
-    
-            // 执行命令并添加到历史
-            CommandHistory.Instance.ExecuteCommand(rightCurrentGrabCommand);
-            Debug.Log($"右手抓取命令已执行: {rightGrabbedObject.ObjectGameObject.name} 从 {rightCurrentGrabCommand}");
-        }
-    
-        Debug.Log($"右手松开了抓取的物体: {rightGrabbedObject.ObjectGameObject.name}");
-        rightGrabbedObject = null;
-        rightCurrentGrabCommand = null;
+        EditorPlayerHelpers.ReleaseGrab(ref rightGrabbedObject, ref rightCurrentGrabCommand, rightHand, false, handOutlineController);
     }
     #endregion
 
@@ -405,37 +296,14 @@ public class EditorPlayer : MonoBehaviour
     /// <returns>检测到的第一个IGrabable对象，如果没有则返回null</returns>
     private IGrabable DetectGrabableObject(Transform checkSphere)
     {
-        if (checkSphere == null)
+        // 重构：使用工具类实现检测逻辑，减少重复代码并共享 hitColliders 缓冲区
+        var g = EditorPlayerHelpers.DetectGrabableObject(checkSphere, hitColliders);
+        if (g == null)
         {
-            Debug.LogWarning("检测球体Transform为空");
-            return null;
+            // 手动保留原有的警告行为以便调试
+            if (checkSphere == null) Debug.LogWarning("检测球体Transform为空");
         }
-
-        // 使用CheckSphere的lossyScale的最大值作为检测半径
-        float radius = Mathf.Max(checkSphere.lossyScale.x, checkSphere.lossyScale.y, checkSphere.lossyScale.z);
-
-        // 使用OverlapSphereNonAlloc检测指定位置附近的碰撞器
-        int hitCount = Physics.OverlapSphereNonAlloc(checkSphere.position, radius, hitColliders);
-
-        // 遍历检测到的碰撞器
-        for (int i = 0; i < hitCount; i++)
-        {
-            // 获取碰撞器附加的刚体
-            Rigidbody rigidbody = hitColliders[i].attachedRigidbody;
-            if (rigidbody != null)
-            {
-                // 在刚体的GameObject上查找IGrabable组件
-                IGrabable grabable = rigidbody.GetComponent<IGrabable>();
-                if (grabable != null)
-                {
-                    // 返回第一个找到的IGrabable对象
-                    return grabable;
-                }
-            }
-        }
-
-        // 没有找到IGrabable对象，返回null
-        return null;
+        return g;
     }
     #endregion
 
@@ -446,31 +314,9 @@ public class EditorPlayer : MonoBehaviour
     /// </summary>
     private void DeleteLeftHandObject()
     {
-        if (leftHoldObject != null)
-        {
-            // 获取要删除的物体
-            GameObject objectToDelete = leftHoldObject.ObjectGameObject;
-
-            // 创建删除命令并执行
-            DeleteObjectCommand deleteCommand = new DeleteObjectCommand(objectToDelete);
-            CommandHistory.Instance.ExecuteCommand(deleteCommand);
-
-            // 如果当前正在抓取这个物体，需要先释放
-            if (leftGrabbedObject == leftHoldObject)
-            {
-                leftGrabbedObject.OnReleased(leftHand);
-                leftGrabbedObject = null;
-                leftCurrentGrabCommand = null;
-            }
-
-            // 清空hold状态
-            Debug.Log($"左手柄A键按下：删除物体 {objectToDelete.name}");
-            leftHoldObject = null;
-        }
-        else
-        {
-            Debug.Log("左手没有hold任何物体，无法删除");
-        }
+        // 使用工具方法执行删除逻辑并清理抓取状态
+        EditorPlayerHelpers.ExecuteDelete(leftHoldObject, ref leftGrabbedObject, ref leftCurrentGrabCommand, leftHand, true, handOutlineController);
+        leftHoldObject = null;
     }
     #endregion
 
@@ -480,53 +326,27 @@ public class EditorPlayer : MonoBehaviour
     /// </summary>
     private void CopyLeftHandObject()
     {
-        // 优先复制正在抓取的物体
-        IGrabable sourceObject = leftGrabbedObject;
-        
-        // 如果没有抓取的物体，尝试复制hold的物体
-        if (sourceObject == null && leftHoldObject != null)
+        // 优先复制正在抓取的物体，否则复制 hold 的物体
+        IGrabable sourceObject = leftGrabbedObject ?? leftHoldObject;
+        if (sourceObject == null)
         {
-            sourceObject = leftHoldObject;
+            Debug.Log("左手没有抓取或接触任何物体，无法复制");
+            return;
         }
-        
-        if (sourceObject != null)
+
+        currentDuplicateCommand = EditorPlayerHelpers.CreateDuplicateAndGrab(sourceObject, true);
+        if (currentDuplicateCommand != null)
         {
-            GameObject originalObject = sourceObject.ObjectGameObject;
-            
-            // 在原始物体的位置和角度复制物体（使用合并命令：创建 + 移动）
-            currentDuplicateCommand = new YouYouTest.CommandFramework.CombinedCreateAndMoveCommand(originalObject, originalObject.transform.position, originalObject.transform.rotation);
-            
-            // 执行复制命令并添加到历史
-            CommandHistory.Instance.ExecuteCommand(currentDuplicateCommand);
-            
-            // 获取创建的物体实例
-            GameObject duplicatedObject = currentDuplicateCommand.GetCreatedObject();
-            
+            var duplicatedObject = currentDuplicateCommand.GetCreatedObject();
             if (duplicatedObject != null)
             {
-                // 设置相同的缩放
-                duplicatedObject.transform.localScale = originalObject.transform.localScale;
-                
-                // 如果左手已经抓取了其他物体，先释放
-                if (leftGrabbedObject != null)
-                {
-                    LeftHandRelease();
-                }
-                
-                // 立即抓取复制的物体
+                if (leftGrabbedObject != null) LeftHandRelease();
                 LeftHandGrab(duplicatedObject);
-                
-                Debug.Log($"复制物体: {originalObject.name} -> {duplicatedObject.name}");
             }
             else
             {
-                Debug.LogWarning("复制物体失败");
                 currentDuplicateCommand = null;
             }
-        }
-        else
-        {
-            Debug.Log("左手没有抓取或接触任何物体，无法复制");
         }
     }
 
@@ -537,13 +357,8 @@ public class EditorPlayer : MonoBehaviour
     {
         if (leftGrabbedObject != null)
         {
-            // 如果有复制命令，更新其最终位置和旋转
-            if (currentDuplicateCommand != null && leftGrabbedObject.ObjectGameObject == currentDuplicateCommand.GetCreatedObject())
-            {
-                currentDuplicateCommand.UpdateTransform(leftGrabbedObject.ObjectTransform.position, leftGrabbedObject.ObjectTransform.rotation);
-                currentDuplicateCommand = null;
-            }
-            
+            EditorPlayerHelpers.UpdateDuplicateOnRelease(currentDuplicateCommand, leftGrabbedObject);
+            currentDuplicateCommand = null;
             LeftHandRelease();
             Debug.Log("释放左手复制的物体");
         }
@@ -554,31 +369,8 @@ public class EditorPlayer : MonoBehaviour
     /// </summary>
     private void DeleteRightHandObject()
     {
-        if (rightHoldObject != null)
-        {
-            // 获取要删除的物体
-            GameObject objectToDelete = rightHoldObject.ObjectGameObject;
-
-            // 创建删除命令并执行
-            DeleteObjectCommand deleteCommand = new DeleteObjectCommand(objectToDelete);
-            CommandHistory.Instance.ExecuteCommand(deleteCommand);
-
-            // 如果当前正在抓取这个物体，需要先释放
-            if (rightGrabbedObject == rightHoldObject)
-            {
-                rightGrabbedObject.OnReleased(rightHand);
-                rightGrabbedObject = null;
-                rightCurrentGrabCommand = null;
-            }
-
-            // 清空hold状态
-            Debug.Log($"右手柄B键按下：删除物体 {objectToDelete.name}");
-            rightHoldObject = null;
-        }
-        else
-        {
-            Debug.Log("右手没有hold任何物体，无法删除");
-        }
+        EditorPlayerHelpers.ExecuteDelete(rightHoldObject, ref rightGrabbedObject, ref rightCurrentGrabCommand, rightHand, false, handOutlineController);
+        rightHoldObject = null;
     }
 
     /// <summary>
@@ -586,53 +378,26 @@ public class EditorPlayer : MonoBehaviour
     /// </summary>
     private void CopyRightHandObject()
     {
-        // 优先复制正在抓取的物体
-        IGrabable sourceObject = rightGrabbedObject;
-        
-        // 如果没有抓取的物体，尝试复制hold的物体
-        if (sourceObject == null && rightHoldObject != null)
+        IGrabable sourceObject = rightGrabbedObject ?? rightHoldObject;
+        if (sourceObject == null)
         {
-            sourceObject = rightHoldObject;
+            Debug.Log("右手没有抓取或接触任何物体，无法复制");
+            return;
         }
-        
-        if (sourceObject != null)
+
+        currentDuplicateCommand = EditorPlayerHelpers.CreateDuplicateAndGrab(sourceObject, false);
+        if (currentDuplicateCommand != null)
         {
-            GameObject originalObject = sourceObject.ObjectGameObject;
-            
-            // 在原始物体的位置和角度复制物体（使用合并命令：创建 + 移动）
-            currentDuplicateCommand = new YouYouTest.CommandFramework.CombinedCreateAndMoveCommand(originalObject, originalObject.transform.position, originalObject.transform.rotation);
-            
-            // 执行复制命令并添加到历史
-            CommandHistory.Instance.ExecuteCommand(currentDuplicateCommand);
-            
-            // 获取创建的物体实例
-            GameObject duplicatedObject = currentDuplicateCommand.GetCreatedObject();
-            
+            var duplicatedObject = currentDuplicateCommand.GetCreatedObject();
             if (duplicatedObject != null)
             {
-                // 设置相同的缩放
-                duplicatedObject.transform.localScale = originalObject.transform.localScale;
-                
-                // 如果右手已经抓取了其他物体，先释放
-                if (rightGrabbedObject != null)
-                {
-                    RightHandRelease();
-                }
-                
-                // 立即抓取复制的物体
+                if (rightGrabbedObject != null) RightHandRelease();
                 RightHandGrab(duplicatedObject);
-                
-                Debug.Log($"复制物体: {originalObject.name} -> {duplicatedObject.name}");
             }
             else
             {
-                Debug.LogWarning("复制物体失败");
                 currentDuplicateCommand = null;
             }
-        }
-        else
-        {
-            Debug.Log("右手没有抓取或接触任何物体，无法复制");
         }
     }
 
@@ -643,13 +408,8 @@ public class EditorPlayer : MonoBehaviour
     {
         if (rightGrabbedObject != null)
         {
-            // 如果有复制命令，更新其最终位置和旋转
-            if (currentDuplicateCommand != null && rightGrabbedObject.ObjectGameObject == currentDuplicateCommand.GetCreatedObject())
-            {
-                currentDuplicateCommand.UpdateTransform(rightGrabbedObject.ObjectTransform.position, rightGrabbedObject.ObjectTransform.rotation);
-                currentDuplicateCommand = null;
-            }
-            
+            EditorPlayerHelpers.UpdateDuplicateOnRelease(currentDuplicateCommand, rightGrabbedObject);
+            currentDuplicateCommand = null;
             RightHandRelease();
             Debug.Log("释放右手复制的物体");
         }
