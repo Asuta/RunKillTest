@@ -1,5 +1,6 @@
 using UnityEngine;
 using YouYouTest.CommandFramework;
+using YouYouTest.OutlineSystem;
 
 public class EditorPlayer : MonoBehaviour
 {
@@ -20,6 +21,11 @@ public class EditorPlayer : MonoBehaviour
     private YouYouTest.CommandFramework.CombinedCreateAndMoveCommand currentDuplicateCommand = null; // 当前复制命令（合并创建与移动）
 
     private Collider[] hitColliders = new Collider[10]; // 用于OverlapSphereNonAlloc的碰撞器数组
+    
+    // 描边系统相关字段
+    [SerializeField] private Color hoverColor = Color.blue;
+    private OutlineReceiver leftHoveredReceiver;
+    private OutlineReceiver rightHoveredReceiver;
     
     // 跟踪菜单键状态的变量
     private bool menuKeyPressed = false;
@@ -372,10 +378,18 @@ public class EditorPlayer : MonoBehaviour
     private void CheckForGrabableObjects()
     {
         // 检测左手附近的可抓取对象
+        IGrabable previousLeftHoldObject = leftHoldObject;
         leftHoldObject = DetectGrabableObject(leftCheckSphere);
+        
+        // 更新左手描边状态
+        UpdateOutlineState(ref leftHoveredReceiver, previousLeftHoldObject, leftHoldObject);
 
         // 检测右手附近的可抓取对象
+        IGrabable previousRightHoldObject = rightHoldObject;
         rightHoldObject = DetectGrabableObject(rightCheckSphere);
+        
+        // 更新右手描边状态
+        UpdateOutlineState(ref rightHoveredReceiver, previousRightHoldObject, rightHoldObject);
     }
 
     /// <summary>
@@ -416,6 +430,41 @@ public class EditorPlayer : MonoBehaviour
 
         // 没有找到IGrabable对象，返回null
         return null;
+    }
+
+    /// <summary>
+    /// 更新描边状态
+    /// </summary>
+    /// <param name="hoveredReceiver">当前hover的接收器引用</param>
+    /// <param name="previousHoldObject">之前hold的对象</param>
+    /// <param name="currentHoldObject">当前hold的对象</param>
+    private void UpdateOutlineState(ref OutlineReceiver hoveredReceiver, IGrabable previousHoldObject, IGrabable currentHoldObject)
+    {
+        // 如果当前hold的对象发生了变化
+        if (previousHoldObject != currentHoldObject)
+        {
+            // 清除之前对象的hover状态
+            if (previousHoldObject != null && hoveredReceiver != null)
+            {
+                hoveredReceiver.SetState(OutlineState.None, Color.clear);
+                hoveredReceiver = null;
+            }
+
+            // 设置新对象的hover状态
+            if (currentHoldObject != null)
+            {
+                GameObject currentObject = currentHoldObject.ObjectGameObject;
+                if (currentObject != null)
+                {
+                    OutlineReceiver receiver = currentObject.GetComponentInParent<OutlineReceiver>();
+                    if (receiver != null)
+                    {
+                        receiver.SetState(OutlineState.Hover, hoverColor);
+                        hoveredReceiver = receiver;
+                    }
+                }
+            }
+        }
     }
     #endregion
 
@@ -631,6 +680,24 @@ public class EditorPlayer : MonoBehaviour
             
             RightHandRelease();
             Debug.Log("释放右手复制的物体");
+        }
+    }
+    #endregion
+
+    #region 描边系统清理
+    private void OnDisable()
+    {
+        // 清理所有描边状态
+        if (leftHoveredReceiver != null)
+        {
+            leftHoveredReceiver.Restore();
+            leftHoveredReceiver = null;
+        }
+
+        if (rightHoveredReceiver != null)
+        {
+            rightHoveredReceiver.Restore();
+            rightHoveredReceiver = null;
         }
     }
     #endregion
