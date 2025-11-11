@@ -3,10 +3,17 @@ using EPOOutline;
 
 namespace YouYouTest.OutlineSystem
 {
+    public enum OutlineState
+    {
+        None = 0,
+        Hover = 1,
+        Selected = 2
+    }
+
     /// <summary>
     /// 被动接受射线并自行管理描边颜色的组件。
-    /// CameraOutlineController 会调用 <see cref="OnHover"/>, <see cref="OnClick"/>, <see cref="Restore"/> 来切换描边颜色，
-    /// 本组件负责缓存原始颜色并在恢复时还原。
+    /// CameraOutlineController 会调用 <see cref="SetState"/> 来切换状态（Hover/Selected/None），
+    /// 本组件负责缓存原始颜色并在恢复时还原或隐藏描边。
     /// </summary>
     [DisallowMultipleComponent]
     public class OutlineReceiver : MonoBehaviour
@@ -27,12 +34,13 @@ namespace YouYouTest.OutlineSystem
     
         private OriginalColors original;
         private bool hasStored;
-    
+        private OutlineState currentState = OutlineState.None;
+        
         private void Awake()
         {
             outlinable = GetComponent<Outlinable>();
         }
-    
+        
         public bool IsValid => outlinable != null;
     
         private void StoreOriginalIfNeeded()
@@ -78,24 +86,44 @@ namespace YouYouTest.OutlineSystem
         }
 
         /// <summary>
-        /// 鼠标 Hover 时调用（被动响应）。
+        /// 通过状态接口设置当前状态（None/Hover/Selected）。
+        /// color 在 Hover/Selected 状态时用于设置描边颜色，None 时被忽略。
         /// </summary>
-        public void OnHover(Color hoverColor)
+        public void SetState(OutlineState newState, Color color)
         {
             if (!IsValid) return;
-            StoreOriginalIfNeeded();
-            ApplyColor(hoverColor);
+            if (currentState == newState) return;
+            // Selected 优先，不要在 Selected 时降级为 Hover
+            if (currentState == OutlineState.Selected && newState == OutlineState.Hover)
+                return;
+    
+            switch (newState)
+            {
+                case OutlineState.None:
+                    Restore();
+                    break;
+                case OutlineState.Hover:
+                    StoreOriginalIfNeeded();
+                    ApplyColor(color);
+                    break;
+                case OutlineState.Selected:
+                    StoreOriginalIfNeeded();
+                    ApplyColor(color);
+                    break;
+            }
+    
+            currentState = newState;
         }
-
+    
         /// <summary>
-        /// 鼠标 Click 时调用（被动响应）。
+        /// 兼容旧接口：鼠标 Hover 时调用（被动响应）。
         /// </summary>
-        public void OnClick(Color clickColor)
-        {
-            if (!IsValid) return;
-            StoreOriginalIfNeeded();
-            ApplyColor(clickColor);
-        }
+        public void OnHover(Color hoverColor) => SetState(OutlineState.Hover, hoverColor);
+    
+        /// <summary>
+        /// 兼容旧接口：鼠标 Click 时调用（被动响应）。
+        /// </summary>
+        public void OnClick(Color clickColor) => SetState(OutlineState.Selected, clickColor);
 
         /// <summary>
         /// 恢复：还原颜色并在非 hover/selected 状态下隐藏描边。
@@ -122,6 +150,7 @@ namespace YouYouTest.OutlineSystem
     
             hasStored = false;
             original = default;
+            currentState = OutlineState.None;
         }
 
         private void OnDisable()

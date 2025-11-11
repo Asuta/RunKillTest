@@ -51,12 +51,12 @@ namespace YouYouTest.OutlineSystem
                 return;
 
             if (hoveredReceiver != null && hoveredReceiver != clickedReceiver)
-                hoveredReceiver.Restore();
+                hoveredReceiver.SetState(OutlineState.None, Color.clear);
 
             hoveredReceiver = receiver;
 
             if (hoveredReceiver != null && hoveredReceiver != clickedReceiver)
-                hoveredReceiver.OnHover(hoverColor);
+                hoveredReceiver.SetState(OutlineState.Hover, hoverColor);
         }
 
         private void HandleInput()
@@ -76,23 +76,23 @@ namespace YouYouTest.OutlineSystem
                 return;
 
             if (clickedReceiver != null)
-                clickedReceiver.Restore();
+                clickedReceiver.SetState(OutlineState.None, Color.clear);
 
             clickedReceiver = receiver;
 
             if (clickedReceiver != null)
-                clickedReceiver.OnClick(clickColor);
+                clickedReceiver.SetState(OutlineState.Selected, clickColor);
         }
 
         private void ClearClicked()
         {
             if (clickedReceiver != null)
             {
-                clickedReceiver.Restore();
+                clickedReceiver.SetState(OutlineState.None, Color.clear);
                 clickedReceiver = null;
 
                 if (hoveredReceiver != null)
-                    hoveredReceiver.OnHover(hoverColor);
+                    hoveredReceiver.SetState(OutlineState.Hover, hoverColor);
             }
         }
 
