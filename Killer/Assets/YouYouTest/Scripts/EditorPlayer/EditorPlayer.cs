@@ -35,6 +35,11 @@ public class EditorPlayer : MonoBehaviour
     private bool rightAKeyPressed = false;
     private float rightAKeyPressTime = 0f;
     private const float RIGHT_A_QUICK_THRESHOLD = 0.2f; // A键短按阈值（秒）
+    
+    // 右手 A 键长按多选相关变量
+    private bool rightALongPressActive = false;
+    private float rightALongPressStartTime = 0f;
+    private const float RIGHT_A_LONG_PRESS_THRESHOLD = 0.2f; // A键长按阈值（秒）
     #endregion
 
     #region Unity 生命周期方法
@@ -146,6 +151,8 @@ public class EditorPlayer : MonoBehaviour
         {
             rightAKeyPressed = true;
             rightAKeyPressTime = Time.time;
+            rightALongPressStartTime = Time.time;
+            rightALongPressActive = false;
             Debug.Log("右手A键按下，开始计时");
         }
  
@@ -154,9 +161,13 @@ public class EditorPlayer : MonoBehaviour
         {
             float pressDuration = Time.time - rightAKeyPressTime;
             rightAKeyPressed = false;
+            rightALongPressActive = false;
  
             if (pressDuration < RIGHT_A_QUICK_THRESHOLD)
             {
+                // 短按：清除所有多选，然后进行单选
+                handOutlineController?.ClearAllMultiSelection();
+                
                 if (rightHoldObject != null)
                 {
                     handOutlineController?.SetSelectedForCurrentHold(false, rightHoldObject);
@@ -171,8 +182,27 @@ public class EditorPlayer : MonoBehaviour
             }
             else
             {
-                Debug.Log($"右手A键长按后抬起，按下时长: {pressDuration:F2}s，不设置 Selected");
+                Debug.Log($"右手A键长按后抬起，按下时长: {pressDuration:F2}s，多选模式结束");
             }
+        }
+
+        // 右手A键长按多选逻辑
+        if (rightAKeyPressed && !rightALongPressActive)
+        {
+            float pressDuration = Time.time - rightALongPressStartTime;
+            if (pressDuration >= RIGHT_A_LONG_PRESS_THRESHOLD)
+            {
+                rightALongPressActive = true;
+                // 开始长按多选模式，清除之前的单选
+                handOutlineController?.CancelLastSelected();
+                Debug.Log($"右手A键长按超过 {RIGHT_A_LONG_PRESS_THRESHOLD}s，开始多选模式");
+            }
+        }
+
+        // 长按多选模式下的持续检测（每帧执行）
+        if (rightALongPressActive)
+        {
+            PerformMultiSelectionCheck();
         }
  
         // 右手柄B键复制当前抓取/接触的物体（替代原删除功能）
@@ -445,6 +475,50 @@ public class EditorPlayer : MonoBehaviour
             currentDuplicateCommand = null;
             RightHandRelease();
             Debug.Log("释放右手复制的物体");
+        }
+    }
+    #endregion
+
+    #region 多选功能方法
+    /// <summary>
+    /// 执行多选检测，将检测范围内的所有对象添加到多选列表
+    /// 使用与DetectGrabableObject完全相同的检测逻辑
+    /// </summary>
+    private void PerformMultiSelectionCheck()
+    {
+        if (rightCheckSphere == null)
+        {
+            Debug.LogWarning("右手检测球体为空，无法执行多选检测");
+            return;
+        }
+
+        // 使用与DetectGrabableObject完全相同的半径计算方式
+        float radius = Mathf.Max(rightCheckSphere.lossyScale.x, rightCheckSphere.lossyScale.y, rightCheckSphere.lossyScale.z);
+        int hitCount = Physics.OverlapSphereNonAlloc(rightCheckSphere.position, radius, hitColliders);
+        
+        for (int i = 0; i < hitCount; i++)
+        {
+            Collider collider = hitColliders[i];
+            if (collider == null) continue;
+
+            // 使用与DetectGrabableObject完全相同的IGrabable获取方式
+            var rb = collider.attachedRigidbody;
+            if (rb != null)
+            {
+                var grabable = rb.GetComponent<IGrabable>();
+                if (grabable != null)
+                {
+                    // 获取OutlineReceiver组件
+                    GameObject targetObject = grabable.ObjectGameObject;
+                    if (targetObject == null) continue;
+
+                    OutlineReceiver receiver = targetObject.GetComponentInParent<OutlineReceiver>();
+                    if (receiver == null) continue;
+
+                    // 添加到多选列表
+                    handOutlineController?.AddToMultiSelection(receiver);
+                }
+            }
         }
     }
     #endregion

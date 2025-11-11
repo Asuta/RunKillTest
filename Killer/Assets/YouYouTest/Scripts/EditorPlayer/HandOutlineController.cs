@@ -15,6 +15,9 @@ public class HandOutlineController : MonoBehaviour
     private OutlineReceiver hoveredReceiverRight;
     // 记录上一次被选中的 Receiver（用于全局取消选中）
     private OutlineReceiver lastSelectedReceiver;
+    
+    // 记录所有被多选的 Receiver（用于范围多选功能）
+    private System.Collections.Generic.HashSet<OutlineReceiver> multiSelectedReceivers = new System.Collections.Generic.HashSet<OutlineReceiver>();
 
     /// <summary>
     /// 区分左右手的标识
@@ -144,6 +147,65 @@ public class HandOutlineController : MonoBehaviour
         }
     }
 
+    /// <summary>
+    /// 添加对象到多选列表（用于范围多选功能）
+    /// </summary>
+    public void AddToMultiSelection(OutlineReceiver receiver)
+    {
+        if (receiver != null && !multiSelectedReceivers.Contains(receiver))
+        {
+            multiSelectedReceivers.Add(receiver);
+            receiver.SetState(OutlineState.Selected);
+            Debug.Log($"添加到多选列表：{receiver.gameObject.name}，当前多选数量：{multiSelectedReceivers.Count}");
+        }
+    }
+
+    /// <summary>
+    /// 从多选列表中移除对象
+    /// </summary>
+    public void RemoveFromMultiSelection(OutlineReceiver receiver)
+    {
+        if (receiver != null && multiSelectedReceivers.Contains(receiver))
+        {
+            multiSelectedReceivers.Remove(receiver);
+            receiver.SetState(OutlineState.None);
+            Debug.Log($"从多选列表移除：{receiver.gameObject.name}，当前多选数量：{multiSelectedReceivers.Count}");
+        }
+    }
+
+    /// <summary>
+    /// 清除所有多选对象（用于新的选择操作开始时）
+    /// </summary>
+    public void ClearAllMultiSelection()
+    {
+        foreach (var receiver in multiSelectedReceivers)
+        {
+            if (receiver != null)
+            {
+                receiver.SetState(OutlineState.None);
+            }
+        }
+        int count = multiSelectedReceivers.Count;
+        multiSelectedReceivers.Clear();
+        Debug.Log($"清除所有多选对象，共清除 {count} 个对象");
+    }
+
+    /// <summary>
+    /// 获取当前多选对象的数量
+    /// </summary>
+    public int GetMultiSelectionCount()
+    {
+        return multiSelectedReceivers.Count;
+    }
+
+    /// <summary>
+    /// 检查指定对象是否在多选列表中
+    /// </summary>
+    public bool IsInMultiSelection(OutlineReceiver receiver)
+    {
+        return multiSelectedReceivers.Contains(receiver);
+    }
+
     private void OnDisable()
     {
         if (hoveredReceiverLeft != null)
@@ -163,5 +225,15 @@ public class HandOutlineController : MonoBehaviour
             lastSelectedReceiver.DisableOutline();
             lastSelectedReceiver = null;
         }
+
+        // 清除所有多选对象的描边
+        foreach (var receiver in multiSelectedReceivers)
+        {
+            if (receiver != null)
+            {
+                receiver.DisableOutline();
+            }
+        }
+        multiSelectedReceivers.Clear();
     }
 }
