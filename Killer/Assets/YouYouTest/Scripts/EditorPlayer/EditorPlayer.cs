@@ -19,6 +19,7 @@ public class EditorPlayer : MonoBehaviour
     public IGrabable rightGrabbedObject = null; // 右手当前抓取的物体
     
     // 多抓取支持
+    private System.Collections.Generic.List<IGrabable> leftMultiGrabbedObjects = new System.Collections.Generic.List<IGrabable>(); // 左手多抓取的对象列表
     private System.Collections.Generic.List<IGrabable> rightMultiGrabbedObjects = new System.Collections.Generic.List<IGrabable>(); // 右手多抓取的对象列表
     private GrabCommand leftCurrentGrabCommand = null; // 左手当前抓取命令
     private GrabCommand rightCurrentGrabCommand = null; // 右手当前抓取命令
@@ -96,10 +97,16 @@ public class EditorPlayer : MonoBehaviour
             }
         }
 
-        // 左手扳机按下时抓取物体
+        // 左手扳机按下时抓取物体（优先抓取多选对象）
         if (InputActionsManager.Actions.XRILeftInteraction.Activate.WasPressedThisFrame())
         {
-            if (leftHoldObject != null)
+            var multi = handOutlineController?.GetAllMultiSelectedGrabables();
+            if (multi != null && multi.Count > 0)
+            {
+                GrabMultiForHand(true);
+                Debug.Log($"左手扳机按下，抓取多选对象，共 {multi.Count} 个");
+            }
+            else if (leftHoldObject != null)
             {
                 LeftHandGrab(leftHoldObject.ObjectGameObject);
                 Debug.Log($"左手扳机按下，抓取物体: {leftHoldObject.ObjectGameObject.name}");
@@ -116,10 +123,16 @@ public class EditorPlayer : MonoBehaviour
             }
         }
 
-        // 右手扳机按下时抓取物体
+        // 右手扳机按下时抓取物体（优先抓取多选对象）
         if (InputActionsManager.Actions.XRIRightInteraction.Activate.WasPressedThisFrame())
         {
-            if (rightHoldObject != null)
+            var multi = handOutlineController?.GetAllMultiSelectedGrabables();
+            if (multi != null && multi.Count > 0)
+            {
+                GrabMultiForHand(false);
+                Debug.Log($"右手扳机按下，抓取多选对象，共 {multi.Count} 个");
+            }
+            else if (rightHoldObject != null)
             {
                 RightHandGrab(rightHoldObject.ObjectGameObject);
                 Debug.Log($"右手扳机按下，抓取物体: {rightHoldObject.ObjectGameObject.name}");
@@ -349,6 +362,59 @@ public class EditorPlayer : MonoBehaviour
         
         // 处理单抓取对象的释放
         EditorPlayerHelpers.ReleaseGrab(ref rightGrabbedObject, ref rightCurrentGrabCommand, rightHand, false, handOutlineController);
+    }
+
+    /// <summary>
+    /// 根据当前多选集合抓取所有选中的对象（isLeftHand 控制左右手）
+    /// 优先级：若存在多选对象，则抓取它们；否则不处理。
+    /// </summary>
+    private void GrabMultiForHand(bool isLeftHand)
+    {
+        var multi = handOutlineController?.GetAllMultiSelectedGrabables();
+        if (multi == null || multi.Count == 0) return;
+
+        // 先释放当前手上的抓取（单抓和多抓）
+        if (isLeftHand)
+        {
+            if (leftGrabbedObject != null) LeftHandRelease();
+            if (leftMultiGrabbedObjects.Count > 0)
+            {
+                foreach (var g in leftMultiGrabbedObjects) g?.OnReleased(leftHand);
+                leftMultiGrabbedObjects.Clear();
+            }
+        }
+        else
+        {
+            if (rightGrabbedObject != null) RightHandRelease();
+            if (rightMultiGrabbedObjects.Count > 0)
+            {
+                foreach (var g in rightMultiGrabbedObjects) g?.OnReleased(rightHand);
+                rightMultiGrabbedObjects.Clear();
+            }
+        }
+
+        // 抓取所有多选对象
+        for (int i = 0; i < multi.Count; i++)
+        {
+            var grabable = multi[i];
+            if (grabable == null) continue;
+            GameObject go = grabable.ObjectGameObject;
+            if (go == null) continue;
+
+            if (i == 0)
+            {
+                // 第一个作为主要抓取对象，使用已有的抓取方法以保持命令记录等行为
+                if (isLeftHand) LeftHandGrab(go); else RightHandGrab(go);
+            }
+            else
+            {
+                // 其他对象直接调用 OnGrabbed，使其随手移动
+                grabable.OnGrabbed(isLeftHand ? leftHand : rightHand);
+            }
+
+            // 记录到对应的多抓取集合
+            if (isLeftHand) leftMultiGrabbedObjects.Add(grabable); else rightMultiGrabbedObjects.Add(grabable);
+        }
     }
     #endregion
 
