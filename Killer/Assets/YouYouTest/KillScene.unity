@@ -34480,7 +34480,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 87b02a06951ebfa48b9b7a6512849ce7, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  hoverColor: {r: 0, g: 0, b: 1, a: 1}
+  hoverColor: {r: 0.98531806, g: 1, b: 0, a: 1}
 --- !u!4 &9171353875955519944
 Transform:
   m_ObjectHideFlags: 0
