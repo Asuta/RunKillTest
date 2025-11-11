@@ -108,10 +108,10 @@ namespace YouYouTest.OutlineSystem
         private void OnDisable()
         {
             if (hoveredReceiver != null)
-                hoveredReceiver.Restore();
+                hoveredReceiver.DisableOutline();
 
             if (clickedReceiver != null)
-                clickedReceiver.Restore();
+                clickedReceiver.DisableOutline();
 
             hoveredReceiver = null;
             clickedReceiver = null;

@@ -52,8 +52,8 @@ public class HandOutlineController : MonoBehaviour
         // 清除之前的描边（仅针对当前手）
         if (currentHovered != null)
         {
-            // 使用 Restore 确保完整还原到原始颜色与启用状态
-            currentHovered.Restore();
+            // 使用 DisableOutline 确保隐藏描边
+            currentHovered.DisableOutline();
             if (isLeftHand) hoveredReceiverLeft = null; else hoveredReceiverRight = null;
         }
 
@@ -73,7 +73,7 @@ public class HandOutlineController : MonoBehaviour
         var h = isLeftHand ? hoveredReceiverLeft : hoveredReceiverRight;
         if (h != null)
         {
-            h.Restore();
+            h.DisableOutline();
             if (isLeftHand) hoveredReceiverLeft = null; else hoveredReceiverRight = null;
         }
     }
@@ -91,13 +91,13 @@ public class HandOutlineController : MonoBehaviour
     {
         if (hoveredReceiverLeft != null)
         {
-            hoveredReceiverLeft.Restore();
+            hoveredReceiverLeft.DisableOutline();
             hoveredReceiverLeft = null;
         }
 
         if (hoveredReceiverRight != null)
         {
-            hoveredReceiverRight.Restore();
+            hoveredReceiverRight.DisableOutline();
             hoveredReceiverRight = null;
         }
     }
