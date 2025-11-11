@@ -34481,6 +34481,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   hoverColor: {r: 0.98531806, g: 1, b: 0, a: 1}
+  selectColor: {r: 0, g: 1, b: 0.93472314, a: 1}
 --- !u!4 &9171353875955519944
 Transform:
   m_ObjectHideFlags: 0

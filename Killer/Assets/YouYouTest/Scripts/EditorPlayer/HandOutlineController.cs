@@ -8,8 +8,7 @@ using YouYouTest.OutlineSystem;
 /// </summary>
 public class HandOutlineController : MonoBehaviour
 {
-    [SerializeField] private Color hoverColor = Color.yellow;
-    [SerializeField] private Color selectColor = Color.yellow;
+    // 颜色已由 OutlineReceiver 内部管理，此处不再需要
 
     // 为左右手分别维护描边接收器，以支持单实例管理两只手的描边状态
     private OutlineReceiver hoveredReceiverLeft;
@@ -49,19 +48,19 @@ public class HandOutlineController : MonoBehaviour
         // 如果当前记录的 receiver 就是目标 receiver，则不需要任何操作
         if (currentHovered == targetReceiver)
             return;
-
-        // 清除之前的描边（仅针对当前手）
+  
+        // 清除之前的 hover 描边（仅针对当前手）
+        // 使用 Receiver.ClearHover 让 Receiver 自行决定是否取消描边（Selected 会被保留）
         if (currentHovered != null)
         {
-            // 使用 DisableOutline 确保隐藏描边
-            currentHovered.DisableOutline();
+            currentHovered.ClearHover();
             if (isLeftHand) hoveredReceiverLeft = null; else hoveredReceiverRight = null;
         }
-
+  
         // 设置新目标的 hover 描边（仅针对当前手）
         if (targetReceiver != null)
         {
-            targetReceiver.SetState(OutlineState.Hover, hoverColor);
+            targetReceiver.OnHover();
             if (isLeftHand) hoveredReceiverLeft = targetReceiver; else hoveredReceiverRight = targetReceiver;
         }
     }
@@ -74,7 +73,7 @@ public class HandOutlineController : MonoBehaviour
         var h = isLeftHand ? hoveredReceiverLeft : hoveredReceiverRight;
         if (h != null)
         {
-            h.DisableOutline();
+            h.ClearHover();
             if (isLeftHand) hoveredReceiverLeft = null; else hoveredReceiverRight = null;
         }
     }
@@ -86,6 +85,39 @@ public class HandOutlineController : MonoBehaviour
     public void UpdateTarget(IGrabable previousHold, IGrabable currentHold, IGrabable grabbedObject)
     {
         UpdateTarget(true, previousHold, currentHold, grabbedObject);
+    }
+
+    /// <summary>
+    /// 将当前 hold（或接触）对象设置为 Selected 状态（用于短按选择逻辑）。
+    /// isLeftHand: 指定左右手；holdObject: 要设置为 Selected 的 IGrabable（通常为当前 hold 对象）。
+    /// </summary>
+    public void SetSelectedForCurrentHold(bool isLeftHand, IGrabable holdObject)
+    {
+        if (holdObject == null)
+        {
+            Debug.Log("SetSelectedForCurrentHold: holdObject 为 null，跳过设置 Selected");
+            return;
+        }
+ 
+        GameObject go = holdObject.ObjectGameObject;
+        if (go == null)
+        {
+            Debug.LogWarning("SetSelectedForCurrentHold: holdObject.ObjectGameObject 为 null");
+            return;
+        }
+ 
+        var receiver = go.GetComponentInParent<OutlineReceiver>();
+        if (receiver == null)
+        {
+            Debug.LogWarning($"SetSelectedForCurrentHold: 对象 {go.name} 上未找到 OutlineReceiver");
+            return;
+        }
+ 
+        // 让 Receiver 自行决定切换 Selected（调用 OnClick）
+        receiver.OnClick();
+        // 清理当前手的 hover 记录（Receiver 自行决定是否保留描边）
+        if (isLeftHand) hoveredReceiverLeft = null; else hoveredReceiverRight = null;
+        Debug.Log($"触发 Receiver.OnClick 切换 Selected（或取消）：{go.name}");
     }
 
     private void OnDisable()

@@ -22,12 +22,21 @@ namespace YouYouTest.OutlineSystem
 
         private OutlineState currentState = OutlineState.None;
         
+        [Header("描边颜色配置")]
+        [SerializeField] private Color hoverColor = Color.yellow;
+        [SerializeField] private Color selectedColor = Color.cyan;
+        
         private void Awake()
         {
             outlinable = GetComponent<Outlinable>();
         }
         
         public bool IsValid => outlinable != null;
+ 
+        /// <summary>
+        /// 当前是否处于 Selected 状态（供外部控制器查询）。
+        /// </summary>
+        public bool IsSelected => currentState == OutlineState.Selected;
     
     
         private void ApplyColor(Color color)
@@ -54,9 +63,9 @@ namespace YouYouTest.OutlineSystem
 
         /// <summary>
         /// 通过状态接口设置当前状态（None/Hover/Selected）。
-        /// color 在 Hover/Selected 状态时用于设置描边颜色，None 时被忽略。
+        /// 颜色由 Receiver 内部根据状态自行决定，外部不再传入颜色。
         /// </summary>
-        public void SetState(OutlineState newState, Color color)
+        public void SetState(OutlineState newState)
         {
             if (!IsValid) return;
             if (currentState == newState) return;
@@ -70,10 +79,10 @@ namespace YouYouTest.OutlineSystem
                     DisableOutline();
                     break;
                 case OutlineState.Hover:
-                    ApplyColor(color);
+                    ApplyColor(hoverColor);
                     break;
                 case OutlineState.Selected:
-                    ApplyColor(color);
+                    ApplyColor(selectedColor);
                     break;
             }
     
@@ -83,12 +92,37 @@ namespace YouYouTest.OutlineSystem
         /// <summary>
         /// 兼容旧接口：鼠标 Hover 时调用（被动响应）。
         /// </summary>
-        public void OnHover(Color hoverColor) => SetState(OutlineState.Hover, hoverColor);
+        public void OnHover() => SetState(OutlineState.Hover);
     
         /// <summary>
         /// 兼容旧接口：鼠标 Click 时调用（被动响应）。
+        /// 现在由 Receiver 自行决定是否切换状态：如果当前已 Selected 则取消，否则设置为 Selected。
         /// </summary>
-        public void OnClick(Color clickColor) => SetState(OutlineState.Selected, clickColor);
+        public void OnClick()
+        {
+            if (!IsValid) return;
+            if (currentState == OutlineState.Selected)
+            {
+                SetState(OutlineState.None);
+            }
+            else
+            {
+                SetState(OutlineState.Selected);
+            }
+        }
+ 
+        /// <summary>
+        /// 清除 Hover 状态（仅在当前状态为 Hover 时生效），Selected 状态不会被此方法取消。
+        /// 由外部控制器调用以通知 Receiver 取消 hover 而保持 Selected。
+        /// </summary>
+        public void ClearHover()
+        {
+            if (!IsValid) return;
+            if (currentState == OutlineState.Hover)
+            {
+                SetState(OutlineState.None);
+            }
+        }
 
         /// <summary>
         /// 禁用描边：在非 hover/selected 状态下隐藏描边。

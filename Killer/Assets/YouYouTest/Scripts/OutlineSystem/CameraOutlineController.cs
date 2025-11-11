@@ -8,8 +8,6 @@ namespace YouYouTest.OutlineSystem
     {
         [SerializeField] private Camera targetCamera;
         [SerializeField] private LayerMask raycastMask = ~0;
-        [SerializeField] private Color hoverColor = Color.blue;
-        [SerializeField] private Color clickColor = Color.red;
         [SerializeField] private float maxDistance = 100f;
 
         private OutlineReceiver hoveredReceiver;
@@ -51,12 +49,12 @@ namespace YouYouTest.OutlineSystem
                 return;
 
             if (hoveredReceiver != null && hoveredReceiver != clickedReceiver)
-                hoveredReceiver.SetState(OutlineState.None, Color.clear);
+                hoveredReceiver.SetState(OutlineState.None);
 
             hoveredReceiver = receiver;
 
             if (hoveredReceiver != null && hoveredReceiver != clickedReceiver)
-                hoveredReceiver.SetState(OutlineState.Hover, hoverColor);
+                hoveredReceiver.SetState(OutlineState.Hover);
         }
 
         private void HandleInput()
@@ -76,23 +74,23 @@ namespace YouYouTest.OutlineSystem
                 return;
 
             if (clickedReceiver != null)
-                clickedReceiver.SetState(OutlineState.None, Color.clear);
+                clickedReceiver.SetState(OutlineState.None);
 
             clickedReceiver = receiver;
 
             if (clickedReceiver != null)
-                clickedReceiver.SetState(OutlineState.Selected, clickColor);
+                clickedReceiver.SetState(OutlineState.Selected);
         }
 
         private void ClearClicked()
         {
             if (clickedReceiver != null)
             {
-                clickedReceiver.SetState(OutlineState.None, Color.clear);
+                clickedReceiver.SetState(OutlineState.None);
                 clickedReceiver = null;
 
                 if (hoveredReceiver != null)
-                    hoveredReceiver.SetState(OutlineState.Hover, hoverColor);
+                    hoveredReceiver.SetState(OutlineState.Hover);
             }
         }
 

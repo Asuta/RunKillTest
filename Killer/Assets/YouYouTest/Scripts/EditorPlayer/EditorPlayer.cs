@@ -30,6 +30,11 @@ public class EditorPlayer : MonoBehaviour
     private bool menuKeyPressed = false;
     private float menuKeyPressTime = 0f;
     private const float QUICK_PRESS_THRESHOLD = 0.2f; // 快速按下的时间阈值（秒）
+    
+    // 右手 A 键短按选择的计时变量
+    private bool rightAKeyPressed = false;
+    private float rightAKeyPressTime = 0f;
+    private const float RIGHT_A_QUICK_THRESHOLD = 0.2f; // A键短按阈值（秒）
     #endregion
 
     #region Unity 生命周期方法
@@ -136,11 +141,36 @@ public class EditorPlayer : MonoBehaviour
             Debug.Log("左手柄Y键按下：执行重做操作");
         }
 
-        // 右手柄A键复制当前抓取/接触的物体（已移至B键）
+        // 右手柄A键：开始/结束计时以支持短按选择逻辑（短按 < RIGHT_A_QUICK_THRESHOLD）
         if (InputActionsManager.Actions.XRIRightInteraction.PrimaryButton.WasPressedThisFrame())
         {
-            // A键的复制/抓取功能已迁移至 B 键；保留方法以备将来使用
-            // 留空以暂时禁用 A 键的复制行为
+            rightAKeyPressed = true;
+            rightAKeyPressTime = Time.time;
+            Debug.Log("右手A键按下，开始计时");
+        }
+ 
+        // 右手A键抬起时根据按下时长判断是否为短按，短按则将当前接触的物体设为 Selected
+        if (InputActionsManager.Actions.XRIRightInteraction.PrimaryButton.WasReleasedThisFrame() && rightAKeyPressed)
+        {
+            float pressDuration = Time.time - rightAKeyPressTime;
+            rightAKeyPressed = false;
+ 
+            if (pressDuration < RIGHT_A_QUICK_THRESHOLD)
+            {
+                if (rightHoldObject != null)
+                {
+                    handOutlineController?.SetSelectedForCurrentHold(false, rightHoldObject);
+                    Debug.Log($"右手A键快速点击，设置 Selected：{rightHoldObject.ObjectGameObject.name}");
+                }
+                else
+                {
+                    Debug.Log("右手A键快速点击，但没有接触物体");
+                }
+            }
+            else
+            {
+                Debug.Log($"右手A键长按后抬起，按下时长: {pressDuration:F2}s，不设置 Selected");
+            }
         }
  
         // 右手柄B键复制当前抓取/接触的物体（替代原删除功能）
