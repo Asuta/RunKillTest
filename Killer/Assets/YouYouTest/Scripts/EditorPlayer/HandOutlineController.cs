@@ -13,6 +13,8 @@ public class HandOutlineController : MonoBehaviour
     // 为左右手分别维护描边接收器，以支持单实例管理两只手的描边状态
     private OutlineReceiver hoveredReceiverLeft;
     private OutlineReceiver hoveredReceiverRight;
+    // 记录上一次被选中的 Receiver（用于全局取消选中）
+    private OutlineReceiver lastSelectedReceiver;
 
     /// <summary>
     /// 区分左右手的标识
@@ -93,6 +95,14 @@ public class HandOutlineController : MonoBehaviour
     /// </summary>
     public void SetSelectedForCurrentHold(bool isLeftHand, IGrabable holdObject)
     {
+        // 先取消上一次的选中（如果有）
+        if (lastSelectedReceiver != null)
+        {
+            lastSelectedReceiver.SetState(OutlineState.None);
+            Debug.Log($"取消上一次的 Selected：{lastSelectedReceiver.gameObject.name}");
+            lastSelectedReceiver = null;
+        }
+
         if (holdObject == null)
         {
             Debug.Log("SetSelectedForCurrentHold: holdObject 为 null，跳过设置 Selected");
@@ -113,11 +123,25 @@ public class HandOutlineController : MonoBehaviour
             return;
         }
  
-        // 让 Receiver 自行决定切换 Selected（调用 OnClick）
-        receiver.OnClick();
+        // 设置新的选中并记录
+        receiver.SetState(OutlineState.Selected);
+        lastSelectedReceiver = receiver;
         // 清理当前手的 hover 记录（Receiver 自行决定是否保留描边）
         if (isLeftHand) hoveredReceiverLeft = null; else hoveredReceiverRight = null;
-        Debug.Log($"触发 Receiver.OnClick 切换 Selected（或取消）：{go.name}");
+        Debug.Log($"设置新的 Selected：{go.name}");
+    }
+
+    /// <summary>
+    /// 取消上一次的选中（用于 A 键短按但未命中任何对象时）。
+    /// </summary>
+    public void CancelLastSelected()
+    {
+        if (lastSelectedReceiver != null)
+        {
+            lastSelectedReceiver.SetState(OutlineState.None);
+            Debug.Log($"取消上一次的 Selected（未命中对象）：{lastSelectedReceiver.gameObject.name}");
+            lastSelectedReceiver = null;
+        }
     }
 
     private void OnDisable()
@@ -132,6 +156,12 @@ public class HandOutlineController : MonoBehaviour
         {
             hoveredReceiverRight.DisableOutline();
             hoveredReceiverRight = null;
+        }
+
+        if (lastSelectedReceiver != null)
+        {
+            lastSelectedReceiver.DisableOutline();
+            lastSelectedReceiver = null;
         }
     }
 }

@@ -164,7 +164,9 @@ public class EditorPlayer : MonoBehaviour
                 }
                 else
                 {
-                    Debug.Log("右手A键快速点击，但没有接触物体");
+                    // 未命中任何对象时，取消上一次的选中
+                    handOutlineController?.CancelLastSelected();
+                    Debug.Log("右手A键快速点击，但没有接触物体，已取消上一次的选中");
                 }
             }
             else
