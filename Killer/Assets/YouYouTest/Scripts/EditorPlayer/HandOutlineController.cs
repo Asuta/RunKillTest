@@ -206,6 +206,26 @@ public class HandOutlineController : MonoBehaviour
         return multiSelectedReceivers.Contains(receiver);
     }
 
+    /// <summary>
+    /// 获取所有多选对象的IGrabable列表（用于复制功能）
+    /// </summary>
+    public System.Collections.Generic.List<IGrabable> GetAllMultiSelectedGrabables()
+    {
+        var grabables = new System.Collections.Generic.List<IGrabable>();
+        foreach (var receiver in multiSelectedReceivers)
+        {
+            if (receiver != null)
+            {
+                var grabable = receiver.GetComponent<IGrabable>();
+                if (grabable != null)
+                {
+                    grabables.Add(grabable);
+                }
+            }
+        }
+        return grabables;
+    }
+
     private void OnDisable()
     {
         if (hoveredReceiverLeft != null)

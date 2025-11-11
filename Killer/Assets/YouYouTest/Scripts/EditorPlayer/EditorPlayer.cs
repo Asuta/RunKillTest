@@ -17,9 +17,13 @@ public class EditorPlayer : MonoBehaviour
 
     public IGrabable leftGrabbedObject = null; // 左手当前抓取的物体
     public IGrabable rightGrabbedObject = null; // 右手当前抓取的物体
+    
+    // 多抓取支持
+    private System.Collections.Generic.List<IGrabable> rightMultiGrabbedObjects = new System.Collections.Generic.List<IGrabable>(); // 右手多抓取的对象列表
     private GrabCommand leftCurrentGrabCommand = null; // 左手当前抓取命令
     private GrabCommand rightCurrentGrabCommand = null; // 右手当前抓取命令
     private YouYouTest.CommandFramework.CombinedCreateAndMoveCommand currentDuplicateCommand = null; // 当前复制命令（合并创建与移动）
+    private System.Collections.Generic.List<YouYouTest.CommandFramework.CombinedCreateAndMoveCommand> currentMultiDuplicateCommands = new System.Collections.Generic.List<YouYouTest.CommandFramework.CombinedCreateAndMoveCommand>(); // 当前多选复制命令列表
 
     private Collider[] hitColliders = new Collider[10]; // 用于OverlapSphereNonAlloc的碰撞器数组
     
@@ -325,10 +329,25 @@ public class EditorPlayer : MonoBehaviour
     }
 
     /// <summary>
-    /// 右手释放物体（重构：委托给工具方法处理释放及命令提交）
+    /// 右手释放物体（支持单抓取和多抓取）
     /// </summary>
     public void RightHandRelease()
     {
+        // 处理多抓取对象的释放
+        if (rightMultiGrabbedObjects.Count > 0)
+        {
+            foreach (var grabable in rightMultiGrabbedObjects)
+            {
+                if (grabable != null)
+                {
+                    grabable.OnReleased(rightHand);
+                }
+            }
+            rightMultiGrabbedObjects.Clear();
+            Debug.Log("释放右手多抓取的所有对象");
+        }
+        
+        // 处理单抓取对象的释放
         EditorPlayerHelpers.ReleaseGrab(ref rightGrabbedObject, ref rightCurrentGrabCommand, rightHand, false, handOutlineController);
     }
     #endregion
@@ -437,14 +456,23 @@ public class EditorPlayer : MonoBehaviour
     }
 
     /// <summary>
-    /// 复制右手当前抓取/接触的物体
+    /// 复制右手当前抓取/接触的物体，优先复制多选对象
     /// </summary>
     private void CopyRightHandObject()
     {
+        // 优先级1：检查是否有多选对象
+        var multiSelectedGrabables = handOutlineController?.GetAllMultiSelectedGrabables();
+        if (multiSelectedGrabables != null && multiSelectedGrabables.Count > 0)
+        {
+            CopyMultipleObjects(multiSelectedGrabables);
+            return;
+        }
+
+        // 优先级2：复制单个对象（抓取的或接触的）
         IGrabable sourceObject = rightGrabbedObject ?? rightHoldObject;
         if (sourceObject == null)
         {
-            Debug.Log("右手没有抓取或接触任何物体，无法复制");
+            Debug.Log("右手没有抓取或接触任何物体，且没有多选对象，无法复制");
             return;
         }
 
@@ -465,16 +493,44 @@ public class EditorPlayer : MonoBehaviour
     }
 
     /// <summary>
-    /// 释放右手复制的物体
+    /// 释放右手复制的物体（支持单选和多选复制）
     /// </summary>
     private void ReleaseRightCopiedObject()
     {
         if (rightGrabbedObject != null)
         {
-            EditorPlayerHelpers.UpdateDuplicateOnRelease(currentDuplicateCommand, rightGrabbedObject);
-            currentDuplicateCommand = null;
+            // 检查是否是多选复制
+            if (currentMultiDuplicateCommands.Count > 0)
+            {
+                // 处理多选复制的释放
+                foreach (var duplicateCommand in currentMultiDuplicateCommands)
+                {
+                    if (duplicateCommand != null)
+                    {
+                        var duplicatedObject = duplicateCommand.GetCreatedObject();
+                        if (duplicatedObject != null)
+                        {
+                            var grabable = EditorPlayerHelpers.GetGrabableFromGameObject(duplicatedObject);
+                            if (grabable != null)
+                            {
+                                // 更新所有多抓取对象的复制命令
+                                EditorPlayerHelpers.UpdateDuplicateOnRelease(duplicateCommand, grabable);
+                            }
+                        }
+                    }
+                }
+                currentMultiDuplicateCommands.Clear();
+                Debug.Log($"释放右手多选复制的物体，共处理 {currentMultiDuplicateCommands.Count} 个复制命令");
+            }
+            else
+            {
+                // 处理单选复制的释放
+                EditorPlayerHelpers.UpdateDuplicateOnRelease(currentDuplicateCommand, rightGrabbedObject);
+                currentDuplicateCommand = null;
+                Debug.Log("释放右手单选复制的物体");
+            }
+            
             RightHandRelease();
-            Debug.Log("释放右手复制的物体");
         }
     }
     #endregion
@@ -520,6 +576,93 @@ public class EditorPlayer : MonoBehaviour
                 }
             }
         }
+    }
+
+    /// <summary>
+    /// 复制多个对象并抓取所有复制的对象
+    /// </summary>
+    private void CopyMultipleObjects(System.Collections.Generic.List<IGrabable> sourceObjects)
+    {
+        if (sourceObjects == null || sourceObjects.Count == 0)
+        {
+            Debug.Log("多选复制：源对象列表为空");
+            return;
+        }
+
+        // 清除之前的多选复制命令
+        currentMultiDuplicateCommands.Clear();
+
+        // 释放当前抓取的对象（包括多抓取）
+        if (rightGrabbedObject != null || rightMultiGrabbedObjects.Count > 0) RightHandRelease();
+
+        Debug.Log($"开始多选复制，共 {sourceObjects.Count} 个对象");
+
+        // 复制每个对象，并记录成功复制的 GameObject 列表
+        var duplicatedGameObjects = new System.Collections.Generic.List<GameObject>();
+        foreach (var sourceObject in sourceObjects)
+        {
+            if (sourceObject == null) continue;
+
+            var duplicateCommand = EditorPlayerHelpers.CreateDuplicateAndGrab(sourceObject, false);
+            if (duplicateCommand != null)
+            {
+                var duplicatedObject = duplicateCommand.GetCreatedObject();
+                if (duplicatedObject != null)
+                {
+                    currentMultiDuplicateCommands.Add(duplicateCommand);
+                    duplicatedGameObjects.Add(duplicatedObject);
+                    Debug.Log($"多选复制成功：{sourceObject.ObjectGameObject.name} -> {duplicatedObject.name}");
+                }
+            }
+        }
+
+        if (duplicatedGameObjects.Count == 0)
+        {
+            Debug.LogWarning("多选复制失败：没有成功复制任何对象");
+            return;
+        }
+
+        // 1) 取消之前所有被选中的对象（将选中切换到新复制出来的对象）
+        handOutlineController?.ClearAllMultiSelection();
+
+        // 2) 将新复制出来的对象设置为 Selected（并记录到 HandOutlineController 的多选集合）
+        foreach (var go in duplicatedGameObjects)
+        {
+            if (go == null) continue;
+            var recv = go.GetComponentInParent<OutlineReceiver>();
+            if (recv != null)
+            {
+                handOutlineController?.AddToMultiSelection(recv);
+            }
+        }
+
+        // 3) 抓取所有复制的对象（让它们跟随手移动）
+        rightMultiGrabbedObjects.Clear();
+
+        for (int i = 0; i < currentMultiDuplicateCommands.Count; i++)
+        {
+            var duplicateCommand = currentMultiDuplicateCommands[i];
+            var duplicatedObject = duplicateCommand?.GetCreatedObject();
+            if (duplicatedObject == null) continue;
+
+            var grabable = EditorPlayerHelpers.GetGrabableFromGameObject(duplicatedObject);
+            if (grabable == null) continue;
+
+            if (i == 0)
+            {
+                // 第一个作为主要抓取对象（保留原有 grab Command 行为）
+                RightHandGrab(duplicatedObject);
+            }
+            else
+            {
+                // 其他对象直接触发 OnGrabbed，使其随手移动
+                grabable.OnGrabbed(rightHand);
+            }
+
+            rightMultiGrabbedObjects.Add(grabable);
+        }
+
+        Debug.Log($"多选复制并切换选中目标完成：复制 {duplicatedGameObjects.Count} 个对象，抓取 {rightMultiGrabbedObjects.Count} 个对象");
     }
     #endregion
 
