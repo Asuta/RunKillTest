@@ -381,15 +381,15 @@ public class EditorPlayer : MonoBehaviour
         IGrabable previousLeftHoldObject = leftHoldObject;
         leftHoldObject = DetectGrabableObject(leftCheckSphere);
         
-        // 更新左手描边状态
-        UpdateOutlineState(ref leftHoveredReceiver, previousLeftHoldObject, leftHoldObject);
+        // 更新左手描边状态（包括hold和grabbed的对象）
+        UpdateOutlineState(ref leftHoveredReceiver, previousLeftHoldObject, leftHoldObject, leftGrabbedObject);
 
         // 检测右手附近的可抓取对象
         IGrabable previousRightHoldObject = rightHoldObject;
         rightHoldObject = DetectGrabableObject(rightCheckSphere);
         
-        // 更新右手描边状态
-        UpdateOutlineState(ref rightHoveredReceiver, previousRightHoldObject, rightHoldObject);
+        // 更新右手描边状态（包括hold和grabbed的对象）
+        UpdateOutlineState(ref rightHoveredReceiver, previousRightHoldObject, rightHoldObject, rightGrabbedObject);
     }
 
     /// <summary>
@@ -438,25 +438,39 @@ public class EditorPlayer : MonoBehaviour
     /// <param name="hoveredReceiver">当前hover的接收器引用</param>
     /// <param name="previousHoldObject">之前hold的对象</param>
     /// <param name="currentHoldObject">当前hold的对象</param>
-    private void UpdateOutlineState(ref OutlineReceiver hoveredReceiver, IGrabable previousHoldObject, IGrabable currentHoldObject)
+    /// <param name="grabbedObject">当前抓取的对象</param>
+    private void UpdateOutlineState(ref OutlineReceiver hoveredReceiver, IGrabable previousHoldObject, IGrabable currentHoldObject, IGrabable grabbedObject)
     {
-        // 如果当前hold的对象发生了变化
-        if (previousHoldObject != currentHoldObject)
+        // 确定应该显示描边的对象（优先级：grabbedObject > currentHoldObject）
+        IGrabable targetObject = grabbedObject != null ? grabbedObject : currentHoldObject;
+        IGrabable previousTargetObject = previousHoldObject;
+
+        // 如果之前有grabbed对象，也要考虑清除
+        if (grabbedObject == null && previousHoldObject == null && hoveredReceiver != null)
+        {
+            // 这种情况可能是从grabbed状态变为无状态
+            hoveredReceiver.SetState(OutlineState.None, Color.clear);
+            hoveredReceiver = null;
+            return;
+        }
+
+        // 如果目标对象发生了变化
+        if (previousTargetObject != targetObject)
         {
             // 清除之前对象的hover状态
-            if (previousHoldObject != null && hoveredReceiver != null)
+            if (previousTargetObject != null && hoveredReceiver != null)
             {
                 hoveredReceiver.SetState(OutlineState.None, Color.clear);
                 hoveredReceiver = null;
             }
 
             // 设置新对象的hover状态
-            if (currentHoldObject != null)
+            if (targetObject != null)
             {
-                GameObject currentObject = currentHoldObject.ObjectGameObject;
-                if (currentObject != null)
+                GameObject targetGameObject = targetObject.ObjectGameObject;
+                if (targetGameObject != null)
                 {
-                    OutlineReceiver receiver = currentObject.GetComponentInParent<OutlineReceiver>();
+                    OutlineReceiver receiver = targetGameObject.GetComponentInParent<OutlineReceiver>();
                     if (receiver != null)
                     {
                         receiver.SetState(OutlineState.Hover, hoverColor);
