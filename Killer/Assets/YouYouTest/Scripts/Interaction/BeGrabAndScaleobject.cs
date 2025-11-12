@@ -48,6 +48,7 @@ public class BeGrabAndScaleobject : MonoBehaviour, IGrabable
     private Vector3 indirectGrabOffset;
     private Quaternion indirectGrabRotationOffset;
     private bool isIndirectGrabbing = false;
+    private Transform indirectRotationTarget; // 间接旋转跟随的目标
     
     // 双手缩放所需数据
     private bool isTwoHandScaling = false;
@@ -88,7 +89,7 @@ public class BeGrabAndScaleobject : MonoBehaviour, IGrabable
             middlePosition = Vector3.Lerp(middlePosition, indirectTarget.position, posAlphaIndirect);
             // 只对Y轴进行插值，保持X轴和Z轴不变
             Vector3 currentEuler = middleRotation.eulerAngles;
-            Vector3 targetEuler = indirectTarget.rotation.eulerAngles;
+            Vector3 targetEuler = indirectRotationTarget.rotation.eulerAngles;
             float newY = Mathf.LerpAngle(currentEuler.y, targetEuler.y, rotAlphaIndirect);
             middleRotation = Quaternion.Euler(currentEuler.x, newY, currentEuler.z);
     
@@ -409,6 +410,19 @@ public class BeGrabAndScaleobject : MonoBehaviour, IGrabable
         if (handTransform == null) return;
     
         indirectTarget = handTransform;
+
+        // --- 新增逻辑：创建用于旋转的子对象 ---
+        if (indirectRotationTarget != null)
+        {
+            Destroy(indirectRotationTarget.gameObject);
+        }
+        GameObject rotationTargetGO = new GameObject("IndirectRotationTarget");
+        rotationTargetGO.transform.position = handTransform.position;
+        rotationTargetGO.transform.rotation = handTransform.rotation; // 新增：同步初始旋转
+        rotationTargetGO.transform.SetParent(handTransform);
+        indirectRotationTarget = rotationTargetGO.transform;
+        // ------------------------------------
+
         // 为避免跳变，初始化中间数据为当前手的位置/旋转
         middlePosition = indirectTarget.position;
         middleRotation = indirectTarget.rotation;
@@ -427,6 +441,14 @@ public class BeGrabAndScaleobject : MonoBehaviour, IGrabable
     {
         isIndirectGrabbing = false;
         indirectTarget = null;
+
+        // --- 新增逻辑：销毁子对象 ---
+        if (indirectRotationTarget != null)
+        {
+            Destroy(indirectRotationTarget.gameObject);
+            indirectRotationTarget = null;
+        }
+        // --------------------------
     }
     
     /// <summary>
