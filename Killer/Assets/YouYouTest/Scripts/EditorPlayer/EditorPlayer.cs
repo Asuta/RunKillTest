@@ -116,7 +116,7 @@ public class EditorPlayer : MonoBehaviour
         // 左手扳机抬起时释放物体
         if (InputActionsManager.Actions.XRILeftInteraction.Activate.WasReleasedThisFrame())
         {
-            if (leftGrabbedObject != null)
+            if (leftGrabbedObject != null || leftMultiGrabbedObjects.Count > 0)
             {
                 LeftHandRelease();
                 Debug.Log("左手扳机抬起，释放物体");
@@ -142,7 +142,7 @@ public class EditorPlayer : MonoBehaviour
         // 右手扳机抬起时释放物体
         if (InputActionsManager.Actions.XRIRightInteraction.Activate.WasReleasedThisFrame())
         {
-            if (rightGrabbedObject != null)
+            if (rightGrabbedObject != null || rightMultiGrabbedObjects.Count > 0)
             {
                 RightHandRelease();
                 Debug.Log("右手扳机抬起，释放物体");
@@ -291,6 +291,22 @@ public class EditorPlayer : MonoBehaviour
     /// </summary>
     public void LeftHandRelease()
     {
+        // 处理多抓取对象的释放
+        if (leftMultiGrabbedObjects.Count > 0)
+        {
+            foreach (var grabable in leftMultiGrabbedObjects)
+            {
+                if (grabable != null)
+                {
+                    if (grabable is BeGrabAndScaleobject bgLeft) bgLeft.StopIndirectGrab();
+                    grabable.OnReleased(leftHand);
+                }
+            }
+            leftMultiGrabbedObjects.Clear();
+            Debug.Log("释放左手多抓取的所有对象");
+        }
+        
+        // 处理单抓取对象的释放
         EditorPlayerHelpers.ReleaseGrab(ref leftGrabbedObject, ref leftCurrentGrabCommand, leftHand, true, handOutlineController);
     }
     #endregion
@@ -353,6 +369,7 @@ public class EditorPlayer : MonoBehaviour
             {
                 if (grabable != null)
                 {
+                    if (grabable is BeGrabAndScaleobject bgRight) bgRight.StopIndirectGrab();
                     grabable.OnReleased(rightHand);
                 }
             }
