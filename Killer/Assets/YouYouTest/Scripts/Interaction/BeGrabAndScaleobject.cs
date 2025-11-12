@@ -324,6 +324,9 @@ public class BeGrabAndScaleobject : MonoBehaviour, IGrabable
     // 释放一只手：若仍有另一只手抓取，则切回单手；否则完全释放
     public void OnReleased(Transform releasedHandTransform)
     {
+        // 统一停止所有抓取状态（包括间接抓取）
+        StopIndirectGrab();
+        
         if (!isGrabbed) return;
 
         // 若释放的是主手

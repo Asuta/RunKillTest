@@ -298,7 +298,6 @@ public class EditorPlayer : MonoBehaviour
             {
                 if (grabable != null)
                 {
-                    if (grabable is BeGrabAndScaleobject bgLeft) bgLeft.StopIndirectGrab();
                     grabable.OnReleased(leftHand);
                 }
             }
@@ -369,7 +368,6 @@ public class EditorPlayer : MonoBehaviour
             {
                 if (grabable != null)
                 {
-                    if (grabable is BeGrabAndScaleobject bgRight) bgRight.StopIndirectGrab();
                     grabable.OnReleased(rightHand);
                 }
             }
@@ -399,7 +397,6 @@ public class EditorPlayer : MonoBehaviour
                 foreach (var g in leftMultiGrabbedObjects)
                 {
                     if (g == null) continue;
-                    if (g is BeGrabAndScaleobject bgLeft) bgLeft.StopIndirectGrab();
                     g.OnReleased(leftHand);
                 }
                 leftMultiGrabbedObjects.Clear();
@@ -413,7 +410,6 @@ public class EditorPlayer : MonoBehaviour
                 foreach (var g in rightMultiGrabbedObjects)
                 {
                     if (g == null) continue;
-                    if (g is BeGrabAndScaleobject bgRight) bgRight.StopIndirectGrab();
                     g.OnReleased(rightHand);
                 }
                 rightMultiGrabbedObjects.Clear();
@@ -591,41 +587,39 @@ public class EditorPlayer : MonoBehaviour
     /// </summary>
     private void ReleaseRightCopiedObject()
     {
-        if (rightGrabbedObject != null)
+        // 检查是否是多选复制
+        if (currentMultiDuplicateCommands.Count > 0)
         {
-            // 检查是否是多选复制
-            if (currentMultiDuplicateCommands.Count > 0)
+            // 处理多选复制的释放
+            foreach (var duplicateCommand in currentMultiDuplicateCommands)
             {
-                // 处理多选复制的释放
-                foreach (var duplicateCommand in currentMultiDuplicateCommands)
+                if (duplicateCommand != null)
                 {
-                    if (duplicateCommand != null)
+                    var duplicatedObject = duplicateCommand.GetCreatedObject();
+                    if (duplicatedObject != null)
                     {
-                        var duplicatedObject = duplicateCommand.GetCreatedObject();
-                        if (duplicatedObject != null)
+                        var grabable = EditorPlayerHelpers.GetGrabableFromGameObject(duplicatedObject);
+                        if (grabable != null)
                         {
-                            var grabable = EditorPlayerHelpers.GetGrabableFromGameObject(duplicatedObject);
-                            if (grabable != null)
-                            {
-                                // 更新所有多抓取对象的复制命令
-                                EditorPlayerHelpers.UpdateDuplicateOnRelease(duplicateCommand, grabable);
-                            }
+                            // 更新所有多抓取对象的复制命令
+                            EditorPlayerHelpers.UpdateDuplicateOnRelease(duplicateCommand, grabable);
                         }
                     }
                 }
-                currentMultiDuplicateCommands.Clear();
-                Debug.Log($"释放右手多选复制的物体，共处理 {currentMultiDuplicateCommands.Count} 个复制命令");
             }
-            else
-            {
-                // 处理单选复制的释放
-                EditorPlayerHelpers.UpdateDuplicateOnRelease(currentDuplicateCommand, rightGrabbedObject);
-                currentDuplicateCommand = null;
-                Debug.Log("释放右手单选复制的物体");
-            }
-            
-            RightHandRelease();
+            currentMultiDuplicateCommands.Clear();
+            Debug.Log($"释放右手多选复制的物体，共处理 {currentMultiDuplicateCommands.Count} 个复制命令");
         }
+        else if (rightGrabbedObject != null)
+        {
+            // 处理单选复制的释放
+            EditorPlayerHelpers.UpdateDuplicateOnRelease(currentDuplicateCommand, rightGrabbedObject);
+            currentDuplicateCommand = null;
+            Debug.Log("释放右手单选复制的物体");
+        }
+        
+        // 统一调用释放方法（处理多抓取对象和单抓取对象）
+        RightHandRelease();
     }
     #endregion
 
@@ -742,22 +736,14 @@ public class EditorPlayer : MonoBehaviour
             var grabable = EditorPlayerHelpers.GetGrabableFromGameObject(duplicatedObject);
             if (grabable == null) continue;
 
-            if (i == 0)
+            // 统一对所有复制的对象使用间接抓取（包括第一个）
+            if (grabable is BeGrabAndScaleobject bgDup)
             {
-                // 第一个作为主要抓取对象（保留原有 grab Command 行为）
-                RightHandGrab(duplicatedObject);
+                bgDup.StartIndirectGrab(rightHand);
             }
             else
             {
-                // 其他对象尝试使用间接抓取（若为 BeGrabAndScaleobject），否则回退到 OnGrabbed
-                if (grabable is BeGrabAndScaleobject bgDup)
-                {
-                    bgDup.StartIndirectGrab(rightHand);
-                }
-                else
-                {
-                    grabable.OnGrabbed(rightHand);
-                }
+                grabable.OnGrabbed(rightHand);
             }
 
             rightMultiGrabbedObjects.Add(grabable);
