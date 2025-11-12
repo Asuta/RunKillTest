@@ -379,7 +379,12 @@ public class EditorPlayer : MonoBehaviour
             if (leftGrabbedObject != null) LeftHandRelease();
             if (leftMultiGrabbedObjects.Count > 0)
             {
-                foreach (var g in leftMultiGrabbedObjects) g?.OnReleased(leftHand);
+                foreach (var g in leftMultiGrabbedObjects)
+                {
+                    if (g == null) continue;
+                    if (g is BeGrabAndScaleobject bgLeft) bgLeft.StopIndirectGrab();
+                    g.OnReleased(leftHand);
+                }
                 leftMultiGrabbedObjects.Clear();
             }
         }
@@ -388,12 +393,17 @@ public class EditorPlayer : MonoBehaviour
             if (rightGrabbedObject != null) RightHandRelease();
             if (rightMultiGrabbedObjects.Count > 0)
             {
-                foreach (var g in rightMultiGrabbedObjects) g?.OnReleased(rightHand);
+                foreach (var g in rightMultiGrabbedObjects)
+                {
+                    if (g == null) continue;
+                    if (g is BeGrabAndScaleobject bgRight) bgRight.StopIndirectGrab();
+                    g.OnReleased(rightHand);
+                }
                 rightMultiGrabbedObjects.Clear();
             }
         }
 
-        // 抓取所有多选对象
+        // 统一对所有多选对象使用间接差值抓取（包括第一个）
         for (int i = 0; i < multi.Count; i++)
         {
             var grabable = multi[i];
@@ -401,15 +411,16 @@ public class EditorPlayer : MonoBehaviour
             GameObject go = grabable.ObjectGameObject;
             if (go == null) continue;
 
-            if (i == 0)
+            Transform hand = isLeftHand ? leftHand : rightHand;
+
+            // 若为 BeGrabAndScaleobject，使用间接抓取；否则回退到 OnGrabbed
+            if (grabable is BeGrabAndScaleobject bg)
             {
-                // 第一个作为主要抓取对象，使用已有的抓取方法以保持命令记录等行为
-                if (isLeftHand) LeftHandGrab(go); else RightHandGrab(go);
+                bg.StartIndirectGrab(hand);
             }
             else
             {
-                // 其他对象直接调用 OnGrabbed，使其随手移动
-                grabable.OnGrabbed(isLeftHand ? leftHand : rightHand);
+                grabable.OnGrabbed(hand);
             }
 
             // 记录到对应的多抓取集合
@@ -721,8 +732,15 @@ public class EditorPlayer : MonoBehaviour
             }
             else
             {
-                // 其他对象直接触发 OnGrabbed，使其随手移动
-                grabable.OnGrabbed(rightHand);
+                // 其他对象尝试使用间接抓取（若为 BeGrabAndScaleobject），否则回退到 OnGrabbed
+                if (grabable is BeGrabAndScaleobject bgDup)
+                {
+                    bgDup.StartIndirectGrab(rightHand);
+                }
+                else
+                {
+                    grabable.OnGrabbed(rightHand);
+                }
             }
 
             rightMultiGrabbedObjects.Add(grabable);

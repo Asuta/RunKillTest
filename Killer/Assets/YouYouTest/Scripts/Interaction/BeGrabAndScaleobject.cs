@@ -32,14 +32,23 @@ public class BeGrabAndScaleobject : MonoBehaviour, IGrabable
 
     [Header("跟随设置")]
     public bool freezeYaxis = false;
-
+    
     private bool isGrabbed = false;
     private Transform primaryHand;   // 主手（用于位置/旋转跟随）
     private Transform secondaryHand; // 副手（用于双手缩放）
-
+    
     private Vector3 offsetFromPrimary;
     private Quaternion rotationOffsetFromPrimary;
-
+    
+    // 用于“间接差值跟随”算法的中间数据（不依赖可视化 controlObject）
+    // indirectTarget 表示要追踪的 Transform（例如手或其它目标）
+    private Transform indirectTarget;
+    private Vector3 middlePosition;
+    private Quaternion middleRotation = Quaternion.identity;
+    private Vector3 indirectGrabOffset;
+    private Quaternion indirectGrabRotationOffset;
+    private bool isIndirectGrabbing = false;
+    
     // 双手缩放所需数据
     private bool isTwoHandScaling = false;
     private float initialHandsDistance = 0f;
@@ -62,15 +71,37 @@ public class BeGrabAndScaleobject : MonoBehaviour, IGrabable
     private void Awake()
     {
         editorPlayer = FindFirstObjectByType<EditorPlayer>();
+        // 初始化中间数据，保证间接跟随不会因为未初始化而跳变
+        middlePosition = transform.position;
+        middleRotation = transform.rotation;
     }
 
     private void Update()
     {
+        // 优先处理“间接差值跟随”流程（如果启用，则独占控制，不与普通抓取逻辑混用）
+        if (isIndirectGrabbing && indirectTarget != null)
+        {
+            float posAlphaIndirect = 1f - Mathf.Exp(-positionSmoothSpeed * Time.deltaTime);
+            float rotAlphaIndirect = 1f - Mathf.Exp(-rotationSmoothSpeed * Time.deltaTime);
+    
+            // 中间数据以差值方式追踪 indirectTarget
+            middlePosition = Vector3.Lerp(middlePosition, indirectTarget.position, posAlphaIndirect);
+            middleRotation = Quaternion.Slerp(middleRotation, indirectTarget.rotation, rotAlphaIndirect);
+    
+            // 本物体（grabObject）立即依据中间数据与记录的偏移保持相对关系（无差值）
+            transform.position = middlePosition + middleRotation * indirectGrabOffset;
+            transform.rotation = middleRotation * indirectGrabRotationOffset;
+    
+            // 中断后续普通抓取逻辑
+            return;
+        }
+    
+        // --- 下面为原有的同步两手/单手跟随逻辑（保持不变） ---
         // 同步两手抓取状态（以 EditorPlayer 为权威信息）
         bool leftHolding = editorPlayer != null && editorPlayer.leftGrabbedObject == (IGrabable)this;
         bool rightHolding = editorPlayer != null && editorPlayer.rightGrabbedObject == (IGrabable)this;
         bool nowTwoHand = leftHolding && rightHolding;
-
+    
         // 进入双手状态时记录初始距离与缩放
         if (!isTwoHandScaling && nowTwoHand)
         {
@@ -127,13 +158,13 @@ public class BeGrabAndScaleobject : MonoBehaviour, IGrabable
                 rotationOffsetFromPrimary = Quaternion.Inverse(primaryHand.rotation) * transform.rotation;
             }
         }
-
+    
         if (!isGrabbed || primaryHand == null) return;
-
+    
         // 单手/主手 跟随位置和旋转（与 BeGrabobject 一致）
         Vector3 targetPos = primaryHand.position + primaryHand.rotation * offsetFromPrimary;
         Quaternion targetRot = primaryHand.rotation * rotationOffsetFromPrimary;
-
+    
         // 双手时，位置保持与主手的相对位置，旋转跟随两手平均朝向（保持进入时的相对旋转偏移）
         if (isTwoHandScaling && editorPlayer != null && editorPlayer.leftHand != null && editorPlayer.rightHand != null)
         {
@@ -142,19 +173,19 @@ public class BeGrabAndScaleobject : MonoBehaviour, IGrabable
             Quaternion avgRot = Quaternion.Slerp(editorPlayer.leftHand.rotation, editorPlayer.rightHand.rotation, 0.5f);
             targetRot = avgRot * twoHandRotationOffset;
         }
-
+    
         if (freezeYaxis)
         {
             Vector3 curEuler = transform.rotation.eulerAngles;
             Vector3 targetEuler = targetRot.eulerAngles;
             targetRot = Quaternion.Euler(curEuler.x, targetEuler.y, curEuler.z);
         }
-
+    
         float posAlpha = 1f - Mathf.Exp(-positionSmoothSpeed * Time.deltaTime);
         float rotAlpha = 1f - Mathf.Exp(-rotationSmoothSpeed * Time.deltaTime);
         transform.position = Vector3.Lerp(transform.position, targetPos, posAlpha);
         transform.rotation = Quaternion.Slerp(transform.rotation, targetRot, rotAlpha);
-
+    
         // 双手缩放：使用单轴缩放
         if (isTwoHandScaling && editorPlayer != null && editorPlayer.leftHand != null && editorPlayer.rightHand != null)
         {
@@ -358,6 +389,37 @@ public class BeGrabAndScaleobject : MonoBehaviour, IGrabable
             if (handTransform == editorPlayer.rightHand) return "右手";
         }
         return "未知手部";
+    }
+    
+    /// <summary>
+    /// 开始“间接差值抓取”
+    /// - 不修改现有 OnGrabbed/OnReleased 行为
+    /// - 使用一个内部中间数据（middlePosition/middleRotation）以差值追踪 handTransform
+    /// - 记录本物体相对于中间数据的偏移，随后每帧让物体立即保持该相对关系（无插值）
+    /// </summary>
+    public void StartIndirectGrab(Transform handTransform)
+    {
+        if (handTransform == null) return;
+    
+        indirectTarget = handTransform;
+        // 为避免跳变，初始化中间数据为当前手的位置/旋转
+        middlePosition = indirectTarget.position;
+        middleRotation = indirectTarget.rotation;
+    
+        // 记录本物体相对于中间数据的偏移
+        indirectGrabOffset = Quaternion.Inverse(middleRotation) * (transform.position - middlePosition);
+        indirectGrabRotationOffset = Quaternion.Inverse(middleRotation) * transform.rotation;
+    
+        isIndirectGrabbing = true;
+    }
+    
+    /// <summary>
+    /// 停止间接抓取
+    /// </summary>
+    public void StopIndirectGrab()
+    {
+        isIndirectGrabbing = false;
+        indirectTarget = null;
     }
     
     /// <summary>
