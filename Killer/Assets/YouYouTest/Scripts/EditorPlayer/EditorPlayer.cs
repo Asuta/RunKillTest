@@ -404,15 +404,8 @@ public class EditorPlayer : MonoBehaviour
 
             Transform hand = isLeftHand ? leftHand : rightHand;
 
-            // 若为 BeGrabAndScaleobject，使用间接抓取；否则回退到 OnGrabbed
-            if (grabable is BeGrabAndScaleobject bg)
-            {
-                bg.StartIndirectGrab(hand);
-            }
-            else
-            {
-                grabable.OnGrabbed(hand);
-            }
+            // 使用统一抓取方法（包含设置状态和抓取）
+            grabable.UnifiedGrab(hand);
 
             // 记录到对应的多抓取集合
             if (isLeftHand) leftMultiGrabbedObjects.Add(grabable); else rightMultiGrabbedObjects.Add(grabable);

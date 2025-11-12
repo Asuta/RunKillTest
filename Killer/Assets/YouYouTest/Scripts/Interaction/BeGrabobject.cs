@@ -71,6 +71,16 @@ public class BeGrabobject  : MonoBehaviour, IGrabable
     }
     
     /// <summary>
+    /// 统一抓取方法（包含设置状态和抓取）
+    /// </summary>
+    /// <param name="handTransform">抓住它的手部transform</param>
+    public void UnifiedGrab(Transform handTransform)
+    {
+        // 对于 BeGrabobject，统一抓取就是普通的抓取
+        OnGrabbed(handTransform);
+    }
+    
+    /// <summary>
     /// 获取手部名称用于调试
     /// </summary>
     /// <param name="handTransform">手部transform</param>

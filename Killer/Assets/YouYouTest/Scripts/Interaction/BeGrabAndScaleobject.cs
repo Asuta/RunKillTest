@@ -325,6 +325,30 @@ public class BeGrabAndScaleobject : MonoBehaviour, IGrabable
             }
         }
     }
+    
+    /// <summary>
+    /// 统一抓取方法（包含设置状态和抓取）
+    /// 对于 BeGrabAndScaleobject，使用间接抓取方式
+    /// </summary>
+    /// <param name="handTransform">抓住它的手部transform</param>
+    public void UnifiedGrab(Transform handTransform)
+    {
+        if (handTransform == null) return;
+        
+        // 设置抓取状态
+        if (!isGrabbed)
+        {
+            isGrabbed = true;
+            primaryHand = handTransform;
+            secondaryHand = null;
+            isTwoHandScaling = false;
+        }
+        
+        // 执行间接抓取
+        StartIndirectGrab(handTransform);
+        
+        Debug.Log($"{gameObject.name} 被 {GetHandName(handTransform)} 统一抓取（间接抓取）");
+    }
 
     // 释放一只手：若仍有另一只手抓取，则切回单手；否则完全释放
     public void OnReleased(Transform releasedHandTransform)
