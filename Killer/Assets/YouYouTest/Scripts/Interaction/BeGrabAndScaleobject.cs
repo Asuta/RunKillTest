@@ -86,7 +86,11 @@ public class BeGrabAndScaleobject : MonoBehaviour, IGrabable
     
             // 中间数据以差值方式追踪 indirectTarget
             middlePosition = Vector3.Lerp(middlePosition, indirectTarget.position, posAlphaIndirect);
-            middleRotation = Quaternion.Slerp(middleRotation, indirectTarget.rotation, rotAlphaIndirect);
+            // 只对Y轴进行插值，保持X轴和Z轴不变
+            Vector3 currentEuler = middleRotation.eulerAngles;
+            Vector3 targetEuler = indirectTarget.rotation.eulerAngles;
+            float newY = Mathf.LerpAngle(currentEuler.y, targetEuler.y, rotAlphaIndirect);
+            middleRotation = Quaternion.Euler(currentEuler.x, newY, currentEuler.z);
     
             // 本物体（grabObject）立即依据中间数据与记录的偏移保持相对关系（无差值）
             transform.position = middlePosition + middleRotation * indirectGrabOffset;
