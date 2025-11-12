@@ -3,10 +3,9 @@ using UnityEngine;
 public class NewGrabTTT : MonoBehaviour
 {
     public Transform target;
-    public Transform controlObject;
     public Transform grabObject;
     public Vector3 middlePosition;
-    public Quaternion middleRotation;
+    public Quaternion middleRotation = Quaternion.identity;
     public float positionLerpSpeed = 5f;
     public float rotationLerpSpeed = 5f;
     
@@ -17,43 +16,37 @@ public class NewGrabTTT : MonoBehaviour
     // Start is called once before the first execution of Update after the MonoBehaviour is created
     void Start()
     {
-        
+        // 初始化中间追踪数据，避免未赋值时产生偏移
+        middlePosition = transform.position;
+        middleRotation = transform.rotation;
     }
 
     // Update is called once per frame
     void Update()
     {
-        if (target != null && controlObject != null)
+        if (target != null)
         {
-            // 使用 Lerp 平滑插值位置
-            Vector3 newPosition = Vector3.Lerp(controlObject.position, target.position, positionLerpSpeed * Time.deltaTime);
-            
-            // 使用 Slerp 平滑插值旋转
-            Quaternion newRotation = Quaternion.Slerp(controlObject.rotation, target.rotation, rotationLerpSpeed * Time.deltaTime);
-            
-            // 将计算出的值赋值给 controlObject
-            controlObject.position = newPosition;
-            controlObject.rotation = newRotation;
+            // 中间数据以差值方式追踪 target（保存为 middlePosition / middleRotation）
+            middlePosition = Vector3.Lerp(middlePosition, target.position, positionLerpSpeed * Time.deltaTime);
+            middleRotation = Quaternion.Slerp(middleRotation, target.rotation, rotationLerpSpeed * Time.deltaTime);
         }
         
-        // 如果正在抓取，让 grabObject 立即跟随 controlObject
-        if (isGrabbing && grabObject != null && controlObject != null)
+        // 如果正在抓取，让 grabObject 立即跟随中间数据（无差值）
+        if (isGrabbing && grabObject != null)
         {
-            grabObject.position = controlObject.position + controlObject.rotation * grabOffset;
-            grabObject.rotation = controlObject.rotation * grabRotationOffset;
+            grabObject.position = middlePosition + middleRotation * grabOffset;
+            grabObject.rotation = middleRotation * grabRotationOffset;
         }
     }
     
     [ContextMenu("Start Grab")]
     public void StartGrab()
     {
-        if (grabObject != null && controlObject != null)
+        if (grabObject != null)
         {
-            // 计算相对位置偏移
-            grabOffset = Quaternion.Inverse(controlObject.rotation) * (grabObject.position - controlObject.position);
-            
-            // 计算相对旋转偏移
-            grabRotationOffset = Quaternion.Inverse(controlObject.rotation) * grabObject.rotation;
+            // 记录 grabObject 与中间数据之间的相对位置和旋转
+            grabOffset = Quaternion.Inverse(middleRotation) * (grabObject.position - middlePosition);
+            grabRotationOffset = Quaternion.Inverse(middleRotation) * grabObject.rotation;
             
             isGrabbing = true;
         }
