@@ -203,6 +203,14 @@ public class EditorPlayer : MonoBehaviour
             else
             {
                 Debug.Log($"右手A键长按后抬起，按下时长: {pressDuration:F2}s，多选模式结束");
+                
+                // 检查是否有多选对象，如果有则触发选择成功事件
+                var multiSelectedGrabables = handOutlineController?.GetAllMultiSelectedGrabables();
+                if (multiSelectedGrabables != null && multiSelectedGrabables.Count > 0)
+                {
+                    Debug.Log($"多选完成，共选中 {multiSelectedGrabables.Count} 个对象，触发选择成功事件");
+                    GlobalEvent.OnSelect.Invoke();
+                }
             }
         }
 

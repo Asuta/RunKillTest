@@ -22,7 +22,7 @@ public class ManyButtonTest : MonoBehaviour
     // 处理 OnSelect 事件的方法
     void OnSelectHandler()
     {
-        Debug.LogError("hahaha");
+        Debug.LogError("多选完成");
     }
 
     // Update is called once per frame
