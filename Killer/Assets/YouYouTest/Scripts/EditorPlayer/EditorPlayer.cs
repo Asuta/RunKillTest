@@ -2,6 +2,7 @@ using UnityEngine;
 using YouYouTest.CommandFramework;
 using YouYouTest.OutlineSystem;
 using YouYouTest;
+using System.Collections.Generic;
 
 public class EditorPlayer : MonoBehaviour
 {
@@ -51,13 +52,20 @@ public class EditorPlayer : MonoBehaviour
     private bool rightALongPressActive = false;
     private float rightALongPressStartTime = 0f;
     private const float RIGHT_A_LONG_PRESS_THRESHOLD = 0.2f; // A键长按阈值（秒）
+    
+    // 持续范围选择时显示的青色球相关变量
+    private Material selectionSphereMaterial;
+    private Mesh dynamicSelectionSphereMesh; // 用于动态半径的球体网格
+    private float lastSelectionSphereRadius = -1f; // 上次使用的球体半径
+    private static readonly Color SELECTION_SPHERE_COLOR = Color.cyan; // 选择球体的颜色（青色）
     #endregion
 
     #region Unity 生命周期方法
     // Start is called once before the first execution of Update after the MonoBehaviour is created
     void Start()
     {
-
+        // 初始化选择球体的网格和材质
+        InitializeSelectionSphere();
     }
 
     // Update is called once per frame
@@ -251,6 +259,14 @@ public class EditorPlayer : MonoBehaviour
         if (rightALongPressActive)
         {
             PerformMultiSelectionCheck();
+            
+            // 在持续范围选择期间绘制青色球
+            if (rightCheckSphere != null)
+            {
+                // 计算实际的检测半径（与PerformMultiSelectionCheck中的计算方式相同）
+                float detectionRadius = Mathf.Max(rightCheckSphere.lossyScale.x, rightCheckSphere.lossyScale.y, rightCheckSphere.lossyScale.z);
+                DrawSelectionSphere(rightCheckSphere.position, detectionRadius);
+            }
         }
 
         // 右手柄B键复制当前抓取/接触的物体（替代原删除功能）
@@ -836,6 +852,80 @@ public class EditorPlayer : MonoBehaviour
         return selectedObjects.ToArray();
     }
 
+    #endregion
+
+    #region 选择球体相关方法
+    /// <summary>
+    /// 初始化选择球体的网格和材质
+    /// </summary>
+    private void InitializeSelectionSphere()
+    {
+        // 创建青色材质
+        selectionSphereMaterial = new Material(Shader.Find("Sprites/Default"));
+        selectionSphereMaterial.color = SELECTION_SPHERE_COLOR;
+        
+        // 初始化动态网格为null，将在需要时创建
+        dynamicSelectionSphereMesh = null;
+        lastSelectionSphereRadius = -1f;
+    }
+    
+    /// <summary>
+    /// 绘制选择球体
+    /// </summary>
+    /// <param name="position">球体位置</param>
+    /// <param name="radius">球体半径</param>
+    private void DrawSelectionSphere(Vector3 position, float radius)
+    {
+        if (selectionSphereMaterial == null) return;
+        
+        // 检查是否需要重新创建网格（半径变化）
+        if (Mathf.Abs(radius - lastSelectionSphereRadius) > 0.001f)
+        {
+            // 清理旧的动态网格
+            if (dynamicSelectionSphereMesh != null)
+            {
+                Destroy(dynamicSelectionSphereMesh);
+            }
+            
+            // 创建新的动态半径球体网格
+            dynamicSelectionSphereMesh = MeshDrawUtility.CreateSphereMesh(radius);
+            lastSelectionSphereRadius = radius;
+        }
+        
+        // 使用动态网格绘制球体
+        if (dynamicSelectionSphereMesh != null)
+        {
+            MeshDrawUtility.DrawSphere(position, selectionSphereMaterial, dynamicSelectionSphereMesh);
+        }
+    }
+    
+    /// <summary>
+    /// 清理选择球体资源
+    /// </summary>
+    private void CleanupSelectionSphere()
+    {
+        if (dynamicSelectionSphereMesh != null)
+        {
+            Destroy(dynamicSelectionSphereMesh);
+            dynamicSelectionSphereMesh = null;
+        }
+        
+        if (selectionSphereMaterial != null)
+        {
+            Destroy(selectionSphereMaterial);
+            selectionSphereMaterial = null;
+        }
+        
+        lastSelectionSphereRadius = -1f;
+    }
+    
+    /// <summary>
+    /// OnDestroy时清理资源
+    /// </summary>
+    void OnDestroy()
+    {
+        CleanupSelectionSphere();
+    }
     #endregion
 
 }

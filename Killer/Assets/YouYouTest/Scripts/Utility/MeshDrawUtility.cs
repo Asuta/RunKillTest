@@ -42,29 +42,80 @@ public static class MeshDrawUtility
     /// <returns>创建的球体网格</returns>
     public static Mesh CreateSphereMesh(float radius)
     {
-        // 创建一个简单的球体网格
-        // 这里使用Unity内置的球体，但为了简单起见，我们创建一个简单的八面体
+        return CreateSphereMesh(radius, 16, 16); // 默认使用更高的分辨率
+    }
+    
+    /// <summary>
+    /// 创建球体网格（高面数版本）
+    /// </summary>
+    /// <param name="radius">球体半径</param>
+    /// <param name="segments">水平分段数</param>
+    /// <param name="rings">垂直分段数</param>
+    /// <returns>创建的球体网格</returns>
+    public static Mesh CreateSphereMesh(float radius, int segments, int rings)
+    {
         Mesh mesh = new Mesh();
-
-        Vector3[] vertices = new Vector3[6]
+        
+        // 确保分段数至少为3
+        segments = Mathf.Max(3, segments);
+        rings = Mathf.Max(2, rings);
+        
+        int vertexCount = (segments + 1) * (rings + 1);
+        Vector3[] vertices = new Vector3[vertexCount];
+        Vector2[] uv = new Vector2[vertexCount];
+        int[] triangles = new int[segments * rings * 6];
+        
+        // 生成顶点
+        for (int ring = 0; ring <= rings; ring++)
         {
-            new Vector3(0, radius, 0),
-            new Vector3(0, -radius, 0),
-            new Vector3(radius, 0, 0),
-            new Vector3(-radius, 0, 0),
-            new Vector3(0, 0, radius),
-            new Vector3(0, 0, -radius)
-        };
-
-        int[] triangles = new int[24]
+            float v = (float)ring / rings;
+            float phi = Mathf.PI * v;
+            
+            for (int segment = 0; segment <= segments; segment++)
+            {
+                float u = (float)segment / segments;
+                float theta = 2 * Mathf.PI * u;
+                
+                int index = ring * (segments + 1) + segment;
+                
+                float x = Mathf.Sin(phi) * Mathf.Cos(theta);
+                float y = Mathf.Cos(phi);
+                float z = Mathf.Sin(phi) * Mathf.Sin(theta);
+                
+                vertices[index] = new Vector3(x * radius, y * radius, z * radius);
+                uv[index] = new Vector2(u, v);
+            }
+        }
+        
+        // 生成三角形
+        int triangleIndex = 0;
+        for (int ring = 0; ring < rings; ring++)
         {
-            0, 2, 4, 0, 4, 3, 0, 3, 5, 0, 5, 2,
-            1, 4, 2, 1, 2, 5, 1, 5, 3, 1, 3, 4
-        };
-
+            for (int segment = 0; segment < segments; segment++)
+            {
+                int current = ring * (segments + 1) + segment;
+                int next = current + segments + 1;
+                
+                // 第一个三角形
+                triangles[triangleIndex++] = current;
+                triangles[triangleIndex++] = next;
+                triangles[triangleIndex++] = current + 1;
+                
+                // 第二个三角形
+                triangles[triangleIndex++] = current + 1;
+                triangles[triangleIndex++] = next;
+                triangles[triangleIndex++] = next + 1;
+            }
+        }
+        
         mesh.vertices = vertices;
+        mesh.uv = uv;
         mesh.triangles = triangles;
-
+        
+        // 重新计算法线和边界
+        mesh.RecalculateNormals();
+        mesh.RecalculateBounds();
+        
         return mesh;
     }
 
