@@ -58,6 +58,14 @@ public class EditorPlayer : MonoBehaviour
     private Mesh dynamicSelectionSphereMesh; // 用于动态半径的球体网格
     private float lastSelectionSphereRadius = -1f; // 上次使用的球体半径
     private static readonly Color SELECTION_SPHERE_COLOR = Color.cyan; // 选择球体的颜色（青色）
+    
+    // 检测球体颜色控制相关变量
+    private Renderer leftCheckSphereRenderer;
+    private Color originalLeftCheckSphereColor;
+    private Renderer rightCheckSphereRenderer;
+    private Color originalRightCheckSphereColor;
+    private static readonly Color CYAN_COLOR = Color.cyan; // 青色
+    private static readonly Color YELLOW_COLOR = Color.yellow; // 黄色
     #endregion
 
     #region Unity 生命周期方法
@@ -66,6 +74,9 @@ public class EditorPlayer : MonoBehaviour
     {
         // 初始化选择球体的网格和材质
         InitializeSelectionSphere();
+        
+        // 初始化检测球体的渲染器和原始颜色
+        InitializeCheckSpheres();
     }
 
     // Update is called once per frame
@@ -184,6 +195,10 @@ public class EditorPlayer : MonoBehaviour
             rightAKeyPressTime = Time.time;
             rightALongPressStartTime = Time.time;
             rightALongPressActive = false;
+            
+            // 将右手检测球体颜色变为青色
+            SetRightCheckSphereColor(CYAN_COLOR);
+            
             Debug.Log("右手A键按下，开始计时");
         }
 
@@ -193,6 +208,9 @@ public class EditorPlayer : MonoBehaviour
             float pressDuration = Time.time - rightAKeyPressTime;
             rightAKeyPressed = false;
             rightALongPressActive = false;
+            
+            // 将右手检测球体颜色恢复为黄色
+            SetRightCheckSphereColor(YELLOW_COLOR);
 
             if (pressDuration < RIGHT_A_QUICK_THRESHOLD)
             {
@@ -925,6 +943,88 @@ public class EditorPlayer : MonoBehaviour
     void OnDestroy()
     {
         CleanupSelectionSphere();
+    }
+    #endregion
+
+    #region 检测球体颜色控制方法
+    /// <summary>
+    /// 初始化检测球体的渲染器和原始颜色
+    /// </summary>
+    private void InitializeCheckSpheres()
+    {
+        // 初始化左手检测球体
+        if (leftCheckSphere != null)
+        {
+            leftCheckSphereRenderer = leftCheckSphere.GetComponent<Renderer>();
+            if (leftCheckSphereRenderer != null)
+            {
+                // 保存原始颜色
+                originalLeftCheckSphereColor = leftCheckSphereRenderer.material.color;
+                Debug.Log($"左手检测球体原始颜色: {originalLeftCheckSphereColor}");
+            }
+            else
+            {
+                Debug.LogWarning("左手检测球体没有Renderer组件");
+            }
+        }
+        else
+        {
+            Debug.LogWarning("左手检测球体Transform为空");
+        }
+        
+        // 初始化右手检测球体
+        if (rightCheckSphere != null)
+        {
+            rightCheckSphereRenderer = rightCheckSphere.GetComponent<Renderer>();
+            if (rightCheckSphereRenderer != null)
+            {
+                // 保存原始颜色
+                originalRightCheckSphereColor = rightCheckSphereRenderer.material.color;
+                Debug.Log($"右手检测球体原始颜色: {originalRightCheckSphereColor}");
+            }
+            else
+            {
+                Debug.LogWarning("右手检测球体没有Renderer组件");
+            }
+        }
+        else
+        {
+            Debug.LogWarning("右手检测球体Transform为空");
+        }
+    }
+
+    /// <summary>
+    /// 设置左手检测球体的颜色
+    /// </summary>
+    /// <param name="color">要设置的颜色</param>
+    private void SetLeftCheckSphereColor(Color color)
+    {
+        if (leftCheckSphereRenderer != null)
+        {
+            leftCheckSphereRenderer.material.color = color;
+            Debug.Log($"左手检测球体颜色已设置为: {color}");
+        }
+        else
+        {
+            Debug.LogWarning("左手检测球体Renderer为空，无法设置颜色");
+        }
+    }
+
+    /// <summary>
+    /// 设置右手检测球体的颜色
+    /// </summary>
+    /// <param name="color">要设置的颜色</param>
+    private void SetRightCheckSphereColor(Color color)
+    {
+        if (rightCheckSphereRenderer != null)
+        {
+            rightCheckSphereRenderer.material.color = color;
+            Debug.Log($"右手检测球体颜色已设置为: {color}");
+        }
+        else
+        {
+            Debug.LogWarning("右手检测球体Renderer为空，无法设置颜色");
+        }
     }
     #endregion
 
