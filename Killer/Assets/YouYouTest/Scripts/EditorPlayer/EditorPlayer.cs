@@ -27,6 +27,11 @@ public class EditorPlayer : MonoBehaviour
     private System.Collections.Generic.List<YouYouTest.CommandFramework.CombinedCreateAndMoveCommand> currentMultiDuplicateCommands = new System.Collections.Generic.List<YouYouTest.CommandFramework.CombinedCreateAndMoveCommand>(); // 当前多选复制命令列表
 
     private Collider[] hitColliders = new Collider[10]; // 用于OverlapSphereNonAlloc的碰撞器数组
+
+    //select UI
+    public GameObject selectUI;
+    private GameObject currentSelectUIInstance; // 当前显示的selectUI实例
+
     
     // 描边系统相关字段（单实例管理左右手）
     [SerializeField] private HandOutlineController handOutlineController;
@@ -192,12 +197,18 @@ public class EditorPlayer : MonoBehaviour
                     
                     // 触发选择成功事件
                     GlobalEvent.OnSelect.Invoke();
+                    
+                    // 显示选择UI
+                    ShowSelectUI();
                 }
                 else
                 {
                     // 未命中任何对象时，取消上一次的选中
                     handOutlineController?.CancelLastSelected();
                     Debug.Log("右手A键快速点击，但没有接触物体，已取消上一次的选中");
+                    
+                    // 隐藏选择UI
+                    HideSelectUI();
                 }
             }
             else
@@ -210,6 +221,14 @@ public class EditorPlayer : MonoBehaviour
                 {
                     Debug.Log($"多选完成，共选中 {multiSelectedGrabables.Count} 个对象，触发选择成功事件");
                     GlobalEvent.OnSelect.Invoke();
+                    
+                    // 显示选择UI
+                    ShowSelectUI();
+                }
+                else
+                {
+                    // 多选模式结束但没有选中任何对象，隐藏UI
+                    HideSelectUI();
                 }
             }
         }
@@ -703,4 +722,42 @@ public class EditorPlayer : MonoBehaviour
     }
     #endregion
 
-}
+    #region UI出现方法
+    
+    public void ShowSelectUI()
+    {
+        if (selectUI != null && rightCheckSphere != null)
+        {
+            // 如果已有selectUI实例，先销毁
+            if (currentSelectUIInstance != null)
+            {
+                Destroy(currentSelectUIInstance);
+            }
+            
+            // 在右手检测球体的位置生成selectUI
+            currentSelectUIInstance = Instantiate(selectUI, rightCheckSphere.position, rightCheckSphere.rotation);
+            Debug.Log($"在右手检测球体位置生成selectUI: {rightCheckSphere.position}");
+        }
+        else
+        {
+            Debug.LogWarning("selectUI或rightCheckSphere为空，无法生成UI");
+        }
+    }
+    
+    /// <summary>
+    /// 销毁当前显示的selectUI
+    /// </summary>
+    public void HideSelectUI()
+    {
+        if (currentSelectUIInstance != null)
+        {
+            Destroy(currentSelectUIInstance);
+            currentSelectUIInstance = null;
+            Debug.Log("销毁selectUI");
+        }
+    }
+
+
+    #endregion
+
+} 
