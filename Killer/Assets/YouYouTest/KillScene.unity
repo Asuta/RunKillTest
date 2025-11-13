@@ -10347,6 +10347,7 @@ MonoBehaviour:
   needLog: 0
   _vrEditorRig: {fileID: 4226674471386617843}
   vrEditorRigOffset: {fileID: 4821350112615201696}
+  _vrEditorCameraT: {fileID: 0}
   _isPlayMode: 0
   _canSwitchMode: 1
   _playerCameraT: {fileID: 0}
@@ -34766,6 +34767,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   vrEditorRigOffset: {fileID: 4821350112615201696}
   vrEditorRigO: {fileID: 4226674471386617843}
+  vrEditorCameraT: {fileID: 1583615353916636765}
 --- !u!114 &9167095900856961750
 MonoBehaviour:
   m_ObjectHideFlags: 0
