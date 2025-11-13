@@ -746,6 +746,20 @@ public class EditorPlayer : MonoBehaviour
             // 根据scaleOffset调整UI缩放
             currentSelectUIInstance.transform.localScale *= scaleOffset;
             
+            // 获取SelectUI组件并注入选中的对象
+            var selectUIComponent = currentSelectUIInstance.GetComponent<SelectUI>();
+            if (selectUIComponent != null)
+            {
+                // 获取当前选中的对象（支持单选和多选）
+                var selectedObjects = GetSelectedObjects();
+                selectUIComponent.InitializeSelectedObjects(selectedObjects);
+                Debug.Log($"已向SelectUI注入 {selectedObjects.Length} 个选中的对象");
+            }
+            else
+            {
+                Debug.LogWarning("生成的selectUI实例上没有找到SelectUI组件");
+            }
+            
             // 让UI只在Y轴朝向相机
             Transform EditorCamera = GameManager.Instance.VrEditorCameraT;
             if (EditorCamera != null)
@@ -781,6 +795,34 @@ public class EditorPlayer : MonoBehaviour
         }
     }
 
+    /// <summary>
+    /// 获取当前选中的对象（支持单选和多选）
+    /// </summary>
+    /// <returns>选中的GameObject数组</returns>
+    private GameObject[] GetSelectedObjects()
+    {
+        var selectedObjects = new System.Collections.Generic.List<GameObject>();
+        
+        // 优先获取多选对象
+        var multiSelectedGrabables = handOutlineController?.GetAllMultiSelectedGrabables();
+        if (multiSelectedGrabables != null && multiSelectedGrabables.Count > 0)
+        {
+            foreach (var grabable in multiSelectedGrabables)
+            {
+                if (grabable != null && grabable.ObjectGameObject != null)
+                {
+                    selectedObjects.Add(grabable.ObjectGameObject);
+                }
+            }
+        }
+        // 如果没有多选，则获取单选对象
+        else if (rightHoldObject != null && rightHoldObject.ObjectGameObject != null)
+        {
+            selectedObjects.Add(rightHoldObject.ObjectGameObject);
+        }
+        
+        return selectedObjects.ToArray();
+    }
 
     #endregion
 
