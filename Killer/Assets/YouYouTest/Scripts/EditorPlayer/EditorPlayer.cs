@@ -189,6 +189,9 @@ public class EditorPlayer : MonoBehaviour
                 {
                     handOutlineController?.SetSelectedForCurrentHold(false, rightHoldObject);
                     Debug.Log($"右手A键快速点击，设置 Selected：{rightHoldObject.ObjectGameObject.name}");
+                    
+                    // 触发选择成功事件
+                    GlobalEvent.OnSelect.Invoke();
                 }
                 else
                 {

@@ -78,18 +78,12 @@ public static class GlobalEvent
 
 
 
-
-    /// sample event
-
-
-
-
-
     /// <summary>
-    /// 对齐状态改变事件
+    /// 选择成功事件
     /// </summary>
-    public static readonly UnityEvent<bool> IsAlignChange = new UnityEvent<bool>();
+    public static readonly UnityEvent OnSelect = new UnityEvent();
 
-    // 在这里添加更多全局事件...
+
+
 }
 

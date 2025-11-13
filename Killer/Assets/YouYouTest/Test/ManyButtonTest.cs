@@ -9,13 +9,33 @@ public class ManyButtonTest : MonoBehaviour
     // Start is called once before the first execution of Update after the MonoBehaviour is created
     void Start()
     {
+        // 监听 GlobalEvent.OnSelect 事件
+        GlobalEvent.OnSelect.AddListener(OnSelectHandler);
+    }
 
+    void OnDestroy()
+    {
+        // 移除事件监听，避免内存泄漏
+        GlobalEvent.OnSelect.RemoveListener(OnSelectHandler);
+    }
+
+    // 处理 OnSelect 事件的方法
+    void OnSelectHandler()
+    {
+        Debug.LogError("hahaha");
     }
 
     // Update is called once per frame
     void Update()
     {
 
+    }
+
+    
+    [Button(" select")]
+    void ButtonSelect()
+    {
+        GlobalEvent.OnSelect.Invoke();
     }
 
     [Button(" 模式切换")]
