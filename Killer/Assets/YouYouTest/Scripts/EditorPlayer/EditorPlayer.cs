@@ -17,7 +17,7 @@ public class EditorPlayer : MonoBehaviour
 
     public IGrabable leftGrabbedObject = null; // 左手当前抓取的物体
     public IGrabable rightGrabbedObject = null; // 右手当前抓取的物体
-    
+
     // 多抓取支持
     private System.Collections.Generic.List<IGrabable> leftMultiGrabbedObjects = new System.Collections.Generic.List<IGrabable>(); // 左手多抓取的对象列表
     private System.Collections.Generic.List<IGrabable> rightMultiGrabbedObjects = new System.Collections.Generic.List<IGrabable>(); // 右手多抓取的对象列表
@@ -28,24 +28,25 @@ public class EditorPlayer : MonoBehaviour
 
     private Collider[] hitColliders = new Collider[10]; // 用于OverlapSphereNonAlloc的碰撞器数组
 
-    //select UI
+    //select UI相关
     public GameObject selectUI;
+    public float offsetYdistance;
     private GameObject currentSelectUIInstance; // 当前显示的selectUI实例
 
-    
+
     // 描边系统相关字段（单实例管理左右手）
     [SerializeField] private HandOutlineController handOutlineController;
-    
+
     // 跟踪菜单键状态的变量
     private bool menuKeyPressed = false;
     private float menuKeyPressTime = 0f;
     private const float QUICK_PRESS_THRESHOLD = 0.2f; // 快速按下的时间阈值（秒）
-    
+
     // 右手 A 键短按选择的计时变量
     private bool rightAKeyPressed = false;
     private float rightAKeyPressTime = 0f;
     private const float RIGHT_A_QUICK_THRESHOLD = 0.2f; // A键短按阈值（秒）
-    
+
     // 右手 A 键长按多选相关变量
     private bool rightALongPressActive = false;
     private float rightALongPressStartTime = 0f;
@@ -72,18 +73,18 @@ public class EditorPlayer : MonoBehaviour
             menuKeyPressTime = Time.time;
             Debug.Log("左手柄菜单键按下");
         }
-        
+
         // 检测左手柄菜单键抬起（只有快速按下后抬起的情况）
         if (InputActionsManager.Actions.XRILeftInteraction.Menu.WasReleasedThisFrame() && menuKeyPressed)
         {
             float pressDuration = Time.time - menuKeyPressTime;
             menuKeyPressed = false;
-            
+
             // 只有按下时间小于阈值才认为是快速按下
             if (pressDuration < QUICK_PRESS_THRESHOLD)
             {
                 Debug.Log($"左手柄菜单键快速抬起，按下时长: {pressDuration:F2}秒");
-                
+
                 // 切换UITarget的active状态
                 if (UITarget != null)
                 {
@@ -177,27 +178,27 @@ public class EditorPlayer : MonoBehaviour
             rightALongPressActive = false;
             Debug.Log("右手A键按下，开始计时");
         }
- 
+
         // 右手A键抬起时根据按下时长判断是否为短按，短按则将当前接触的物体设为 Selected
         if (InputActionsManager.Actions.XRIRightInteraction.PrimaryButton.WasReleasedThisFrame() && rightAKeyPressed)
         {
             float pressDuration = Time.time - rightAKeyPressTime;
             rightAKeyPressed = false;
             rightALongPressActive = false;
- 
+
             if (pressDuration < RIGHT_A_QUICK_THRESHOLD)
             {
                 // 短按：清除所有多选，然后进行单选
                 handOutlineController?.ClearAllMultiSelection();
-                
+
                 if (rightHoldObject != null)
                 {
                     handOutlineController?.SetSelectedForCurrentHold(false, rightHoldObject);
                     Debug.Log($"右手A键快速点击，设置 Selected：{rightHoldObject.ObjectGameObject.name}");
-                    
+
                     // 触发选择成功事件
                     GlobalEvent.OnSelect.Invoke();
-                    
+
                     // 显示选择UI
                     ShowSelectUI();
                 }
@@ -206,7 +207,7 @@ public class EditorPlayer : MonoBehaviour
                     // 未命中任何对象时，取消上一次的选中
                     handOutlineController?.CancelLastSelected();
                     Debug.Log("右手A键快速点击，但没有接触物体，已取消上一次的选中");
-                    
+
                     // 隐藏选择UI
                     HideSelectUI();
                 }
@@ -214,14 +215,14 @@ public class EditorPlayer : MonoBehaviour
             else
             {
                 Debug.Log($"右手A键长按后抬起，按下时长: {pressDuration:F2}s，多选模式结束");
-                
+
                 // 检查是否有多选对象，如果有则触发选择成功事件
                 var multiSelectedGrabables = handOutlineController?.GetAllMultiSelectedGrabables();
                 if (multiSelectedGrabables != null && multiSelectedGrabables.Count > 0)
                 {
                     Debug.Log($"多选完成，共选中 {multiSelectedGrabables.Count} 个对象，触发选择成功事件");
                     GlobalEvent.OnSelect.Invoke();
-                    
+
                     // 显示选择UI
                     ShowSelectUI();
                 }
@@ -251,13 +252,13 @@ public class EditorPlayer : MonoBehaviour
         {
             PerformMultiSelectionCheck();
         }
- 
+
         // 右手柄B键复制当前抓取/接触的物体（替代原删除功能）
         if (InputActionsManager.Actions.XRIRightInteraction.SecondaryButton.WasPressedThisFrame())
         {
             CopyRightHandObject();
         }
- 
+
         // 右手柄B键松开时释放复制的物体（对应复制从 B 键开始）
         if (InputActionsManager.Actions.XRIRightInteraction.SecondaryButton.WasReleasedThisFrame())
         {
@@ -323,7 +324,7 @@ public class EditorPlayer : MonoBehaviour
     {
         // 处理多抓取对象的释放
         EditorPlayerHelpers.ReleaseMultiGrabbedObjects(leftMultiGrabbedObjects, leftHand, true);
-        
+
         // 处理单抓取对象的释放
         EditorPlayerHelpers.ReleaseGrab(ref leftGrabbedObject, ref leftCurrentGrabCommand, leftHand, true, handOutlineController);
     }
@@ -382,7 +383,7 @@ public class EditorPlayer : MonoBehaviour
     {
         // 处理多抓取对象的释放
         EditorPlayerHelpers.ReleaseMultiGrabbedObjects(rightMultiGrabbedObjects, rightHand, false);
-        
+
         // 处理单抓取对象的释放
         EditorPlayerHelpers.ReleaseGrab(ref rightGrabbedObject, ref rightCurrentGrabCommand, rightHand, false, handOutlineController);
     }
@@ -590,13 +591,13 @@ public class EditorPlayer : MonoBehaviour
     {
         // 处理多选复制的释放
         EditorPlayerHelpers.ReleaseMultiDuplicateObjects(currentMultiDuplicateCommands, currentDuplicateCommand, rightGrabbedObject);
-        
+
         // 清理单选复制命令（如果是单选复制的情况）
         if (currentMultiDuplicateCommands.Count == 0 && rightGrabbedObject != null)
         {
             currentDuplicateCommand = null;
         }
-        
+
         // 统一调用释放方法（处理多抓取对象和单抓取对象）
         RightHandRelease();
     }
@@ -618,7 +619,7 @@ public class EditorPlayer : MonoBehaviour
         // 使用与DetectGrabableObject完全相同的半径计算方式
         float radius = Mathf.Max(rightCheckSphere.lossyScale.x, rightCheckSphere.lossyScale.y, rightCheckSphere.lossyScale.z);
         int hitCount = Physics.OverlapSphereNonAlloc(rightCheckSphere.position, radius, hitColliders);
-        
+
         for (int i = 0; i < hitCount; i++)
         {
             Collider collider = hitColliders[i];
@@ -723,19 +724,27 @@ public class EditorPlayer : MonoBehaviour
     #endregion
 
     #region UI出现方法
-    
+
     public void ShowSelectUI()
     {
         if (selectUI != null && rightCheckSphere != null)
         {
+            //获取当前scale偏差值
+            var scaleOffset = GameManager.Instance.VrEditorScale;
+
+
             // 如果已有selectUI实例，先销毁
             if (currentSelectUIInstance != null)
             {
                 Destroy(currentSelectUIInstance);
             }
-            
+
             // 在右手检测球体的位置生成selectUI
             currentSelectUIInstance = Instantiate(selectUI, rightCheckSphere.position, rightCheckSphere.rotation);
+            // 根据offsetYdistance调整UI位置
+            currentSelectUIInstance.transform.position += new Vector3(0, offsetYdistance * scaleOffset, 0);
+            // 根据scaleOffset调整UI缩放
+            currentSelectUIInstance.transform.localScale *= scaleOffset;
             Debug.Log($"在右手检测球体位置生成selectUI: {rightCheckSphere.position}");
         }
         else
@@ -743,7 +752,7 @@ public class EditorPlayer : MonoBehaviour
             Debug.LogWarning("selectUI或rightCheckSphere为空，无法生成UI");
         }
     }
-    
+
     /// <summary>
     /// 销毁当前显示的selectUI
     /// </summary>
@@ -760,4 +769,4 @@ public class EditorPlayer : MonoBehaviour
 
     #endregion
 
-} 
+}
