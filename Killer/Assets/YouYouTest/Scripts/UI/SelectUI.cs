@@ -1,5 +1,6 @@
 using UnityEngine;
 using UnityEngine.UI;
+using UnityEngine.XR.Interaction.Toolkit.Samples.StarterAssets;
 
 
 public class SelectUI : MonoBehaviour
@@ -41,5 +42,7 @@ public class SelectUI : MonoBehaviour
                 }
             }
         }
+
+        Destroy(this.gameObject); // 删除UI自身
     }
 }

@@ -263,6 +263,18 @@ public class EditorPlayer : MonoBehaviour
         if (InputActionsManager.Actions.XRIRightInteraction.SecondaryButton.WasReleasedThisFrame())
         {
             ReleaseRightCopiedObject();
+            
+            // B键抬起时重新生成selectUI，确保注入最新的选中对象
+            if (currentSelectUIInstance != null)
+            {
+                // 销毁之前的selectUI
+                Destroy(currentSelectUIInstance);
+                currentSelectUIInstance = null;
+                
+                // 重新生成selectUI
+                ShowSelectUI();
+                Debug.Log("B键抬起：重新生成selectUI以更新注入的对象");
+            }
         }
     }
     #endregion
