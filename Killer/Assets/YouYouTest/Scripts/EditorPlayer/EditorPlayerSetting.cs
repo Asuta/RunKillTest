@@ -4,6 +4,7 @@ public class EditorPlayerSetting : MonoBehaviour
 {
     public Transform vrEditorRigOffset;
     public Transform vrEditorRigO;
+    public Transform vrEditorCameraT;
  
     // Start is called once before the first execution of Update after the MonoBehaviour is created
     void Start()
@@ -18,6 +19,10 @@ public class EditorPlayerSetting : MonoBehaviour
             if (vrEditorRigOffset != null)
             {
                 GameManager.Instance.RegisterVrEditorRigOffset(vrEditorRigOffset);
+            }
+            if (vrEditorCameraT != null)
+            {
+                GameManager.Instance.RegisterVrEditorCamera(vrEditorCameraT);
             }
         }
     }
@@ -40,6 +45,10 @@ public class EditorPlayerSetting : MonoBehaviour
             if (vrEditorRigOffset != null)
             {
                 GameManager.Instance.UnregisterVrEditorRigOffset(vrEditorRigOffset);
+            }
+            if (vrEditorCameraT != null)
+            {
+                GameManager.Instance.UnregisterVrEditorCamera(vrEditorCameraT);
             }
         }
     }

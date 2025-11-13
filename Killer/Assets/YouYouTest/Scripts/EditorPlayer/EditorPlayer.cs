@@ -745,6 +745,21 @@ public class EditorPlayer : MonoBehaviour
             currentSelectUIInstance.transform.position += new Vector3(0, offsetYdistance * scaleOffset, 0);
             // 根据scaleOffset调整UI缩放
             currentSelectUIInstance.transform.localScale *= scaleOffset;
+            
+            // 让UI只在Y轴朝向相机
+            Transform EditorCamera = GameManager.Instance.VrEditorCameraT;
+            if (EditorCamera != null)
+            {
+                Vector3 lookAtPosition = EditorCamera.position;
+                lookAtPosition.y = currentSelectUIInstance.transform.position.y; // 保持Y轴高度不变
+                currentSelectUIInstance.transform.LookAt(lookAtPosition); 
+                Debug.Log($"selectUI已朝向相机，只调整Y轴方向"); 
+            }
+            else
+            {
+                Debug.LogWarning("无法获取玩家相机，selectUI将保持默认朝向");
+            }
+            
             Debug.Log($"在右手检测球体位置生成selectUI: {rightCheckSphere.position}");
         }
         else

@@ -68,6 +68,11 @@ public class GameManager : MonoBehaviour
     [SerializeField]
     private Transform vrEditorRigOffset;
 
+    // VR editor camera
+    [SerializeField]
+    private Transform _vrEditorCameraT;
+    public Transform VrEditorCameraT => _vrEditorCameraT;
+
     private float _vrEditorScale = 1f;
 
     /// <summary>
@@ -261,6 +266,26 @@ public class GameManager : MonoBehaviour
         {
             CustomLog.Log(needLog, $"VR Editor Rig Offset 已注销: {offset.name}");
             vrEditorRigOffset = null;
+        }
+    }
+
+    // 注册 VR Editor Camera（供场景中的对象主动注册）
+    public void RegisterVrEditorCamera(Transform camera)
+    {
+        if (camera == null) return;
+        if (_vrEditorCameraT == camera) return;
+
+        _vrEditorCameraT = camera;
+        CustomLog.Log(needLog, $"VR Editor Camera 已注册: {camera.name}");
+    }
+
+    public void UnregisterVrEditorCamera(Transform camera)
+    {
+        if (camera == null) return;
+        if (_vrEditorCameraT == camera)
+        {
+            CustomLog.Log(needLog, $"VR Editor Camera 已注销: {camera.name}");
+            _vrEditorCameraT = null;
         }
     }
 
