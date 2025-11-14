@@ -166,6 +166,101 @@ namespace YouYouTest
         }
 
         /// <summary>
+        /// 根据 HandOutlineController 的多选集合执行多抓取
+        /// </summary>
+        /// <param name="selectedGrabables">当前多选的 IGrabable 集合</param>
+        /// <param name="hand">执行抓取的手部 Transform</param>
+        /// <param name="multiGrabbedObjects">该手维护的多抓取列表</param>
+        /// <param name="releaseAction">用于释放当前抓取状态的委托</param>
+        /// <param name="isLeftHand">是否为左手</param>
+        /// <returns>若成功抓取到任意对象则返回 true</returns>
+        public static bool GrabMultiSelection(
+            System.Collections.Generic.IList<IGrabable> selectedGrabables,
+            Transform hand,
+            System.Collections.Generic.List<IGrabable> multiGrabbedObjects,
+            System.Action releaseAction,
+            bool isLeftHand)
+        {
+            if (selectedGrabables == null || selectedGrabables.Count == 0) return false;
+            if (hand == null)
+            {
+                Debug.LogError($"{(isLeftHand ? "左手" : "右手")}多选抓取失败：手部Transform未分配");
+                return false;
+            }
+
+            releaseAction?.Invoke();
+            multiGrabbedObjects.Clear();
+
+            int grabbedCount = 0;
+            foreach (var grabable in selectedGrabables)
+            {
+                if (grabable == null) continue;
+                GameObject go = grabable.ObjectGameObject;
+                if (go == null) continue;
+
+                grabable.UnifiedGrab(hand);
+                multiGrabbedObjects.Add(grabable);
+                grabbedCount++;
+            }
+
+            if (grabbedCount == 0)
+            {
+                Debug.LogWarning($"{(isLeftHand ? "左手" : "右手")}多选抓取失败：没有有效的IGrabable对象");
+                return false;
+            }
+
+            Debug.Log($"{(isLeftHand ? "左手" : "右手")}多选抓取 {grabbedCount} 个对象");
+            return true;
+        }
+
+        /// <summary>
+        /// 执行多选检测，将检测范围内的对象添加到描边控制器
+        /// </summary>
+        /// <param name="checkSphere">检测球体</param>
+        /// <param name="hitColliders">Overlap 用的缓冲区</param>
+        /// <param name="handOutlineController">描边控制器</param>
+        public static void PerformMultiSelectionCheck(
+            Transform checkSphere,
+            Collider[] hitColliders,
+            HandOutlineController handOutlineController)
+        {
+            if (checkSphere == null)
+            {
+                Debug.LogWarning("右手检测球体为空，无法执行多选检测");
+                return;
+            }
+
+            if (handOutlineController == null)
+            {
+                Debug.LogWarning("HandOutlineController 未设置，无法执行多选检测");
+                return;
+            }
+
+            float radius = Mathf.Max(checkSphere.lossyScale.x, checkSphere.lossyScale.y, checkSphere.lossyScale.z);
+            int hitCount = Physics.OverlapSphereNonAlloc(checkSphere.position, radius, hitColliders);
+
+            for (int i = 0; i < hitCount; i++)
+            {
+                Collider collider = hitColliders[i];
+                if (collider == null) continue;
+
+                var rb = collider.attachedRigidbody;
+                if (rb == null) continue;
+
+                var grabable = rb.GetComponent<IGrabable>();
+                if (grabable == null) continue;
+
+                GameObject targetObject = grabable.ObjectGameObject;
+                if (targetObject == null) continue;
+
+                OutlineReceiver receiver = targetObject.GetComponentInParent<OutlineReceiver>();
+                if (receiver == null) continue;
+
+                handOutlineController.AddToMultiSelection(receiver);
+            }
+        }
+
+        /// <summary>
         /// 处理多选复制的释放
         /// </summary>
         /// <param name="currentMultiDuplicateCommands">当前多选复制命令列表</param>

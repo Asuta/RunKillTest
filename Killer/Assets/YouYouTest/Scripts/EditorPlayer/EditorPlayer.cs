@@ -290,7 +290,7 @@ public class EditorPlayer : MonoBehaviour
         // 长按多选模式下的持续检测（每帧执行）
         if (rightALongPressActive)
         {
-            PerformMultiSelectionCheck();
+            EditorPlayerHelpers.PerformMultiSelectionCheck(rightCheckSphere, hitColliders, handOutlineController);
             
             // 在持续范围选择期间绘制青色球
             if (rightCheckSphere != null)
@@ -457,49 +457,20 @@ public class EditorPlayer : MonoBehaviour
         var multi = handOutlineController?.GetAllMultiSelectedGrabables();
         if (multi == null || multi.Count == 0) return;
 
-        // 先释放当前手上的抓取（单抓和多抓）
-        if (isLeftHand)
+        Transform hand = isLeftHand ? leftHand : rightHand;
+        var targetMultiGrabbedObjects = isLeftHand ? leftMultiGrabbedObjects : rightMultiGrabbedObjects;
+        System.Action releaseAction = isLeftHand ? (System.Action)LeftHandRelease : RightHandRelease;
+
+        bool grabbedAny = EditorPlayerHelpers.GrabMultiSelection(
+            multi,
+            hand,
+            targetMultiGrabbedObjects,
+            releaseAction,
+            isLeftHand);
+
+        if (!grabbedAny)
         {
-            if (leftGrabbedObject != null) LeftHandRelease();
-            if (leftMultiGrabbedObjects.Count > 0)
-            {
-                foreach (var g in leftMultiGrabbedObjects)
-                {
-                    if (g == null) continue;
-                    g.OnReleased(leftHand);
-                }
-                leftMultiGrabbedObjects.Clear();
-            }
-        }
-        else
-        {
-            if (rightGrabbedObject != null) RightHandRelease();
-            if (rightMultiGrabbedObjects.Count > 0)
-            {
-                foreach (var g in rightMultiGrabbedObjects)
-                {
-                    if (g == null) continue;
-                    g.OnReleased(rightHand);
-                }
-                rightMultiGrabbedObjects.Clear();
-            }
-        }
-
-        // 统一对所有多选对象使用间接差值抓取（包括第一个）
-        for (int i = 0; i < multi.Count; i++)
-        {
-            var grabable = multi[i];
-            if (grabable == null) continue;
-            GameObject go = grabable.ObjectGameObject;
-            if (go == null) continue;
-
-            Transform hand = isLeftHand ? leftHand : rightHand;
-
-            // 使用统一抓取方法（包含设置状态和抓取）
-            grabable.UnifiedGrab(hand);
-
-            // 记录到对应的多抓取集合
-            if (isLeftHand) leftMultiGrabbedObjects.Add(grabable); else rightMultiGrabbedObjects.Add(grabable);
+            Debug.LogWarning($"{(isLeftHand ? "左手" : "右手")}多选抓取失败，未找到有效对象");
         }
     }
     #endregion
@@ -664,48 +635,6 @@ public class EditorPlayer : MonoBehaviour
     #endregion
 
     #region 多选功能方法
-    /// <summary>
-    /// 执行多选检测，将检测范围内的所有对象添加到多选列表
-    /// 使用与DetectGrabableObject完全相同的检测逻辑
-    /// </summary>
-    private void PerformMultiSelectionCheck()
-    {
-        if (rightCheckSphere == null)
-        {
-            Debug.LogWarning("右手检测球体为空，无法执行多选检测");
-            return;
-        }
-
-        // 使用与DetectGrabableObject完全相同的半径计算方式
-        float radius = Mathf.Max(rightCheckSphere.lossyScale.x, rightCheckSphere.lossyScale.y, rightCheckSphere.lossyScale.z);
-        int hitCount = Physics.OverlapSphereNonAlloc(rightCheckSphere.position, radius, hitColliders);
-
-        for (int i = 0; i < hitCount; i++)
-        {
-            Collider collider = hitColliders[i];
-            if (collider == null) continue;
-
-            // 使用与DetectGrabableObject完全相同的IGrabable获取方式
-            var rb = collider.attachedRigidbody;
-            if (rb != null)
-            {
-                var grabable = rb.GetComponent<IGrabable>();
-                if (grabable != null)
-                {
-                    // 获取OutlineReceiver组件
-                    GameObject targetObject = grabable.ObjectGameObject;
-                    if (targetObject == null) continue;
-
-                    OutlineReceiver receiver = targetObject.GetComponentInParent<OutlineReceiver>();
-                    if (receiver == null) continue;
-
-                    // 添加到多选列表
-                    handOutlineController?.AddToMultiSelection(receiver);
-                }
-            }
-        }
-    }
-
     /// <summary>
     /// 复制多个对象并抓取所有复制的对象
     /// </summary>
