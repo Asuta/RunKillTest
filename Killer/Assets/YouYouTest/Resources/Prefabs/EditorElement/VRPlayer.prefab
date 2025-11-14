@@ -716,7 +716,7 @@ Rigidbody:
   m_ImplicitTensor: 1
   m_UseGravity: 1
   m_IsKinematic: 1
-  m_Interpolate: 1
+  m_Interpolate: 0
   m_Constraints: 112
   m_CollisionDetection: 0
 --- !u!114 &1718766285181047011
@@ -1107,6 +1107,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: b93df8ee4136a2b408e146d0e9cf73e9, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  hoverColor: {r: 1, g: 0.92156863, b: 0.015686275, a: 1}
+  selectedColor: {r: 0, g: 1, b: 1, a: 1}
 --- !u!1 &2013254691855833233
 GameObject:
   m_ObjectHideFlags: 0
