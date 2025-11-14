@@ -278,7 +278,7 @@ namespace YouYouTest
             // 检查是否是批量复制命令
             if (currentBatchDuplicateCommand != null)
             {
-                // 处理批量复制的释放
+                // 使用新的批量复制命令更新方法（不执行命令，因为已经在创建时执行了）
                 var positions = new System.Collections.Generic.List<Vector3>();
                 var rotations = new System.Collections.Generic.List<Quaternion>();
                 
@@ -292,7 +292,7 @@ namespace YouYouTest
                 }
                 
                 currentBatchDuplicateCommand.UpdateTransforms(positions, rotations);
-                CommandHistory.Instance.ExecuteCommand(currentBatchDuplicateCommand);
+                // 不需要再次执行命令，因为已经在创建时执行了
                 Debug.Log($"释放右手批量复制的物体，共处理 {rightMultiGrabbedObjects.Count} 个对象");
             }
             // 检查是否是多选复制
@@ -359,7 +359,7 @@ namespace YouYouTest
             }
 
             var batchDuplicateCommand = new YouYouTest.CommandFramework.BatchDuplicateCommand(prefabs, positions, rotations);
-            CommandHistory.Instance.ExecuteCommand(batchDuplicateCommand);
+            // 不在这里执行命令，而是在释放时执行
             
             Debug.Log($"批量复制命令创建成功，共 {prefabs.Count} 个对象");
             return batchDuplicateCommand;
@@ -426,6 +426,36 @@ namespace YouYouTest
             batchMoveCommand.SetEndTransforms(positions, rotations);
             CommandHistory.Instance.ExecuteCommand(batchMoveCommand);
             Debug.Log($"批量移动命令更新并执行，共 {positions.Count} 个对象");
+        }
+
+        /// <summary>
+        /// 更新批量复制命令的最终位置并执行
+        /// </summary>
+        /// <param name="batchDuplicateCommand">批量复制命令</param>
+        /// <param name="sourceObjects">源对象列表（复制的对象）</param>
+        public static void UpdateBatchDuplicateCommand(YouYouTest.CommandFramework.BatchDuplicateCommand batchDuplicateCommand, System.Collections.Generic.List<IGrabable> sourceObjects)
+        {
+            if (batchDuplicateCommand == null || sourceObjects == null || sourceObjects.Count == 0)
+            {
+                Debug.LogWarning("更新批量复制命令：参数为空");
+                return;
+            }
+
+            var positions = new System.Collections.Generic.List<Vector3>();
+            var rotations = new System.Collections.Generic.List<Quaternion>();
+
+            foreach (var sourceObject in sourceObjects)
+            {
+                if (sourceObject != null && sourceObject.ObjectTransform != null)
+                {
+                    positions.Add(sourceObject.ObjectTransform.position);
+                    rotations.Add(sourceObject.ObjectTransform.rotation);
+                }
+            }
+
+            batchDuplicateCommand.UpdateTransforms(positions, rotations);
+            CommandHistory.Instance.ExecuteCommand(batchDuplicateCommand);
+            Debug.Log($"批量复制命令更新并执行，共 {positions.Count} 个对象");
         }
     }
 }

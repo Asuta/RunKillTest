@@ -4,7 +4,8 @@ using System.Collections.Generic;
 namespace YouYouTest.CommandFramework
 {
     /// <summary>
-    /// 批量复制命令：管理多个对象的复制和移动操作
+    /// 批量复制并移动命令：在一个命令内记录多个对象的创建（Instantiate）和随后由编辑器移动的最终位置/旋转。
+    /// 该命令实现 IDisposableCommand，用于被 CommandHistory 管理。
     /// </summary>
     public class BatchDuplicateCommand : IDisposableCommand
     {

@@ -470,7 +470,7 @@ public class EditorPlayer : MonoBehaviour
         var targetMultiGrabbedObjects = isLeftHand ? leftMultiGrabbedObjects : rightMultiGrabbedObjects;
         System.Action releaseAction = isLeftHand ? (System.Action)LeftHandRelease : RightHandRelease;
 
-        // 创建批量移动命令
+        // 创建批量移动命令（只对非复制操作）
         if (!isLeftHand) // 只为右手创建批量移动命令
         {
             currentBatchMoveCommand = EditorPlayerHelpers.CreateBatchMoveCommand(multi);
@@ -684,6 +684,9 @@ public class EditorPlayer : MonoBehaviour
             return;
         }
 
+        // 执行命令以创建对象
+        CommandHistory.Instance.ExecuteCommand(currentBatchDuplicateCommand);
+        
         var duplicatedGameObjects = currentBatchDuplicateCommand.GetCreatedObjects();
         if (duplicatedGameObjects.Count == 0)
         {
