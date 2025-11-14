@@ -83,6 +83,11 @@ public static class GlobalEvent
     /// </summary>
     public static readonly UnityEvent OnSelect = new UnityEvent();
 
+    /// <summary>
+    /// 射线命中UI状态变化事件
+    /// </summary>
+    public static readonly UnityEvent<bool> RaycastHittingUIChange = new UnityEvent<bool>();
+
 
 
 }

@@ -155,4 +155,14 @@ public class ManyButtonTest : MonoBehaviour
         // 切换到 LobbyScene
         SceneManager.LoadScene("LobbyScene");
     }
+
+    public void OnHoverEnter()
+    {
+        Debug.Log("鼠标进入");
+    }
+
+    public void OnHoverExit()
+    {
+        Debug.Log("鼠标离开");
+    }
 }

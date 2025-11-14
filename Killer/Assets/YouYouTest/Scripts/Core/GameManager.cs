@@ -119,6 +119,12 @@ public class GameManager : MonoBehaviour
     private bool _canSwitchMode;
     public bool CanSwitchMode => _canSwitchMode;
 
+
+    [SerializeField]
+    [Tooltip("当前射线是否命中UI")]
+    private bool _isRaycastHittingUI;
+    public bool IsRaycastHittingUI => _isRaycastHittingUI;
+
     /// <summary>
     /// 设置是否可以切换模式
     /// </summary>
@@ -380,6 +386,9 @@ public class GameManager : MonoBehaviour
 
         GlobalEvent.OnLoadSaveChange.AddListener(OnLoadSaveChange);
 
+        // 注册射线命中UI状态变化事件
+        GlobalEvent.RaycastHittingUIChange.AddListener(OnRaycastHittingUIChange);
+
         // 通知所有监听者GameManager已就绪
         OnGameManagerReady?.Invoke(_isPlayMode);
         CustomLog.Log(needLog, $"GameManager已就绪，当前模式: {(_isPlayMode ? "游戏模式" : "编辑模式")}");
@@ -434,6 +443,7 @@ public class GameManager : MonoBehaviour
         GlobalEvent.CheckPointActivate.RemoveListener(OnCheckPointActivate);
         GlobalEvent.ModeButtonPoke.RemoveListener(OnModeButtonPoke);
         GlobalEvent.OnLoadSaveChange.RemoveListener(OnLoadSaveChange);
+        GlobalEvent.RaycastHittingUIChange.RemoveListener(OnRaycastHittingUIChange);
     }
 
     private void OnCheckPointActivate(CheckPoint checkPoint)
@@ -450,6 +460,16 @@ public class GameManager : MonoBehaviour
 
         // 新的检查点已经在CheckPoint.cs中设置为Activated状态
         // 这里不需要再次设置状态
+    }
+
+    /// <summary>
+    /// 处理射线命中UI状态变化事件
+    /// </summary>
+    /// <param name="isHittingUI">是否命中UI</param>
+    private void OnRaycastHittingUIChange(bool isHittingUI)
+    {
+        _isRaycastHittingUI = isHittingUI;
+        CustomLog.Log(needLog, $"射线命中UI状态更新: {isHittingUI}");
     }
 
     // Update is called once per frame
