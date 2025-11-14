@@ -9290,6 +9290,8 @@ GameObject:
   - component: {fileID: 914307042}
   - component: {fileID: 914307041}
   - component: {fileID: 914307039}
+  - component: {fileID: 914307045}
+  - component: {fileID: 914307044}
   m_Layer: 0
   m_Name: TabCanvas (1)
   m_TagString: Untagged
@@ -9399,6 +9401,30 @@ Canvas:
   m_SortingLayerID: 0
   m_SortingOrder: 0
   m_TargetDisplay: 0
+--- !u!114 &914307044
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 914307037}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: a7eaab9b23e76b54bac1783442441dc6, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+--- !u!225 &914307045
+CanvasGroup:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 914307037}
+  m_Enabled: 1
+  m_Alpha: 1
+  m_Interactable: 1
+  m_BlocksRaycasts: 1
+  m_IgnoreParentGroups: 0
 --- !u!1 &920974254
 GameObject:
   m_ObjectHideFlags: 0
