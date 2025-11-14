@@ -125,6 +125,13 @@ public class EditorPlayer : MonoBehaviour
         // 左手扳机按下时抓取物体（优先抓取多选对象）
         if (InputActionsManager.Actions.XRILeftInteraction.Activate.WasPressedThisFrame())
         {
+            // 检查射线是否命中UI，如果命中UI则不允许抓取
+            if (GameManager.Instance.IsRaycastHittingUI)
+            {
+                Debug.Log("左手扳机按下，但射线命中UI，不允许抓取对象");
+                return;
+            }
+
             var multi = handOutlineController?.GetAllMultiSelectedGrabables();
             if (multi != null && multi.Count > 0)
             {
@@ -151,6 +158,13 @@ public class EditorPlayer : MonoBehaviour
         // 右手扳机按下时抓取物体（优先抓取多选对象）
         if (InputActionsManager.Actions.XRIRightInteraction.Activate.WasPressedThisFrame())
         {
+            // 检查射线是否命中UI，如果命中UI则不允许抓取
+            if (GameManager.Instance.IsRaycastHittingUI)
+            {
+                Debug.Log("右手扳机按下，但射线命中UI，不允许抓取对象");
+                return;
+            }
+
             var multi = handOutlineController?.GetAllMultiSelectedGrabables();
             if (multi != null && multi.Count > 0)
             {
