@@ -265,14 +265,38 @@ namespace YouYouTest
         /// </summary>
         /// <param name="currentMultiDuplicateCommands">当前多选复制命令列表</param>
         /// <param name="currentDuplicateCommand">当前单选复制命令</param>
+        /// <param name="currentBatchDuplicateCommand">当前批量复制命令</param>
         /// <param name="rightGrabbedObject">右手抓取的对象</param>
+        /// <param name="rightMultiGrabbedObjects">右手多抓取对象列表</param>
         public static void ReleaseMultiDuplicateObjects(
             System.Collections.Generic.List<YouYouTest.CommandFramework.CombinedCreateAndMoveCommand> currentMultiDuplicateCommands,
             YouYouTest.CommandFramework.CombinedCreateAndMoveCommand currentDuplicateCommand,
-            IGrabable rightGrabbedObject)
+            YouYouTest.CommandFramework.BatchDuplicateCommand currentBatchDuplicateCommand,
+            IGrabable rightGrabbedObject,
+            System.Collections.Generic.List<IGrabable> rightMultiGrabbedObjects)
         {
+            // 检查是否是批量复制命令
+            if (currentBatchDuplicateCommand != null)
+            {
+                // 处理批量复制的释放
+                var positions = new System.Collections.Generic.List<Vector3>();
+                var rotations = new System.Collections.Generic.List<Quaternion>();
+                
+                foreach (var grabable in rightMultiGrabbedObjects)
+                {
+                    if (grabable != null && grabable.ObjectGameObject != null)
+                    {
+                        positions.Add(grabable.ObjectTransform.position);
+                        rotations.Add(grabable.ObjectTransform.rotation);
+                    }
+                }
+                
+                currentBatchDuplicateCommand.UpdateTransforms(positions, rotations);
+                CommandHistory.Instance.ExecuteCommand(currentBatchDuplicateCommand);
+                Debug.Log($"释放右手批量复制的物体，共处理 {rightMultiGrabbedObjects.Count} 个对象");
+            }
             // 检查是否是多选复制
-            if (currentMultiDuplicateCommands.Count > 0)
+            else if (currentMultiDuplicateCommands.Count > 0)
             {
                 // 处理多选复制的释放
                 foreach (var duplicateCommand in currentMultiDuplicateCommands)
@@ -300,6 +324,108 @@ namespace YouYouTest
                 UpdateDuplicateOnRelease(currentDuplicateCommand, rightGrabbedObject);
                 Debug.Log("释放右手单选复制的物体");
             }
+        }
+
+        /// <summary>
+        /// 创建批量复制命令并执行复制
+        /// </summary>
+        /// <param name="sourceObjects">要复制的源对象列表</param>
+        /// <returns>批量复制命令</returns>
+        public static YouYouTest.CommandFramework.BatchDuplicateCommand CreateBatchDuplicateAndGrab(System.Collections.Generic.List<IGrabable> sourceObjects)
+        {
+            if (sourceObjects == null || sourceObjects.Count == 0)
+            {
+                Debug.LogWarning("批量复制：源对象列表为空");
+                return null;
+            }
+
+            var prefabs = new System.Collections.Generic.List<GameObject>();
+            var positions = new System.Collections.Generic.List<Vector3>();
+            var rotations = new System.Collections.Generic.List<Quaternion>();
+
+            foreach (var sourceObject in sourceObjects)
+            {
+                if (sourceObject == null || sourceObject.ObjectGameObject == null) continue;
+                
+                prefabs.Add(sourceObject.ObjectGameObject);
+                positions.Add(sourceObject.ObjectTransform.position);
+                rotations.Add(sourceObject.ObjectTransform.rotation);
+            }
+
+            if (prefabs.Count == 0)
+            {
+                Debug.LogWarning("批量复制：没有有效的源对象");
+                return null;
+            }
+
+            var batchDuplicateCommand = new YouYouTest.CommandFramework.BatchDuplicateCommand(prefabs, positions, rotations);
+            CommandHistory.Instance.ExecuteCommand(batchDuplicateCommand);
+            
+            Debug.Log($"批量复制命令创建成功，共 {prefabs.Count} 个对象");
+            return batchDuplicateCommand;
+        }
+
+        /// <summary>
+        /// 创建批量移动命令
+        /// </summary>
+        /// <param name="sourceObjects">要移动的源对象列表</param>
+        /// <returns>批量移动命令</returns>
+        public static YouYouTest.CommandFramework.BatchMoveCommand CreateBatchMoveCommand(System.Collections.Generic.List<IGrabable> sourceObjects)
+        {
+            if (sourceObjects == null || sourceObjects.Count == 0)
+            {
+                Debug.LogWarning("批量移动：源对象列表为空");
+                return null;
+            }
+
+            var transforms = new System.Collections.Generic.List<Transform>();
+            foreach (var sourceObject in sourceObjects)
+            {
+                if (sourceObject != null && sourceObject.ObjectTransform != null)
+                {
+                    transforms.Add(sourceObject.ObjectTransform);
+                }
+            }
+
+            if (transforms.Count == 0)
+            {
+                Debug.LogWarning("批量移动：没有有效的源对象");
+                return null;
+            }
+
+            var batchMoveCommand = new YouYouTest.CommandFramework.BatchMoveCommand(transforms);
+            Debug.Log($"批量移动命令创建成功，共 {transforms.Count} 个对象");
+            return batchMoveCommand;
+        }
+
+        /// <summary>
+        /// 更新批量移动命令的最终位置
+        /// </summary>
+        /// <param name="batchMoveCommand">批量移动命令</param>
+        /// <param name="sourceObjects">源对象列表</param>
+        public static void UpdateBatchMoveCommand(YouYouTest.CommandFramework.BatchMoveCommand batchMoveCommand, System.Collections.Generic.List<IGrabable> sourceObjects)
+        {
+            if (batchMoveCommand == null || sourceObjects == null || sourceObjects.Count == 0)
+            {
+                Debug.LogWarning("更新批量移动命令：参数为空");
+                return;
+            }
+
+            var positions = new System.Collections.Generic.List<Vector3>();
+            var rotations = new System.Collections.Generic.List<Quaternion>();
+
+            foreach (var sourceObject in sourceObjects)
+            {
+                if (sourceObject != null && sourceObject.ObjectTransform != null)
+                {
+                    positions.Add(sourceObject.ObjectTransform.position);
+                    rotations.Add(sourceObject.ObjectTransform.rotation);
+                }
+            }
+
+            batchMoveCommand.SetEndTransforms(positions, rotations);
+            CommandHistory.Instance.ExecuteCommand(batchMoveCommand);
+            Debug.Log($"批量移动命令更新并执行，共 {positions.Count} 个对象");
         }
     }
 }

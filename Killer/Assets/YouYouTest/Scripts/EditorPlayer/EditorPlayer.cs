@@ -26,6 +26,8 @@ public class EditorPlayer : MonoBehaviour
     private GrabCommand rightCurrentGrabCommand = null; // 右手当前抓取命令
     private YouYouTest.CommandFramework.CombinedCreateAndMoveCommand currentDuplicateCommand = null; // 当前复制命令（合并创建与移动）
     private System.Collections.Generic.List<YouYouTest.CommandFramework.CombinedCreateAndMoveCommand> currentMultiDuplicateCommands = new System.Collections.Generic.List<YouYouTest.CommandFramework.CombinedCreateAndMoveCommand>(); // 当前多选复制命令列表
+    private YouYouTest.CommandFramework.BatchDuplicateCommand currentBatchDuplicateCommand = null; // 当前批量复制命令
+    private YouYouTest.CommandFramework.BatchMoveCommand currentBatchMoveCommand = null; // 当前批量移动命令
 
     private Collider[] hitColliders = new Collider[10]; // 用于OverlapSphereNonAlloc的碰撞器数组
 
@@ -441,6 +443,13 @@ public class EditorPlayer : MonoBehaviour
     /// </summary>
     public void RightHandRelease()
     {
+        // 处理批量移动命令的更新
+        if (currentBatchMoveCommand != null && rightMultiGrabbedObjects.Count > 0)
+        {
+            EditorPlayerHelpers.UpdateBatchMoveCommand(currentBatchMoveCommand, rightMultiGrabbedObjects);
+            currentBatchMoveCommand = null;
+        }
+
         // 处理多抓取对象的释放
         EditorPlayerHelpers.ReleaseMultiGrabbedObjects(rightMultiGrabbedObjects, rightHand, false);
 
@@ -461,6 +470,12 @@ public class EditorPlayer : MonoBehaviour
         var targetMultiGrabbedObjects = isLeftHand ? leftMultiGrabbedObjects : rightMultiGrabbedObjects;
         System.Action releaseAction = isLeftHand ? (System.Action)LeftHandRelease : RightHandRelease;
 
+        // 创建批量移动命令
+        if (!isLeftHand) // 只为右手创建批量移动命令
+        {
+            currentBatchMoveCommand = EditorPlayerHelpers.CreateBatchMoveCommand(multi);
+        }
+
         bool grabbedAny = EditorPlayerHelpers.GrabMultiSelection(
             multi,
             hand,
@@ -471,6 +486,7 @@ public class EditorPlayer : MonoBehaviour
         if (!grabbedAny)
         {
             Debug.LogWarning($"{(isLeftHand ? "左手" : "右手")}多选抓取失败，未找到有效对象");
+            if (!isLeftHand) currentBatchMoveCommand = null; // 清理失败的批量移动命令
         }
     }
     #endregion
@@ -620,11 +636,15 @@ public class EditorPlayer : MonoBehaviour
     /// </summary>
     private void ReleaseRightCopiedObject()
     {
-        // 处理多选复制的释放
-        EditorPlayerHelpers.ReleaseMultiDuplicateObjects(currentMultiDuplicateCommands, currentDuplicateCommand, rightGrabbedObject);
+        // 处理批量复制的释放
+        EditorPlayerHelpers.ReleaseMultiDuplicateObjects(currentMultiDuplicateCommands, currentDuplicateCommand, currentBatchDuplicateCommand, rightGrabbedObject, rightMultiGrabbedObjects);
 
-        // 清理单选复制命令（如果是单选复制的情况）
-        if (currentMultiDuplicateCommands.Count == 0 && rightGrabbedObject != null)
+        // 清理复制命令
+        if (currentBatchDuplicateCommand != null)
+        {
+            currentBatchDuplicateCommand = null;
+        }
+        else if (currentMultiDuplicateCommands.Count == 0 && rightGrabbedObject != null)
         {
             currentDuplicateCommand = null;
         }
@@ -646,36 +666,28 @@ public class EditorPlayer : MonoBehaviour
             return;
         }
 
-        // 清除之前的多选复制命令
+        // 清除之前的复制命令
         currentMultiDuplicateCommands.Clear();
+        currentBatchDuplicateCommand = null;
 
         // 释放当前抓取的对象（包括多抓取）
         if (rightGrabbedObject != null || rightMultiGrabbedObjects.Count > 0) RightHandRelease();
 
-        Debug.Log($"开始多选复制，共 {sourceObjects.Count} 个对象");
+        Debug.Log($"开始批量复制，共 {sourceObjects.Count} 个对象");
 
-        // 复制每个对象，并记录成功复制的 GameObject 列表
-        var duplicatedGameObjects = new System.Collections.Generic.List<GameObject>();
-        foreach (var sourceObject in sourceObjects)
+        // 使用新的批量复制命令
+        currentBatchDuplicateCommand = EditorPlayerHelpers.CreateBatchDuplicateAndGrab(sourceObjects);
+        
+        if (currentBatchDuplicateCommand == null)
         {
-            if (sourceObject == null) continue;
-
-            var duplicateCommand = EditorPlayerHelpers.CreateDuplicateAndGrab(sourceObject, false);
-            if (duplicateCommand != null)
-            {
-                var duplicatedObject = duplicateCommand.GetCreatedObject();
-                if (duplicatedObject != null)
-                {
-                    currentMultiDuplicateCommands.Add(duplicateCommand);
-                    duplicatedGameObjects.Add(duplicatedObject);
-                    Debug.Log($"多选复制成功：{sourceObject.ObjectGameObject.name} -> {duplicatedObject.name}");
-                }
-            }
+            Debug.LogWarning("批量复制失败：无法创建批量复制命令");
+            return;
         }
 
+        var duplicatedGameObjects = currentBatchDuplicateCommand.GetCreatedObjects();
         if (duplicatedGameObjects.Count == 0)
         {
-            Debug.LogWarning("多选复制失败：没有成功复制任何对象");
+            Debug.LogWarning("批量复制失败：没有成功复制任何对象");
             return;
         }
 
@@ -695,20 +707,17 @@ public class EditorPlayer : MonoBehaviour
 
         // 3) 抓取所有复制的对象（让它们跟随手移动）
         var duplicatedGrabables = new System.Collections.Generic.List<IGrabable>();
-        for (int i = 0; i < currentMultiDuplicateCommands.Count; i++)
+        foreach (var go in duplicatedGameObjects)
         {
-            var duplicateCommand = currentMultiDuplicateCommands[i];
-            var duplicatedObject = duplicateCommand?.GetCreatedObject();
-            if (duplicatedObject == null) continue;
-
-            var grabable = EditorPlayerHelpers.GetGrabableFromGameObject(duplicatedObject);
+            if (go == null) continue;
+            var grabable = EditorPlayerHelpers.GetGrabableFromGameObject(go);
             if (grabable != null) duplicatedGrabables.Add(grabable);
         }
 
         // 使用辅助方法统一抓取所有复制的对象
         EditorPlayerHelpers.GrabMultipleObjects(duplicatedGrabables, rightHand, rightMultiGrabbedObjects);
 
-        Debug.Log($"多选复制并切换选中目标完成：复制 {duplicatedGameObjects.Count} 个对象，抓取 {rightMultiGrabbedObjects.Count} 个对象");
+        Debug.Log($"批量复制并切换选中目标完成：复制 {duplicatedGameObjects.Count} 个对象，抓取 {rightMultiGrabbedObjects.Count} 个对象");
     }
     #endregion
 
