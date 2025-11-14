@@ -238,7 +238,6 @@ GameObject:
   - component: {fileID: 4322083}
   - component: {fileID: 4322082}
   - component: {fileID: 4322081}
-  - component: {fileID: 4322080}
   - component: {fileID: 4322084}
   m_Layer: 0
   m_Name: SelectUI
@@ -247,27 +246,6 @@ GameObject:
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
   m_IsActive: 1
---- !u!65 &4322080
-BoxCollider:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 4322079}
-  m_Material: {fileID: 0}
-  m_IncludeLayers:
-    serializedVersion: 2
-    m_Bits: 0
-  m_ExcludeLayers:
-    serializedVersion: 2
-    m_Bits: 0
-  m_LayerOverridePriority: 0
-  m_IsTrigger: 0
-  m_ProvidesContacts: 0
-  m_Enabled: 0
-  serializedVersion: 3
-  m_Size: {x: 1, y: 1, z: 1}
-  m_Center: {x: 0, y: 0, z: 0}
 --- !u!23 &4322081
 MeshRenderer:
   m_ObjectHideFlags: 0
@@ -9337,7 +9315,7 @@ RectTransform:
   m_AnchorMin: {x: 0.5, y: 0.5}
   m_AnchorMax: {x: 0.5, y: 0.5}
   m_AnchoredPosition: {x: 0, y: 0}
-  m_SizeDelta: {x: 100, y: 100}
+  m_SizeDelta: {x: 165.9, y: 191.7}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!114 &914307039
 MonoBehaviour:
@@ -10477,6 +10455,7 @@ MonoBehaviour:
   _vrEditorCameraT: {fileID: 0}
   _isPlayMode: 0
   _canSwitchMode: 1
+  _isRaycastHittingUI: 0
   _playerCameraT: {fileID: 0}
   _greenHooks: []
   _closestAngleHook: {fileID: 0}
@@ -13267,7 +13246,7 @@ RectTransform:
   m_AnchorMin: {x: 0.5, y: 0.5}
   m_AnchorMax: {x: 0.5, y: 0.5}
   m_AnchoredPosition: {x: 0, y: 0}
-  m_SizeDelta: {x: 800, y: 600}
+  m_SizeDelta: {x: 165.9, y: 191.7}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!114 &1374250283
 MonoBehaviour:
@@ -18008,7 +17987,7 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0, y: 1}
   m_AnchorMax: {x: 0, y: 1}
-  m_AnchoredPosition: {x: 397, y: -187}
+  m_AnchoredPosition: {x: 85, y: -88}
   m_SizeDelta: {x: 98.4, y: 100}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!114 &2036032887

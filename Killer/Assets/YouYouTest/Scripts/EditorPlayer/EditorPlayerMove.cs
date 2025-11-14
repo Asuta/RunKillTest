@@ -3,30 +3,28 @@ using UnityEngine;
 public class EditorPlayerMove : MonoBehaviour
 {
     #region 字段和属性
-    
+
+    private const float InputThreshold = 0.1f;
+
     public Transform rigT; // tracking space
     public Transform headT; // head(center相机位置)
-    private Vector3 rigRecordPos; //rigT记录位置(用于拖拽移动，按下时记录位置)
     public float moveSpeed; //移动速度
     public Transform leftHand; //左手
-    private Vector3 leftHandRecordPos; //左手记录位置
     public Transform rightHand; //右手
-    private Vector3 rightHandRecordPos; //右手记录位置
-    
-    // 拖拽移动状态
-    private bool leftHandDragging = false;
-    private bool rightHandDragging = false;
-    
+
+    private readonly HandState leftHandState = new HandState();
+    private readonly HandState rightHandState = new HandState();
+
     // 旋转状态控制
     private bool wasRotatingLeft = false;
     private bool wasRotatingRight = false;
-    
+
     // 缩放相关变量
     private float recordScale; // 记录的初始比例
     private float recordDistance; // 记录的初始距离
     private bool isScaling = false; // 是否正在缩放
     private Vector3 centerPosition; // 缩放中心点
-    
+
     #endregion
     
     #region Unity生命周期
@@ -43,13 +41,23 @@ public class EditorPlayerMove : MonoBehaviour
     {
         // moveSpeed保持为1，因为我们在移动计算中已经考虑了rigT的缩放
         moveSpeed = 1f;
+
+        CacheHandState(leftHandState, false);
+        CacheHandState(rightHandState, true);
+
         StickRotate();
-        //拖拽移动
-        DragMove();
-        //左摇杆移动
-        StickMove();
-        //双手缩放
-        HandleScale();
+
+        bool scalingActive = HandleScaleGesture();
+
+        if (!scalingActive)
+        {
+            HandleDragGesture(leftHandState);
+            HandleDragGesture(rightHandState);
+            StickMove();
+        }
+
+        leftHandState.TryUnlock();
+        rightHandState.TryUnlock();
     }
     
     #endregion
@@ -107,167 +115,201 @@ public class EditorPlayerMove : MonoBehaviour
     }
     
     /// <summary>
-    /// 拖拽移动功能 - 同时按住扳机和握键时进行拖拽移动
+    /// 拖拽移动功能 - 在当前输入状态下处理单手拖拽
     /// </summary>
-    private void DragMove()
+    private void HandleDragGesture(HandState handState)
     {
-        // 右手拖拽移动
-        HandleDragMove(true);
-        
-        // 左手拖拽移动
-        HandleDragMove(false);
+        if (handState.HandTransform == null || rigT == null)
+        {
+            return;
+        }
+
+        if (handState.LockedUntilRelease)
+        {
+            handState.ResetDrag();
+            return;
+        }
+
+        if (handState.ComboStartedThisFrame)
+        {
+            handState.DragHandLocalPosition = handState.HandTransform.localPosition;
+            handState.DragRigWorldPosition = rigT.position;
+            handState.Dragging = true;
+        }
+
+        if (handState.ComboPressed && handState.Dragging)
+        {
+            Vector3 offset = handState.HandTransform.localPosition - handState.DragHandLocalPosition;
+            offset = Quaternion.Euler(0, rigT.eulerAngles.y, 0) * offset;
+            rigT.position = handState.DragRigWorldPosition - offset * moveSpeed * rigT.localScale.x;
+        }
+
+        if (!handState.ComboPressed)
+        {
+            handState.ResetDrag();
+        }
     }
-    
+
     /// <summary>
-    /// 处理单手拖拽移动
+    /// 双手缩放功能 - 同时按住双手的扳机键和握键进行缩放
     /// </summary>
-    /// <param name="isRightHand">是否为右手</param>
-    private void HandleDragMove(bool isRightHand)
+    private bool HandleScaleGesture()
     {
-        // 获取对应手的扳机和握键值和状态
-        float triggerValue = isRightHand ?
-            InputActionsManager.Actions.XRIRightInteraction.ActivateValue.ReadValue<float>() :
-            InputActionsManager.Actions.XRILeftInteraction.ActivateValue.ReadValue<float>();
-            
-        float gripValue = isRightHand ?
-            InputActionsManager.Actions.XRIRightInteraction.SelectValue.ReadValue<float>() :
-            InputActionsManager.Actions.XRILeftInteraction.SelectValue.ReadValue<float>();
-        
-        bool triggerPressed = triggerValue > 0.1f;
-        bool gripPressed = gripValue > 0.1f;
-        
-        // 获取按键按下事件
-        bool triggerDown = isRightHand ?
-            InputActionsManager.Actions.XRIRightInteraction.Activate.WasPressedThisFrame() :
-            InputActionsManager.Actions.XRILeftInteraction.Activate.WasPressedThisFrame();
-            
-        bool gripDown = isRightHand ?
-            InputActionsManager.Actions.XRIRightInteraction.Select.WasPressedThisFrame() :
-            InputActionsManager.Actions.XRILeftInteraction.Select.WasPressedThisFrame();
-        
-        Transform handTransform = isRightHand ? rightHand : leftHand;
-        
+        if (leftHandState.HandTransform == null || rightHandState.HandTransform == null || rigT == null)
+        {
+            return false;
+        }
+
+        bool leftReady = leftHandState.ComboPressed;
+        bool rightReady = rightHandState.ComboPressed;
+
+        if (leftReady && rightReady)
+        {
+            if (!isScaling)
+            {
+                BeginScaleGesture();
+            }
+
+            UpdateScaleGesture();
+            return true;
+        }
+
+        if (isScaling)
+        {
+            EndScaleGesture();
+        }
+
+        return false;
+    }
+
+    private void BeginScaleGesture()
+    {
+        recordScale = rigT.localScale.x;
+        recordDistance = Vector3.Distance(leftHandState.HandTransform.localPosition, rightHandState.HandTransform.localPosition);
+        centerPosition = (leftHandState.HandTransform.position + rightHandState.HandTransform.position) * 0.5f;
+        isScaling = true;
+
+        leftHandState.LockUntilRelease();
+        rightHandState.LockUntilRelease();
+        leftHandState.ResetDrag();
+        rightHandState.ResetDrag();
+    }
+
+    private void UpdateScaleGesture()
+    {
+        float currentDistance = Vector3.Distance(leftHandState.HandTransform.localPosition, rightHandState.HandTransform.localPosition);
+        if (currentDistance <= Mathf.Epsilon)
+        {
+            return;
+        }
+
+        float targetScale = recordDistance / currentDistance * recordScale;
+        float currentScale = rigT.localScale.x;
+
+        if (Mathf.Approximately(currentScale, targetScale))
+        {
+            return;
+        }
+
+        centerPosition = (leftHandState.HandTransform.position + rightHandState.HandTransform.position) * 0.5f;
+        Vector3 zoomVector = (centerPosition - rigT.position) * (targetScale / currentScale - 1.0f);
+        rigT.localScale = new Vector3(targetScale, targetScale, targetScale);
+        rigT.position -= zoomVector;
+
+        if (GameManager.Instance != null)
+        {
+            GameManager.Instance.TriggerScaleChanged(recordScale, targetScale);
+        }
+    }
+
+    private void EndScaleGesture()
+    {
+        isScaling = false;
+        leftHandState.LockUntilRelease();
+        rightHandState.LockUntilRelease();
+        leftHandState.ResetDrag();
+        rightHandState.ResetDrag();
+    }
+
+    private void CacheHandState(HandState handState, bool isRightHand)
+    {
+        handState.HandTransform = isRightHand ? rightHand : leftHand;
+
+        if (handState.HandTransform == null)
+        {
+            handState.ResetDrag();
+            handState.TriggerValue = 0f;
+            handState.GripValue = 0f;
+            handState.TriggerPressed = false;
+            handState.GripPressed = false;
+            handState.TriggerDown = false;
+            handState.GripDown = false;
+            handState.LockedUntilRelease = false;
+            return;
+        }
+
         if (isRightHand)
         {
-            // 右手拖拽处理 - 记录位置
-            // 握键按下且扳机已按下
-            if (gripDown && triggerPressed)
-            {
-                rightHandRecordPos = handTransform.localPosition;
-                rigRecordPos = rigT.position;
-                rightHandDragging = true;
-            }
-            // 扳机按下且握键已按下
-            else if (triggerDown && gripPressed)
-            {
-                rightHandRecordPos = handTransform.localPosition;
-                rigRecordPos = rigT.position;
-                rightHandDragging = true;
-            }
-            
-            // 拖拽移动
-            if (triggerPressed && gripPressed && rightHandDragging)
-            {
-                Vector3 offset = handTransform.localPosition - rightHandRecordPos;
-                offset = Quaternion.Euler(0, rigT.eulerAngles.y, 0) * offset;
-                // 考虑rigT的缩放，移动距离乘以rigT.localScale.x
-                rigT.position = rigRecordPos - offset * moveSpeed * rigT.localScale.x;
-            }
-            
-            // 释放拖拽状态
-            if (!triggerPressed || !gripPressed)
-            {
-                rightHandDragging = false;
-            }
+            handState.TriggerValue = InputActionsManager.Actions.XRIRightInteraction.ActivateValue.ReadValue<float>();
+            handState.GripValue = InputActionsManager.Actions.XRIRightInteraction.SelectValue.ReadValue<float>();
+            handState.TriggerDown = InputActionsManager.Actions.XRIRightInteraction.Activate.WasPressedThisFrame();
+            handState.GripDown = InputActionsManager.Actions.XRIRightInteraction.Select.WasPressedThisFrame();
         }
         else
         {
-            // 左手拖拽处理 - 记录位置
-            // 握键按下且扳机已按下
-            if (gripDown && triggerPressed)
-            {
-                leftHandRecordPos = handTransform.localPosition;
-                rigRecordPos = rigT.position;
-                leftHandDragging = true;
-            }
-            // 扳机按下且握键已按下
-            else if (triggerDown && gripPressed)
-            {
-                leftHandRecordPos = handTransform.localPosition;
-                rigRecordPos = rigT.position;
-                leftHandDragging = true;
-            }
-            
-            // 拖拽移动
-            if (triggerPressed && gripPressed && leftHandDragging)
-            {
-                Vector3 offset = handTransform.localPosition - leftHandRecordPos;
-                offset = Quaternion.Euler(0, rigT.eulerAngles.y, 0) * offset;
-                // 考虑rigT的缩放，移动距离乘以rigT.localScale.x
-                rigT.position = rigRecordPos - offset * moveSpeed * rigT.localScale.x;
-            }
-            
-            // 释放拖拽状态
-            if (!triggerPressed || !gripPressed)
-            {
-                leftHandDragging = false;
-            }
+            handState.TriggerValue = InputActionsManager.Actions.XRILeftInteraction.ActivateValue.ReadValue<float>();
+            handState.GripValue = InputActionsManager.Actions.XRILeftInteraction.SelectValue.ReadValue<float>();
+            handState.TriggerDown = InputActionsManager.Actions.XRILeftInteraction.Activate.WasPressedThisFrame();
+            handState.GripDown = InputActionsManager.Actions.XRILeftInteraction.Select.WasPressedThisFrame();
         }
-    }
-    
-    /// <summary>
-    /// 双手缩放功能 - 同时按住双手A键进行缩放
-    /// </summary>
-    private void HandleScale()
-    {
-        // 检测双手A键状态
-        bool leftAPressed = InputActionsManager.Actions.XRILeftInteraction.PrimaryButton.IsPressed();
-        bool rightAPressed = InputActionsManager.Actions.XRIRightInteraction.PrimaryButton.IsPressed();
-        bool leftADown = InputActionsManager.Actions.XRILeftInteraction.PrimaryButton.WasPressedThisFrame();
-        bool rightADown = InputActionsManager.Actions.XRIRightInteraction.PrimaryButton.WasPressedThisFrame();
-        
-        // 计算缩放中心点（两手之间的中点）
-        centerPosition = (leftHand.position + rightHand.position) / 2;
-        
-        // 检测是否开始缩放（任意一个A键按下且另一个已经按下）
-        if ((leftADown && rightAPressed) || (rightADown && leftAPressed))
-        {
-            // 记录当前的缩放倍数
-            recordScale = rigT.localScale.x;
-            // 记录当前两个手柄的距离
-            recordDistance = Vector3.Distance(leftHand.localPosition, rightHand.localPosition);
-            isScaling = true;
-        }
-        
-        // 如果双手都按住A键，进行缩放
-        if (leftAPressed && rightAPressed && isScaling)
-        {
-            // 获取现在两个手的距离
-            var nowDistance = Vector3.Distance(leftHand.localPosition, rightHand.localPosition);
-            // 计算现在的缩放比例
-            var targetScale = recordDistance / nowDistance * recordScale;
-            // 计算缩放后的大小
-            var newSize = targetScale;
 
-            // 计算要缩放的距离
-            Vector3 zoomVector = (centerPosition - rigT.position) * (newSize / rigT.localScale.x - 1.0f);
-            // 缩放物体并移动位置，以使中心点保持不变
-            rigT.localScale = new Vector3(newSize, newSize, newSize);
-            rigT.position -= zoomVector;
-            
-            // 触发缩放变化事件
-            if (GameManager.Instance != null)
-            {
-                GameManager.Instance.TriggerScaleChanged(recordScale, newSize);
-            }
-        }
-        
-        // 如果任意一个A键释放，停止缩放
-        if (!leftAPressed || !rightAPressed)
-        {
-            isScaling = false;
-        }
+        handState.TriggerPressed = handState.TriggerValue > InputThreshold;
+        handState.GripPressed = handState.GripValue > InputThreshold;
     }
     
+    #endregion
+    #region 内部类型
+
+    private class HandState
+    {
+        public Transform HandTransform;
+        public float TriggerValue;
+        public float GripValue;
+        public bool TriggerPressed;
+        public bool GripPressed;
+        public bool TriggerDown;
+        public bool GripDown;
+        public bool Dragging;
+        public bool LockedUntilRelease;
+        public Vector3 DragHandLocalPosition;
+        public Vector3 DragRigWorldPosition;
+
+        public bool ComboPressed => TriggerPressed && GripPressed;
+        public bool ComboStartedThisFrame => (GripDown && TriggerPressed) || (TriggerDown && GripPressed);
+
+        public void ResetDrag()
+        {
+            Dragging = false;
+        }
+
+        public void LockUntilRelease()
+        {
+            LockedUntilRelease = true;
+        }
+
+        public void TryUnlock()
+        {
+            if (!LockedUntilRelease)
+            {
+                return;
+            }
+
+            if (!TriggerPressed && !GripPressed)
+            {
+                LockedUntilRelease = false;
+            }
+        }
+    }
+
     #endregion
 }
