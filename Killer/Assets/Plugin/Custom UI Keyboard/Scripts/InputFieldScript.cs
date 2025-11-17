@@ -89,6 +89,17 @@ public class InputFieldScript : MonoBehaviour
     /// </summary>
     /// <param name="value"></param>
     public void OnSelected(string value) {
+        // 延迟一帧执行键盘位置移动，确保targetKeyboard已经被赋值
+        StartCoroutine(DelayedKeyboardPositioning());
+    }
+
+    /// <summary>
+    /// 延迟执行键盘位置移动
+    /// </summary>
+    /// <returns></returns>
+    IEnumerator DelayedKeyboardPositioning() {
+        yield return new WaitForEndOfFrame();
+        
         // 找到KeyboardManager并设置其父物体为target
         if (targetKeyboard != null && targetKeyboard.transform.parent != null)
         {
