@@ -13,6 +13,8 @@ public class InputFieldScript : MonoBehaviour
 {
     TMP_InputField inputField; // Current InputField
     public Transform target;
+    public float createDistance = 8f;
+    public float createScale = 1f;
 
     [HideInInspector]
     public KeyboardManager targetKeyboard; // Reference to keyboard manager
@@ -106,12 +108,18 @@ public class InputFieldScript : MonoBehaviour
             if (!isSelectedInputField || currentTargetInput != this)
             {
                 // 在激活键盘之前，移动target到指定位置
-                if (target != null)
+                if (target != null && GameManager.Instance.VrEditorCameraT != null)
                 {
                     // 计算forward方向向下偏移80度的方向
-                    Vector3 direction = Quaternion.Euler(-80, 0, 0) * -transform.forward;
+                    // 使用本地坐标计算：先在本地坐标系中旋转，再转换到世界坐标
+                    Vector3 localDirection = Quaternion.Euler(-60, 0, 0) * -Vector3.forward;
+                    Vector3 direction = transform.TransformDirection(localDirection);
                     // 设置target位置为当前位置加上方向向量乘以距离8米
-                    target.position = transform.position + direction * 8f;
+                    target.position = transform.position + direction * createDistance * GameManager.Instance.VrEditorScale;
+                    target.localScale = Vector3.one * createScale * GameManager.Instance.VrEditorScale;
+                    target.LookAt(GameManager.Instance.VrEditorCameraT.position);
+                    // 在朝向摄像机后再旋转180度
+                    target.rotation *= Quaternion.Euler(0, 180, 0);
                 }
             }
         }
