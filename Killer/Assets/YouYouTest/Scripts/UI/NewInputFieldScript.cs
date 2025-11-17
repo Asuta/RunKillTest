@@ -9,7 +9,7 @@ using UnityEngine.EventSystems;
 /// Script you need to add to your TMP_InputField if you want to use the UI keyboard
 /// </summary>
 [RequireComponent(typeof(TMP_InputField))]
-public class InputFieldScript : MonoBehaviour
+public class NewInputFieldScript : MonoBehaviour
 {
     TMP_InputField inputField; // Current InputField
     public Transform target;
@@ -92,27 +92,13 @@ public class InputFieldScript : MonoBehaviour
         {
             target = targetKeyboard.transform.parent;
             
-            // 只有当键盘未激活或者是不同的输入字段时才移动位置
-            // 使用反射获取私有字段isSelectedInputField和targetInput
-            var isSelectedInputFieldField = typeof(KeyboardManager).GetField("isSelectedInputField",
-                System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance);
-            var targetInputField = typeof(KeyboardManager).GetField("targetInput",
-                System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance);
-            
-            bool isSelectedInputField = (bool)isSelectedInputFieldField?.GetValue(targetKeyboard);
-            InputFieldScript currentTargetInput = (InputFieldScript)targetInputField?.GetValue(targetKeyboard);
-            
-            // 如果键盘未激活或者是不同的输入字段，才移动位置
-            if (!isSelectedInputField || currentTargetInput != this)
+            // 在激活键盘之前，移动target到指定位置
+            if (target != null)
             {
-                // 在激活键盘之前，移动target到指定位置
-                if (target != null)
-                {
-                    // 计算forward方向向下偏移80度的方向
-                    Vector3 direction = Quaternion.Euler(-80, 0, 0) * -transform.forward;
-                    // 设置target位置为当前位置加上方向向量乘以距离8米
-                    target.position = transform.position + direction * 8f;
-                }
+                // 计算forward方向向下偏移80度的方向
+                Vector3 direction = Quaternion.Euler(-80, 0, 0) * -transform.forward;
+                // 设置target位置为当前位置加上方向向量乘以距离8米
+                target.position = transform.position + direction * 8f;
             }
         }
     }
