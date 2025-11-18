@@ -1,0 +1,38 @@
+fileFormatVersion: 2
+guid: 31351dd1822d3fc4b98c9165853d6757
+labels:
+- Monitor
+- Component
+- Debug
+- Track
+- Graph
+- Value
+- Console
+- Draw
+- Watch
+- Visual
+- Data
+- Log
+- Renderer
+- Shader
+- Editor
+- Maker
+- Analyze
+- Debugger
+- Debugging
+- Grapher
+MonoImporter:
+  serializedVersion: 2
+  defaultReferences: []
+  executionOrder: 0
+  icon: {instanceID: 0}
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 
+AssetOrigin:
+  serializedVersion: 1
+  productId: 21970
+  packageName: Squiggle
+  packageVersion: 4.2.4
+  assetPath: Assets/Mystery/Example Scripts/ExampleScript.cs
+  uploadId: 417663

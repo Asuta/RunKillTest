@@ -1,0 +1,36 @@
+fileFormatVersion: 2
+guid: 5526c9f52fd238f47a6b17208c35ae2e
+labels:
+- Monitor
+- Component
+- Debug
+- Track
+- Graph
+- Value
+- Console
+- Draw
+- Watch
+- Visual
+- Data
+- Log
+- Renderer
+- Shader
+- Editor
+- Maker
+- Analyze
+- Debugger
+- Debugging
+- Grapher
+timeCreated: 1443802448
+licenseType: Store
+NativeFormatImporter:
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 
+AssetOrigin:
+  serializedVersion: 1
+  productId: 21970
+  packageName: Squiggle
+  packageVersion: 4.2.4
+  assetPath: Assets/Mystery/Example Assets/Example Graph Material.mat
+  uploadId: 417663

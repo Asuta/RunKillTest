@@ -1,0 +1,34 @@
+fileFormatVersion: 2
+guid: 46578c070356c2749b0accf56d87bbf2
+labels:
+- Monitor
+- Component
+- Debug
+- Track
+- Graph
+- Value
+- Console
+- Draw
+- Watch
+- Visual
+- Data
+- Log
+- Renderer
+- Shader
+- Editor
+- Maker
+- Analyze
+- Debugger
+- Debugging
+- Grapher
+DefaultImporter:
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 
+AssetOrigin:
+  serializedVersion: 1
+  productId: 21970
+  packageName: Squiggle
+  packageVersion: 4.2.4
+  assetPath: Assets/Mystery/Squiggle Documentation.pdf
+  uploadId: 417663
