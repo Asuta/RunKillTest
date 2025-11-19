@@ -139,7 +139,7 @@ public class InputFieldScript : MonoBehaviour
     /// <summary>
     /// On deselected input field event
     /// </summary>
-    /// <param name="value"></param>
+    /// <param name="value"></param> 
     public void OnDeselected(string value) {
     }
 

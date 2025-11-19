@@ -6,6 +6,7 @@ using UnityEngine.XR.Interaction.Toolkit.Samples.StarterAssets;
 public class SelectUI : MonoBehaviour
 {
     public GameObject[] delectObjects; // 改为数组支持多个对象
+    public ConfigUIPanel configUIPanel;
     public Button buttonDelete;
     // Start is called once before the first execution of Update after the MonoBehaviour is created
     void Start()
@@ -24,9 +25,14 @@ public class SelectUI : MonoBehaviour
     }
 
     // 初始化注入方法
-    public void InitializeSelectedObjects(GameObject[] selectedObjects)
+    public void InitializeSelectedObjects(GameObject[] selectedObjects, IConfigurable configurable = null)
     {
         delectObjects = selectedObjects;
+
+        if (configUIPanel != null && configurable != null)
+        {
+            configUIPanel.CreateConfigItem(configurable);
+        }
     }
     
     // 删除对象的方法

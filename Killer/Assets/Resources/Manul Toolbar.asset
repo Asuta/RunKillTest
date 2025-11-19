@@ -98,7 +98,7 @@ MonoBehaviour:
     useResetButton: 0
     currentFrameRate: 0
   - isActive: 1
-    isExpanded: 1
+    isExpanded: 0
     type: 2
     labelType: 0
     labelText: Pause Compilation

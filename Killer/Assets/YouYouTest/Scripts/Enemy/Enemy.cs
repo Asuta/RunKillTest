@@ -1,9 +1,50 @@
 using UnityEngine;
+using System;
+using System.Collections.Generic;
 
-public class Enemy : MonoBehaviour, ICanBeHit
+public class Enemy : MonoBehaviour, ICanBeHit, IConfigurable
 {
+    #region IConfigurable 实现
+    public string GetConfigTitle()
+    {
+        return $"Enemy ({gameObject.name})";
+    }
+
+    public List<ConfigItem> GetConfigItems()
+    {
+        var items = new List<ConfigItem>();
+
+        // 配置 Health
+        items.Add(new ConfigItem(
+            "health",
+            health,
+            ConfigType.Int,
+            (newValue) =>
+            {
+                health = Convert.ToInt32(newValue);
+                Debug.Log($"[Enemy Config] Health updated to: {health}");
+            }
+        ));
+
+        // 配置 Health2
+        items.Add(new ConfigItem(
+            "health2",
+            health2,
+            ConfigType.Int,
+            (newValue) =>
+            {
+                health2 = Convert.ToInt32(newValue);
+                Debug.Log($"[Enemy Config] Health2 updated to: {health2}");
+            }
+        ));
+
+        return items;
+    }
+    #endregion
+
     #region 变量声明
     public int health = 100;
+    public int health2 = 100;
     public Transform target;
     public Transform EnemyBody;
     public Transform checkBox;

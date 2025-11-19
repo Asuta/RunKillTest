@@ -753,7 +753,15 @@ public class EditorPlayer : MonoBehaviour
             {
                 // 获取当前选中的对象（支持单选和多选）
                 var selectedObjects = GetSelectedObjects();
-                selectUIComponent.InitializeSelectedObjects(selectedObjects);
+                
+                // 尝试获取 IConfigurable 接口（仅在单选时）
+                IConfigurable configurable = null;
+                if (selectedObjects.Length == 1 && selectedObjects[0] != null)
+                {
+                    configurable = selectedObjects[0].GetComponent<IConfigurable>();
+                }
+
+                selectUIComponent.InitializeSelectedObjects(selectedObjects, configurable);
                 Debug.Log($"已向SelectUI注入 {selectedObjects.Length} 个选中的对象");
             }
             else
