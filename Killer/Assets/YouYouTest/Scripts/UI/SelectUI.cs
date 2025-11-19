@@ -7,6 +7,7 @@ public class SelectUI : MonoBehaviour
 {
     public GameObject[] delectObjects; // 改为数组支持多个对象
     public ConfigUIPanel configUIPanel;
+    public GameObject configUIPanelObject;
     public Button buttonDelete;
     // Start is called once before the first execution of Update after the MonoBehaviour is created
     void Start()
@@ -29,9 +30,16 @@ public class SelectUI : MonoBehaviour
     {
         delectObjects = selectedObjects;
 
-        if (configUIPanel != null && configurable != null)
+        // 当传进来的东西没有对应的config接口，或者传进来的是多个东西的时候，让configUIPanelObject的active设置为false
+        if (configUIPanelObject != null)
         {
-            configUIPanel.CreateConfigItem(configurable);
+            bool shouldShowConfigPanel = (selectedObjects.Length == 1 && configurable != null);
+            configUIPanelObject.SetActive(shouldShowConfigPanel);
+            
+            if (shouldShowConfigPanel && configUIPanel != null)
+            {
+                configUIPanel.CreateConfigItem(configurable);
+            }
         }
     }
     

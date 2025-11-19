@@ -329,6 +329,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   delectObjects: []
   configUIPanel: {fileID: 122803416}
+  configUIPanelObject: {fileID: 122803412}
   buttonDelete: {fileID: 2036032887}
 --- !u!1 &6335337
 GameObject:
