@@ -26,17 +26,32 @@ public class Enemy : MonoBehaviour, ICanBeHit, IConfigurable
             }
         ));
 
-        // 配置 Health2
+
+        // 配置 firstLateTime
         items.Add(new ConfigItem(
-            "health2",
-            health2,
-            ConfigType.Int,
+            "lateTime",
+            firstLateTime,
+            ConfigType.Float,
             (newValue) =>
             {
-                health2 = Convert.ToInt32(newValue);
-                Debug.Log($"[Enemy Config] Health2 updated to: {health2}");
+                firstLateTime = Convert.ToSingle(newValue);
+                Debug.Log($"[Enemy Config] lateTime updated to: {firstLateTime}");
             }
         ));
+
+        // 配置 IntervalTime
+        items.Add(new ConfigItem(
+            "IntervalTime",
+            IntervalTime,
+            ConfigType.Float,
+            (newValue) =>
+            {
+                IntervalTime = Convert.ToSingle(newValue);
+                Debug.Log($"[Enemy Config] IntervalTime updated to: {IntervalTime}");
+            }
+        ));
+
+
 
         return items;
     }
@@ -44,7 +59,9 @@ public class Enemy : MonoBehaviour, ICanBeHit, IConfigurable
 
     #region 变量声明
     public int health = 100;
-    public int health2 = 100;
+    public float firstLateTime;
+    public float IntervalTime;
+
     public Transform target;
     public Transform EnemyBody;
     public Transform checkBox;
@@ -102,7 +119,7 @@ public class Enemy : MonoBehaviour, ICanBeHit, IConfigurable
 
         // 停用所有子物体而不是销毁自己
         DeactivateAllChildren();
-        
+
         // 5秒后重新激活并刷新状态
         StartCoroutine(ReactivateAfterDelay());
     }
@@ -170,7 +187,7 @@ public class Enemy : MonoBehaviour, ICanBeHit, IConfigurable
         if (!hasFiredFirstShot)
         {
             // 第一次发射：瞄准2秒后
-            if (aimingTime >= 2f)
+            if (aimingTime >= firstLateTime)
             {
                 Fire();
                 hasFiredFirstShot = true;
@@ -180,7 +197,7 @@ public class Enemy : MonoBehaviour, ICanBeHit, IConfigurable
         else
         {
             // 后续发射：每隔5秒发射一次
-            if (Time.time - lastFireTime >= 5f)
+            if (Time.time - lastFireTime >= IntervalTime)
             {
                 Fire();
                 lastFireTime = Time.time;
@@ -224,7 +241,7 @@ public class Enemy : MonoBehaviour, ICanBeHit, IConfigurable
     {
         // 设置死亡状态为true
         isDead = true;
-        
+
         // 遍历所有子物体并停用它们
         for (int i = 0; i < transform.childCount; i++)
         {
@@ -244,10 +261,10 @@ public class Enemy : MonoBehaviour, ICanBeHit, IConfigurable
 
         // 刷新敌人状态
         ResetEnemyState();
-        
+
         // 设置死亡状态为false
         isDead = false;
-        
+
         Debug.Log("Enemy reactivated and state reset!");
     }
 
@@ -255,7 +272,7 @@ public class Enemy : MonoBehaviour, ICanBeHit, IConfigurable
     {
         // 等待5秒
         yield return new WaitForSeconds(5f);
-        
+
         // 重新激活并重置状态
         ReactivateAndReset();
     }
@@ -264,19 +281,19 @@ public class Enemy : MonoBehaviour, ICanBeHit, IConfigurable
     {
         // 重置生命值
         health = 100;
-        
+
         // 重置射击相关变量
         aimingTime = 0f;
         lastFireTime = 0f;
         hasFiredFirstShot = false;
-        
+
         // 重置目标（如果需要）
         target = null; // 根据游戏需求决定是否重置目标
-        
+
         // 重置EnemyCheckBox的检测状态
         ResetCheckBoxState();
     }
-    
+
     private void ResetCheckBoxState()
     {
         // 获取EnemyCheckBox组件并重置其状态
@@ -329,6 +346,6 @@ public class Enemy : MonoBehaviour, ICanBeHit, IConfigurable
         return MeshDrawUtility.CreateSphereMesh(radius);
     }
 
-#endregion
+    #endregion
 
 }
