@@ -7,6 +7,7 @@ using System.Collections.Generic;
 public class ConfigUIPanel : MonoBehaviour
 {
     public GameObject configItemSample;
+    public Transform itemParent;
     private List<GameObject> createdConfigItems = new List<GameObject>();
     
     // Start is called once before the first execution of Update after the MonoBehaviour is created
@@ -81,7 +82,8 @@ public class ConfigUIPanel : MonoBehaviour
         foreach (var item in configItems)
         {
             // 实例化配置项UI
-            GameObject configItemGO = Instantiate(configItemSample, transform);
+            Transform parent = itemParent != null ? itemParent : transform;
+            GameObject configItemGO = Instantiate(configItemSample, parent);
             ConfigItemUI configItemUI = configItemGO.GetComponent<ConfigItemUI>();
             
             if (configItemUI == null)

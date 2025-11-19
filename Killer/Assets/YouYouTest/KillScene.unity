@@ -328,6 +328,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   delectObjects: []
+  configUIPanel: {fileID: 122803416}
   buttonDelete: {fileID: 2036032887}
 --- !u!1 &6335337
 GameObject:
@@ -2406,6 +2407,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   configItemSample: {fileID: 320512043}
+  itemParent: {fileID: 130688218}
 --- !u!1 &130688217
 GameObject:
   m_ObjectHideFlags: 0
@@ -2999,6 +3001,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   health: 1
+  health2: 100
   target: {fileID: 0}
   EnemyBody: {fileID: 843798973}
   checkBox: {fileID: 0}
@@ -4466,6 +4469,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   health: 1
+  health2: 100
   target: {fileID: 0}
   EnemyBody: {fileID: 261220925}
   checkBox: {fileID: 0}
@@ -6608,6 +6612,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   health: 1
+  health2: 100
   target: {fileID: 0}
   EnemyBody: {fileID: 1494138652}
   checkBox: {fileID: 0}
@@ -7781,6 +7786,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   health: 1
+  health2: 100
   target: {fileID: 0}
   EnemyBody: {fileID: 785452730}
   checkBox: {fileID: 0}
@@ -8368,6 +8374,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   health: 1
+  health2: 100
   target: {fileID: 0}
   EnemyBody: {fileID: 267861179}
   checkBox: {fileID: 0}
@@ -9309,6 +9316,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   health: 1
+  health2: 100
   target: {fileID: 0}
   EnemyBody: {fileID: 105625206}
   checkBox: {fileID: 0}
@@ -19207,6 +19215,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   health: 1
+  health2: 100
   target: {fileID: 0}
   EnemyBody: {fileID: 1703855551}
   checkBox: {fileID: 0}
@@ -19469,6 +19478,7 @@ GameObject:
   - component: {fileID: 2033688364}
   - component: {fileID: 2033688363}
   - component: {fileID: 2033688362}
+  - component: {fileID: 2033688365}
   m_Layer: 0
   m_Name: InputField (TMP)
   m_TagString: Untagged
@@ -19635,6 +19645,22 @@ CanvasRenderer:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 2033688360}
   m_CullTransparentMesh: 1
+--- !u!114 &2033688365
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2033688360}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 54604918cf267414fa9c14f09c8ea4ba, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  target: {fileID: 0}
+  createDistance: 0.17
+  createScale: 0.0004
+  targetKeyboard: {fileID: 0}
 --- !u!1 &2036032884
 GameObject:
   m_ObjectHideFlags: 0
