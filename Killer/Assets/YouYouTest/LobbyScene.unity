@@ -13488,8 +13488,10 @@ MonoBehaviour:
   needLog: 0
   _vrEditorRig: {fileID: 4226674471386617843}
   vrEditorRigOffset: {fileID: 4821350112615201696}
+  _vrEditorCameraT: {fileID: 0}
   _isPlayMode: 1
   _canSwitchMode: 0
+  _isRaycastHittingUI: 0
   _playerCameraT: {fileID: 0}
   _greenHooks: []
   _closestAngleHook: {fileID: 0}
@@ -29169,7 +29171,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 3049418849767098084, guid: 94d5fecb1b3317a47965957279d23a11, type: 3}
       propertyPath: m_LocalPosition.z
-      value: 0
+      value: 1.33
       objectReference: {fileID: 0}
     - target: {fileID: 3049418849767098084, guid: 94d5fecb1b3317a47965957279d23a11, type: 3}
       propertyPath: m_LocalRotation.w
@@ -43369,6 +43371,9 @@ MonoBehaviour:
   leftCheckSphere: {fileID: 1071562453528316187}
   rightHand: {fileID: 1585574482027425280}
   rightCheckSphere: {fileID: 6590754027943771977}
+  selectUI: {fileID: 0}
+  offsetYdistance: 0
+  handOutlineController: {fileID: 0}
 --- !u!114 &9167095900856961748
 MonoBehaviour:
   m_ObjectHideFlags: 0
