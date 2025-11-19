@@ -144,6 +144,19 @@ public class InputFieldScript : MonoBehaviour
     }
 
     /// <summary>
+    /// 当TMP_InputField组件被禁用时调用
+    /// </summary>
+    private void OnDisable() {
+        // 如果键盘存在且处于激活状态，则隐藏键盘
+        if (targetKeyboard != null && targetKeyboard.gameObject.activeInHierarchy) {
+            // 设置canDeselect为true，允许键盘取消选择
+            targetKeyboard.canDeselect = true;
+            // 取消当前选中的游戏对象，这会触发键盘隐藏逻辑
+            EventSystem.current.SetSelectedGameObject(null);    
+        }
+    }
+
+    /// <summary>
     /// Deselect input field manually
     /// </summary>
     public void Deselect() {

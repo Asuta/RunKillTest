@@ -18794,8 +18794,6 @@ GameObject:
   - component: {fileID: 2072727826}
   - component: {fileID: 2072727825}
   - component: {fileID: 2072727824}
-  - component: {fileID: 2072727828}
-  - component: {fileID: 2072727829}
   - component: {fileID: 2072727830}
   m_Layer: 0
   m_Name: InputField (TMP)
@@ -18964,33 +18962,6 @@ CanvasRenderer:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 2072727822}
   m_CullTransparentMesh: 1
---- !u!114 &2072727828
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 2072727822}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 85ef74ff1f7eb7f44a5249edf0ffa136, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  target: {fileID: 57245987}
---- !u!114 &2072727829
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 2072727822}
-  m_Enabled: 0
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 479c99d2669715348992318ff5734a1c, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  target: {fileID: 0}
-  targetKeyboard: {fileID: 0}
 --- !u!114 &2072727830
 MonoBehaviour:
   m_ObjectHideFlags: 0
