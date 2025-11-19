@@ -3002,7 +3002,8 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   health: 1
-  health2: 100
+  firstLateTime: 0
+  IntervalTime: 0
   target: {fileID: 0}
   EnemyBody: {fileID: 843798973}
   checkBox: {fileID: 0}
@@ -3567,9 +3568,9 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 64e9a55831bd8c44ba8ff813a8aa14e0, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  lightDistance: 20
   shortSign: {fileID: 402493548}
   scopeMesh: {fileID: 0}
+  _radius: 0.5
 --- !u!1 &267861178
 GameObject:
   m_ObjectHideFlags: 0
@@ -4011,9 +4012,9 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 64e9a55831bd8c44ba8ff813a8aa14e0, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  lightDistance: 20
   shortSign: {fileID: 543572033}
   scopeMesh: {fileID: 0}
+  _radius: 0.5
 --- !u!4 &281854282 stripped
 Transform:
   m_CorrespondingSourceObject: {fileID: 3658719759934261835, guid: d7893369e759f0b4bb1b3d1013668e80, type: 3}
@@ -4470,7 +4471,8 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   health: 1
-  health2: 100
+  firstLateTime: 0
+  IntervalTime: 0
   target: {fileID: 0}
   EnemyBody: {fileID: 261220925}
   checkBox: {fileID: 0}
@@ -6613,7 +6615,8 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   health: 1
-  health2: 100
+  firstLateTime: 0
+  IntervalTime: 0
   target: {fileID: 0}
   EnemyBody: {fileID: 1494138652}
   checkBox: {fileID: 0}
@@ -7787,7 +7790,8 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   health: 1
-  health2: 100
+  firstLateTime: 0
+  IntervalTime: 0
   target: {fileID: 0}
   EnemyBody: {fileID: 785452730}
   checkBox: {fileID: 0}
@@ -8375,7 +8379,8 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   health: 1
-  health2: 100
+  firstLateTime: 0
+  IntervalTime: 0
   target: {fileID: 0}
   EnemyBody: {fileID: 267861179}
   checkBox: {fileID: 0}
@@ -8923,9 +8928,9 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 64e9a55831bd8c44ba8ff813a8aa14e0, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  lightDistance: 20
   shortSign: {fileID: 23746386}
   scopeMesh: {fileID: 0}
+  _radius: 0.5
 --- !u!4 &726863994
 Transform:
   m_ObjectHideFlags: 0
@@ -9317,7 +9322,8 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   health: 1
-  health2: 100
+  firstLateTime: 0
+  IntervalTime: 0
   target: {fileID: 0}
   EnemyBody: {fileID: 105625206}
   checkBox: {fileID: 0}
@@ -10494,7 +10500,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 0
+  m_IsActive: 1
 --- !u!54 &921729346
 Rigidbody:
   m_ObjectHideFlags: 0
@@ -10531,7 +10537,7 @@ Transform:
   m_GameObject: {fileID: 921729345}
   serializedVersion: 2
   m_LocalRotation: {x: -0, y: 0.9940197, z: -0, w: 0.10920115}
-  m_LocalPosition: {x: -13.23, y: 1.2, z: -29.07}
+  m_LocalPosition: {x: 79.45, y: 1.2, z: 68.17}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children:
@@ -10658,9 +10664,9 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 64e9a55831bd8c44ba8ff813a8aa14e0, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  lightDistance: 20
   shortSign: {fileID: 1166188933}
   scopeMesh: {fileID: 0}
+  _radius: 0.5
 --- !u!1 &929760479
 GameObject:
   m_ObjectHideFlags: 0
@@ -12740,9 +12746,9 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 64e9a55831bd8c44ba8ff813a8aa14e0, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  lightDistance: 20
   shortSign: {fileID: 368153760}
   scopeMesh: {fileID: 0}
+  _radius: 0.5
 --- !u!1 &1159981380
 GameObject:
   m_ObjectHideFlags: 0
@@ -15331,9 +15337,9 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 64e9a55831bd8c44ba8ff813a8aa14e0, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  lightDistance: 20
   shortSign: {fileID: 1338023826}
   scopeMesh: {fileID: 0}
+  _radius: 0.5
 --- !u!1 &1494138651
 GameObject:
   m_ObjectHideFlags: 0
@@ -16713,9 +16719,9 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 64e9a55831bd8c44ba8ff813a8aa14e0, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  lightDistance: 20
   shortSign: {fileID: 30563125}
   scopeMesh: {fileID: 0}
+  _radius: 0.5
 --- !u!1 &1668368693
 GameObject:
   m_ObjectHideFlags: 0
@@ -18124,9 +18130,9 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 64e9a55831bd8c44ba8ff813a8aa14e0, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  lightDistance: 20
   shortSign: {fileID: 75953504}
   scopeMesh: {fileID: 0}
+  _radius: 0.5
 --- !u!1 &1896987636
 GameObject:
   m_ObjectHideFlags: 0
@@ -19216,7 +19222,8 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   health: 1
-  health2: 100
+  firstLateTime: 0
+  IntervalTime: 0
   target: {fileID: 0}
   EnemyBody: {fileID: 1703855551}
   checkBox: {fileID: 0}

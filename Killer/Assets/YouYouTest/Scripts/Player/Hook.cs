@@ -1,28 +1,56 @@
 using UnityEngine;
 using VInspector;
+using System;
+using System.Collections.Generic;
 
-public class Hook : MonoBehaviour
+public class Hook : MonoBehaviour, IConfigurable
 {
+    #region 变量声明
     private Transform playerCameraT; // 缓存相机引用
     private bool _isGreen = false;   // 当前是否为绿色状态
-
-    public float lightDistance = 5f;
 
     //test
     public MeshRenderer shortSign;
     public GameObject scopeMesh;
-    
-    private float _radius = 0.5f;
+
+    public float _radius;
     public float radius
     {
         get => _radius;
         set => SetRadius(value);
     }
-    
+
     private float _lastRadiusValue; // 用于检测radius变化的临时变量
+    #endregion
 
+    #region IConfigurable 实现
+    public string GetConfigTitle()
+    {
+        return $"Hook ({gameObject.name})";
+    }
 
+    public List<ConfigItem> GetConfigItems()
+    {
+        var items = new List<ConfigItem>();
 
+        // 配置 radius
+        items.Add(new ConfigItem(
+            "radius",
+            _radius,
+            ConfigType.Float,
+            (newValue) =>
+            {
+                float newRadius = Convert.ToSingle(newValue);
+                SetRadius(newRadius);
+                Debug.Log($"[Hook Config] Radius updated to: {newRadius}");
+            }
+        ));
+
+        return items;
+    }
+    #endregion
+
+    #region Unity生命周期方法
     // Start is called once before the first execution of Update after the MonoBehaviour is created
     void Start()
     {
@@ -54,14 +82,14 @@ public class Hook : MonoBehaviour
         {
             // 计算与相机的平方距离（避免开平方根运算）
             float sqrDistance = (transform.position - playerCameraT.position).sqrMagnitude;
-            float sqrLightDistance = lightDistance * lightDistance;
+            float sqrRadius = _radius * _radius;
 
             // 根据平方距离改变MeshRenderer的颜色
-            if (sqrDistance < sqrLightDistance)
+            if (sqrDistance < sqrRadius)
             {
                 // 距离范围内：设置为绿色
                 shortSign.material.color = Color.green;
-                
+
                 // 如果之前不是绿色状态，注册到GameManager
                 if (!_isGreen)
                 {
@@ -73,7 +101,7 @@ public class Hook : MonoBehaviour
             {
                 // 距离范围外：设置为红色
                 shortSign.material.color = Color.red;
-                
+
                 // 如果之前是绿色状态，从GameManager注销
                 if (_isGreen)
                 {
@@ -89,7 +117,9 @@ public class Hook : MonoBehaviour
             }
         }
     }
+    #endregion
 
+    #region 自有方法
     /// <summary>
     /// 设置radius值的事件驱动方法
     /// </summary>
@@ -101,10 +131,7 @@ public class Hook : MonoBehaviour
             Debug.Log("hahaha");
             _radius = newRadius;
             _lastRadiusValue = newRadius;
-            
-            // 更新lightDistance
-            lightDistance = newRadius;
-            
+
             // 更新scopeMesh的scale（需要*2）
             if (scopeMesh != null)
             {
@@ -113,6 +140,21 @@ public class Hook : MonoBehaviour
         }
     }
 
+    /// <summary>
+    /// 播放状态改变事件处理方法
+    /// </summary>
+    /// <param name="isPlaying">播放状态，true为播放中，false为暂停</param>
+    private void OnPlayStateChange(bool isPlaying)
+    {
+        if (scopeMesh != null)
+        {
+            // 当播放状态为true时，禁用scopeMesh；为false时，启用scopeMesh
+            scopeMesh.SetActive(!isPlaying);
+        }
+    }
+    #endregion
+
+    #region Unity编辑器方法
     /// <summary>
     /// 在编辑器中值改变时调用（用于监听Inspector中的变化）
     /// </summary>
@@ -146,37 +188,27 @@ public class Hook : MonoBehaviour
         // 取消监听播放状态改变事件
         GlobalEvent.IsPlayChange.RemoveListener(OnPlayStateChange);
     }
+    #endregion
 
-    /// <summary>
-    /// 播放状态改变事件处理方法
-    /// </summary>
-    /// <param name="isPlaying">播放状态，true为播放中，false为暂停</param>
-    private void OnPlayStateChange(bool isPlaying)
-    {
-        if (scopeMesh != null)
-        {
-            // 当播放状态为true时，禁用scopeMesh；为false时，启用scopeMesh
-            scopeMesh.SetActive(!isPlaying);
-        }
-    }
-
+    #region 可视化绘制
     // 在Scene视图中绘制Gizmos
     void OnDrawGizmos()
     {
         // 设置Gizmos颜色为半透明绿色
         Gizmos.color = new Color(0, 1, 0, 0.3f);
 
-        // 在对象位置绘制球体，使用lightDistance作为半径
-        Gizmos.DrawWireSphere(transform.position, lightDistance);
+        // 在对象位置绘制球体，使用radius作为半径
+        Gizmos.DrawWireSphere(transform.position, _radius);
     }
+    #endregion
 
-
+    #region 测试方法
     ///test
-    /// 
+    ///
     [Button("测试设置半径")]
-    public void TestSetRadius( float radius)
+    public void TestSetRadius(float radius)
     {
         SetRadius(radius);
     }
-
+    #endregion
 }

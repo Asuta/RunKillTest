@@ -1,8 +1,40 @@
 using UnityEngine;
+using System;
+using System.Collections.Generic;
 
-public class BounceCube : MonoBehaviour
+public class BounceCube : MonoBehaviour, IConfigurable
 {
+    #region 变量声明
     public float bounceForceMultiplier = 10f;
+    #endregion
+
+    #region IConfigurable 实现
+    public string GetConfigTitle()
+    {
+        return $"BounceCube ({gameObject.name})";
+    }
+
+    public List<ConfigItem> GetConfigItems()
+    {
+        var items = new List<ConfigItem>();
+
+        // 配置 bounceForceMultiplier
+        items.Add(new ConfigItem(
+            "bounceForceMultiplier",
+            bounceForceMultiplier,
+            ConfigType.Float,
+            (newValue) =>
+            {
+                bounceForceMultiplier = Convert.ToSingle(newValue);
+                Debug.Log($"[BounceCube Config] bounceForceMultiplier updated to: {bounceForceMultiplier}");
+            }
+        ));
+
+        return items;
+    }
+    #endregion
+
+    #region Unity生命周期方法
     // Start is called once before the first execution of Update after the MonoBehaviour is created
     void Start()
     {
@@ -14,7 +46,9 @@ public class BounceCube : MonoBehaviour
     {
         
     }
+    #endregion
 
+    #region 碰撞处理
     private void OnCollisionEnter(Collision collision)
     {
         // 检查碰撞对象的layer是否为Player
@@ -38,7 +72,7 @@ public class BounceCube : MonoBehaviour
                     IBounceCubeProvider bounceProvider = collision.rigidbody.GetComponent<IBounceCubeProvider>();
                     if (bounceProvider != null)
                     {
-                        bounceProvider.OutHandleBounceCube(normal * bounceForceMultiplier);
+                        bounceProvider.OutHandleBounceCube(normal * -bounceForceMultiplier);
                     }
                     else
                     {
@@ -46,9 +80,10 @@ public class BounceCube : MonoBehaviour
                         bounceProvider = collision.rigidbody.GetComponentInParent<IBounceCubeProvider>();
                         if (bounceProvider != null)
                         {
-                            bounceProvider.OutHandleBounceCube(normal * bounceForceMultiplier);
+                            bounceProvider.OutHandleBounceCube(normal * -bounceForceMultiplier);
                         }
                     }
+                    #endregion
                 }
             }
         }
