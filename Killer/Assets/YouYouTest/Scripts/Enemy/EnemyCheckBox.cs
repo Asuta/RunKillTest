@@ -56,6 +56,9 @@ public class EnemyCheckBox : MonoBehaviour
 
     void OnTriggerEnter(Collider other)
     {
+        // 检查当前游戏是否处于PlayMode状态
+        if (!GameManager.Instance.IsPlayMode) return;
+        
         if (isFinded) return;
         // if the layer name is"Player"
         if (other.gameObject.layer == LayerMask.NameToLayer("Player"))
