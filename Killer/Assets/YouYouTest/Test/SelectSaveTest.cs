@@ -37,6 +37,16 @@ public class SelectSaveTest : MonoBehaviour
     {
         SaveLoadManager.Instance.LoadFirstSelectedObjects(createPosition);
     }
+    
+    /// <summary>
+    /// 根据JSON文件名加载选中对象到指定位置
+    /// </summary>
+    /// <param name="jsonFileName">JSON文件名</param>
+    /// <param name="createPosition">创建位置</param>
+    public void LoadSelectedObjectsByJsonName(string jsonFileName, Transform createPosition)
+    {
+        SaveLoadManager.Instance.LoadSelectedObjectsByFileName(jsonFileName, createPosition);
+    }
 
     /// <summary>
     /// 获取并记录EditorPlayer中所有正在被select的对象，并在它们的中心位置生成一个立方体

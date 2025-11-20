@@ -798,6 +798,73 @@ public class SaveLoadManager : MonoBehaviour
         Debug.Log("=== 调试完成 ===");
     }
     /// <summary>
+    /// 根据指定的JSON文件名加载选中对象存档
+    /// </summary>
+    /// <param name="jsonFileName">JSON文件名（不包含路径）</param>
+    /// <param name="createPosition">创建位置</param>
+    public void LoadSelectedObjectsByFileName(string jsonFileName, Transform createPosition)
+    {
+        if (createPosition == null)
+        {
+            Debug.LogError("创建位置不能为空");
+            return;
+        }
+
+        if (string.IsNullOrEmpty(jsonFileName))
+        {
+            Debug.LogError("JSON文件名不能为空");
+            return;
+        }
+
+        string folderPath = GetSelectedObjectsFolderPath();
+        if (!Directory.Exists(folderPath))
+        {
+            Debug.LogError("选中对象存档文件夹不存在");
+            return;
+        }
+
+        // 确保文件名包含.json扩展名
+        if (!jsonFileName.EndsWith(".json"))
+        {
+            jsonFileName += ".json";
+        }
+
+        string filePath = Path.Combine(folderPath, jsonFileName);
+        
+        if (!File.Exists(filePath))
+        {
+            Debug.LogError($"选中对象存档文件不存在: {filePath}");
+            return;
+        }
+
+        try
+        {
+            string jsonContent = File.ReadAllText(filePath);
+            SelectedObjectsSaveData saveData = JsonUtility.FromJson<SelectedObjectsSaveData>(jsonContent);
+            
+            if (saveData == null || saveData.objects == null || saveData.objects.Count == 0)
+            {
+                Debug.LogError("存档数据为空或格式错误");
+                return;
+            }
+
+            Debug.Log($"开始加载选中对象存档，共 {saveData.objectCount} 个对象");
+            Debug.Log($"存档时间: {saveData.saveTime}");
+            Debug.Log($"原始中心位置: {saveData.centerPosition}");
+            Debug.Log($"新的创建中心位置: {createPosition.position}");
+
+            // 加载所有对象
+            LoadSelectedObjects(saveData, createPosition.position);
+            
+            Debug.Log("选中对象存档加载完成");
+        }
+        catch (System.Exception e)
+        {
+            Debug.LogError($"加载选中对象存档失败: {e.Message}");
+        }
+    }
+
+    /// <summary>
     /// 读取第一个选中对象存档
     /// </summary>
     /// <param name="createPosition">创建位置</param>

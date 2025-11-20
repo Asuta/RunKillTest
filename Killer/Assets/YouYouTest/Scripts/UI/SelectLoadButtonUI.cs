@@ -1,10 +1,12 @@
 using UnityEngine;
 using UnityEngine.UI;
+using YouYouTest;
 
 public class SelectLoadButtonUI : MonoBehaviour
 {
     public string ButtonName = "SelectLoadButton";
     public string JsonName = "SelectLoadJson";
+    
     // Start is called once before the first execution of Update after the MonoBehaviour is created
     void Start()
     {
@@ -31,6 +33,8 @@ public class SelectLoadButtonUI : MonoBehaviour
     // 按钮点击事件处理方法
     void OnButtonClick()
     {
-        
+        Debug.Log($"{ButtonName} 被点击，开始加载存档: {JsonName}");
+        // 直接调用SaveLoadManager的方法，使用按钮的Transform作为创建位置
+        SaveLoadManager.Instance.LoadSelectedObjectsByFileName(JsonName, transform);
     }
 }
