@@ -1008,7 +1008,7 @@ public class EditorPlayer : MonoBehaviour
     }
     
     /// <summary>
-    /// 将指定的对象列表设置为选中状态
+    /// 将指定的对象列表设置为选中状态，并设置为正在被右手抓住的状态
     /// </summary>
     /// <param name="objects">要设置为选中状态的对象列表</param>
     public void SetObjectsAsSelected(List<GameObject> objects)
@@ -1028,6 +1028,12 @@ public class EditorPlayer : MonoBehaviour
         // 清除之前的多选状态
         handOutlineController.ClearAllMultiSelection();
         
+        // 清除右手当前抓取的对象
+        if (rightGrabbedObject != null || rightMultiGrabbedObjects.Count > 0)
+        {
+            RightHandRelease();
+        }
+        
         // 将所有对象添加到多选列表中
         foreach (var obj in objects)
         {
@@ -1046,7 +1052,16 @@ public class EditorPlayer : MonoBehaviour
             }
         }
         
-        Debug.Log($"已将 {objects.Count} 个对象设置为选中状态");
+        // 将所有选中的对象设置为正在被右手抓住的状态
+        var selectedGrabables = handOutlineController.GetAllMultiSelectedGrabables();
+        if (selectedGrabables != null && selectedGrabables.Count > 0)
+        {
+            // 使用辅助方法统一抓取所有选中的对象
+            EditorPlayerHelpers.GrabMultipleObjects(selectedGrabables, rightHand, rightMultiGrabbedObjects);
+            Debug.Log($"已将 {selectedGrabables.Count} 个选中的对象设置为正在被右手抓住的状态");
+        }
+        
+        Debug.Log($"已将 {objects.Count} 个对象设置为选中状态并抓取");
     }
     #endregion
 
