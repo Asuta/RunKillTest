@@ -1,6 +1,7 @@
 using UnityEngine;
 using YouYouTest;
 using System.Collections.Generic;
+using VInspector;
 
 public class SelectSaveTest : MonoBehaviour
 {
@@ -28,8 +29,9 @@ public class SelectSaveTest : MonoBehaviour
     }
     
     /// <summary>
-    /// 获取并记录EditorPlayer中所有正在被select的对象
+    /// 获取并记录EditorPlayer中所有正在被select的对象，并在它们的中心位置生成一个立方体
     /// </summary>
+    [Button("记录选中对象")]
     public void LogSelectedObjects()
     {
         if (editorPlayer == null)
@@ -49,12 +51,29 @@ public class SelectSaveTest : MonoBehaviour
             if (selectedObjects != null && selectedObjects.Length > 0)
             {
                 Debug.Log($"当前选中的对象数量: {selectedObjects.Length}");
+                
+                Vector3 centerPosition = Vector3.zero;
+                int validObjectCount = 0;
+                
+                // 记录每个选中对象的信息并计算中心位置
                 for (int i = 0; i < selectedObjects.Length; i++)
                 {
                     if (selectedObjects[i] != null)
                     {
                         Debug.Log($"选中对象 {i + 1}: {selectedObjects[i].name} (位置: {selectedObjects[i].transform.position})");
+                        centerPosition += selectedObjects[i].transform.position;
+                        validObjectCount++;
                     }
+                }
+                
+                // 计算中心位置
+                if (validObjectCount > 0)
+                {
+                    centerPosition /= validObjectCount;
+                    Debug.Log($"所有选中对象的中心位置: {centerPosition}");
+                    
+                    // 在中心位置生成一个立方体
+                    CreateCubeAtCenter(centerPosition);
                 }
             }
             else
@@ -66,5 +85,29 @@ public class SelectSaveTest : MonoBehaviour
         {
             Debug.LogError("无法找到EditorPlayer的GetSelectedObjects方法");
         }
+    }
+    
+    /// <summary>
+    /// 在指定位置创建一个立方体
+    /// </summary>
+    /// <param name="position">立方体的位置</param>
+    private void CreateCubeAtCenter(Vector3 position)
+    {
+        // 创建一个新的立方体
+        GameObject cube = GameObject.CreatePrimitive(PrimitiveType.Cube);
+        cube.name = "SelectObjectsCenterCube";
+        cube.transform.position = position;
+        
+        // 设置立方体的大小（可选）
+        cube.transform.localScale = Vector3.one * 0.2f;
+        
+        // 设置立方体的颜色为黄色以便识别
+        Renderer renderer = cube.GetComponent<Renderer>();
+        if (renderer != null)
+        {
+            renderer.material.color = Color.yellow;
+        }
+        
+        Debug.Log($"已在位置 {position} 创建中心立方体");
     }
 }
