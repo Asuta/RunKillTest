@@ -33,51 +33,6 @@ MonoBehaviour:
       isAsset: 1
       _id: 1048068498
     - globalId:
-        globalObjectIdString: GlobalObjectId_V1-1-0c32ee24db1f2d846ade158d6512f03c-102900000-0
-      _typeString: UnityEditor.SceneAsset, UnityEditor.CoreModule, Version=0.0.0.0,
-        Culture=neutral, PublicKeyToken=null
-      _obj: {fileID: 102900000, guid: 0c32ee24db1f2d846ade158d6512f03c, type: 3}
-      isSceneGameObject: 0
-      isFolder: 0
-      isAsset: 1
-      _id: 1060766197
-    - globalId:
-        globalObjectIdString: GlobalObjectId_V1-1-3d887ecd5e929734f9c8bf2bd491af33-102900000-0
-      _typeString: UnityEditor.SceneAsset, UnityEditor.CoreModule, Version=0.0.0.0,
-        Culture=neutral, PublicKeyToken=null
-      _obj: {fileID: 102900000, guid: 3d887ecd5e929734f9c8bf2bd491af33, type: 3}
-      isSceneGameObject: 0
-      isFolder: 0
-      isAsset: 1
-      _id: 1056414346
-    - globalId:
-        globalObjectIdString: GlobalObjectId_V1-1-09d8ec15a4dbeba43a25af13441f511a-102900000-0
-      _typeString: UnityEditor.SceneAsset, UnityEditor.CoreModule, Version=0.0.0.0,
-        Culture=neutral, PublicKeyToken=null
-      _obj: {fileID: 102900000, guid: 09d8ec15a4dbeba43a25af13441f511a, type: 3}
-      isSceneGameObject: 0
-      isFolder: 0
-      isAsset: 1
-      _id: 1023577889
-    - globalId:
-        globalObjectIdString: GlobalObjectId_V1-1-b5ebfcdf88453fe40a24e2e3bfae89ac-102900000-0
-      _typeString: UnityEditor.DefaultAsset, UnityEditor.CoreModule, Version=0.0.0.0,
-        Culture=neutral, PublicKeyToken=null
-      _obj: {fileID: 102900000, guid: b5ebfcdf88453fe40a24e2e3bfae89ac, type: 3}
-      isSceneGameObject: 0
-      isFolder: 1
-      isAsset: 0
-      _id: 1051478169
-    - globalId:
-        globalObjectIdString: GlobalObjectId_V1-1-61f7b6c2602b2dd43aac91b0a8e2133f-102900000-0
-      _typeString: UnityEditor.DefaultAsset, UnityEditor.CoreModule, Version=0.0.0.0,
-        Culture=neutral, PublicKeyToken=null
-      _obj: {fileID: 102900000, guid: 61f7b6c2602b2dd43aac91b0a8e2133f, type: 3}
-      isSceneGameObject: 0
-      isFolder: 1
-      isAsset: 0
-      _id: 1064874178
-    - globalId:
         globalObjectIdString: GlobalObjectId_V1-1-319dafa5c80f29f428dc1e0d03f04177-102900000-0
       _typeString: UnityEditor.SceneAsset, UnityEditor.CoreModule, Version=0.0.0.0,
         Culture=neutral, PublicKeyToken=null
@@ -87,14 +42,14 @@ MonoBehaviour:
       isAsset: 1
       _id: 1056412306
     - globalId:
-        globalObjectIdString: GlobalObjectId_V1-1-238a4ca283008d141bf28ee707eb1789-102900000-0
+        globalObjectIdString: GlobalObjectId_V1-1-61f7b6c2602b2dd43aac91b0a8e2133f-102900000-0
       _typeString: UnityEditor.DefaultAsset, UnityEditor.CoreModule, Version=0.0.0.0,
         Culture=neutral, PublicKeyToken=null
-      _obj: {fileID: 102900000, guid: 238a4ca283008d141bf28ee707eb1789, type: 3}
+      _obj: {fileID: 102900000, guid: 61f7b6c2602b2dd43aac91b0a8e2133f, type: 3}
       isSceneGameObject: 0
       isFolder: 1
       isAsset: 0
-      _id: 1052919058
+      _id: 1064874178
     - globalId:
         globalObjectIdString: GlobalObjectId_V1-1-d840ce8d5d74b8d43823b5abb5092134-102900000-0
       _typeString: UnityEditor.DefaultAsset, UnityEditor.CoreModule, Version=0.0.0.0,
@@ -113,24 +68,6 @@ MonoBehaviour:
       isFolder: 1
       isAsset: 0
       _id: 1040065986
-    - globalId:
-        globalObjectIdString: GlobalObjectId_V1-1-f82a7a79bd580fb448a4add4b02c1897-102900000-0
-      _typeString: UnityEditor.SceneAsset, UnityEditor.CoreModule, Version=0.0.0.0,
-        Culture=neutral, PublicKeyToken=null
-      _obj: {fileID: 102900000, guid: f82a7a79bd580fb448a4add4b02c1897, type: 3}
-      isSceneGameObject: 0
-      isFolder: 0
-      isAsset: 1
-      _id: 1043324049
-    - globalId:
-        globalObjectIdString: GlobalObjectId_V1-1-0fdf8a4cf01e2ba4cb3c8c91932432bd-102900000-0
-      _typeString: UnityEditor.DefaultAsset, UnityEditor.CoreModule, Version=0.0.0.0,
-        Culture=neutral, PublicKeyToken=null
-      _obj: {fileID: 102900000, guid: 0fdf8a4cf01e2ba4cb3c8c91932432bd, type: 3}
-      isSceneGameObject: 0
-      isFolder: 1
-      isAsset: 0
-      _id: 1047001218
     name: Page 1
     _id: 1057015911
   - items: []

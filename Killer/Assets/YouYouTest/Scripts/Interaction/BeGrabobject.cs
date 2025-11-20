@@ -2,6 +2,9 @@ using UnityEngine;
 
 public class BeGrabobject  : MonoBehaviour, IGrabable
 {
+    #region 字段和属性
+    
+    [Header("基础抓取设置")]
     private bool isGrabbed = false;
     private Transform grabHand; // 抓取它的手部transform
     private Vector3 offsetFromHand; // 相对于手的偏移
@@ -11,9 +14,11 @@ public class BeGrabobject  : MonoBehaviour, IGrabable
     [Header("平滑设置")]
     [SerializeField] private float positionSmoothSpeed = 10f; // 位置平滑速度
     [SerializeField] private float rotationSmoothSpeed = 15f; // 旋转平滑速度
+    
     [Header("跟随设置")]
     public bool freezeYaxis = false;
     
+    [Header("间接抓取设置")]
     // 用于"间接差值跟随"算法的中间数据（不依赖可视化 controlObject）
     // indirectTarget 表示要追踪的 Transform（例如手或其它目标）
     private Transform indirectTarget;
@@ -24,10 +29,13 @@ public class BeGrabobject  : MonoBehaviour, IGrabable
     private bool isIndirectGrabbing = false;
     private Transform indirectRotationTarget; // 间接旋转跟随的目标
 
-    
     // 实现接口属性
     public Transform ObjectTransform => transform;
     public GameObject ObjectGameObject => gameObject;
+    
+    #endregion
+    
+    #region Unity生命周期
     
     // Start is called once before the first execution of Update after the MonoBehaviour is created
     void Start()
@@ -44,48 +52,70 @@ public class BeGrabobject  : MonoBehaviour, IGrabable
         // 优先处理"间接差值跟随"流程（如果启用，则独占控制，不与普通抓取逻辑混用）
         if (isIndirectGrabbing && indirectTarget != null)
         {
-            float posAlphaIndirect = 1f - Mathf.Exp(-positionSmoothSpeed * Time.deltaTime);
-            float rotAlphaIndirect = 1f - Mathf.Exp(-rotationSmoothSpeed * Time.deltaTime);
-    
-            // 中间数据以差值方式追踪 indirectTarget
-            middlePosition = Vector3.Lerp(middlePosition, indirectTarget.position, posAlphaIndirect);
-            // 只对Y轴进行插值，保持X轴和Z轴不变
-            Vector3 currentEuler = middleRotation.eulerAngles;
-            Vector3 targetEuler = indirectRotationTarget.rotation.eulerAngles;
-            float newY = Mathf.LerpAngle(currentEuler.y, targetEuler.y, rotAlphaIndirect);
-            middleRotation = Quaternion.Euler(currentEuler.x, newY, currentEuler.z);
-    
-            // 本物体（grabObject）立即依据中间数据与记录的偏移保持相对关系（无差值）
-            transform.position = middlePosition + middleRotation * indirectGrabOffset;
-            transform.rotation = middleRotation * indirectGrabRotationOffset;
-    
-            // 中断后续普通抓取逻辑
+            UpdateIndirectGrab();
             return;
         }
     
         // 如果被抓取，跟随手部移动
         if (isGrabbed && grabHand != null)
         {
-            // 计算目标位置和旋转
-            Vector3 targetPosition = grabHand.position + grabHand.rotation * offsetFromHand;
-            Quaternion targetRotation = grabHand.rotation * initialRotationOffset;
-            
-            // 如果冻结Y轴，只保留Y轴旋转
-            if (freezeYaxis)
-            {
-                // 获取当前旋转的欧拉角
-                Vector3 currentEuler = transform.rotation.eulerAngles;
-                // 获取目标旋转的欧拉角
-                Vector3 targetEuler = targetRotation.eulerAngles;
-                // 只使用目标的Y轴旋转，保持当前的X和Z轴旋转
-                targetRotation = Quaternion.Euler(currentEuler.x, targetEuler.y, currentEuler.z);
-            }
-            
-            // 使用Lerp进行平滑移动
-            transform.position = Vector3.Lerp(transform.position, targetPosition, positionSmoothSpeed * Time.deltaTime);
-            transform.rotation = Quaternion.Slerp(transform.rotation, targetRotation, rotationSmoothSpeed * Time.deltaTime);
+            UpdateNormalGrab();
         }
     }
+    
+    #endregion
+    
+    #region 抓取更新逻辑
+    
+    /// <summary>
+    /// 更新间接抓取逻辑
+    /// </summary>
+    private void UpdateIndirectGrab()
+    {
+        float posAlphaIndirect = 1f - Mathf.Exp(-positionSmoothSpeed * Time.deltaTime);
+        float rotAlphaIndirect = 1f - Mathf.Exp(-rotationSmoothSpeed * Time.deltaTime);
+
+        // 中间数据以差值方式追踪 indirectTarget
+        middlePosition = Vector3.Lerp(middlePosition, indirectTarget.position, posAlphaIndirect);
+        // 只对Y轴进行插值，保持X轴和Z轴不变
+        Vector3 currentEuler = middleRotation.eulerAngles;
+        Vector3 targetEuler = indirectRotationTarget.rotation.eulerAngles;
+        float newY = Mathf.LerpAngle(currentEuler.y, targetEuler.y, rotAlphaIndirect);
+        middleRotation = Quaternion.Euler(currentEuler.x, newY, currentEuler.z);
+
+        // 本物体（grabObject）立即依据中间数据与记录的偏移保持相对关系（无差值）
+        transform.position = middlePosition + middleRotation * indirectGrabOffset;
+        transform.rotation = middleRotation * indirectGrabRotationOffset;
+    }
+    
+    /// <summary>
+    /// 更新普通抓取逻辑
+    /// </summary>
+    private void UpdateNormalGrab()
+    {
+        // 计算目标位置和旋转
+        Vector3 targetPosition = grabHand.position + grabHand.rotation * offsetFromHand;
+        Quaternion targetRotation = grabHand.rotation * initialRotationOffset;
+        
+        // 如果冻结Y轴，只保留Y轴旋转
+        if (freezeYaxis)
+        {
+            // 获取当前旋转的欧拉角
+            Vector3 currentEuler = transform.rotation.eulerAngles;
+            // 获取目标旋转的欧拉角
+            Vector3 targetEuler = targetRotation.eulerAngles;
+            // 只使用目标的Y轴旋转，保持当前的X和Z轴旋转
+            targetRotation = Quaternion.Euler(currentEuler.x, targetEuler.y, currentEuler.z);
+        }
+        
+        // 使用Lerp进行平滑移动
+        transform.position = Vector3.Lerp(transform.position, targetPosition, positionSmoothSpeed * Time.deltaTime);
+        transform.rotation = Quaternion.Slerp(transform.rotation, targetRotation, rotationSmoothSpeed * Time.deltaTime);
+    }
+    
+    #endregion
+    
+    #region 抓取接口实现
     
     /// <summary>
     /// 被抓住时调用
@@ -132,25 +162,6 @@ public class BeGrabobject  : MonoBehaviour, IGrabable
         StartIndirectGrab(handTransform);
         
         Debug.Log($"{gameObject.name} 被 {GetHandName(handTransform)} 统一抓取（间接抓取）");
-    }
-    
-    /// <summary>
-    /// 获取手部名称用于调试
-    /// </summary>
-    /// <param name="handTransform">手部transform</param>
-    /// <returns>手部名称</returns>
-    private string GetHandName(Transform handTransform)
-    {
-        // 通过EditorPlayer获取手部名称
-        EditorPlayer editorPlayer = FindFirstObjectByType<EditorPlayer>();
-        if (editorPlayer != null)
-        {
-            if (handTransform == editorPlayer.leftHand)
-                return "左手";
-            else if (handTransform == editorPlayer.rightHand)
-                return "右手";
-        }
-        return "未知手部";
     }
     
     /// <summary>
@@ -212,6 +223,10 @@ public class BeGrabobject  : MonoBehaviour, IGrabable
         Debug.Log($"{gameObject.name} 被完全松开了");
     }
     
+    #endregion
+    
+    #region 间接抓取方法
+    
     /// <summary>
     /// 开始"间接差值抓取"
     /// - 不修改现有 OnGrabbed/OnReleased 行为
@@ -224,17 +239,8 @@ public class BeGrabobject  : MonoBehaviour, IGrabable
     
         indirectTarget = handTransform;
 
-        // --- 新增逻辑：创建用于旋转的子对象 ---
-        if (indirectRotationTarget != null)
-        {
-            Destroy(indirectRotationTarget.gameObject);
-        }
-        GameObject rotationTargetGO = new GameObject("IndirectRotationTarget");
-        rotationTargetGO.transform.position = handTransform.position;
-        rotationTargetGO.transform.rotation = handTransform.rotation; // 新增：同步初始旋转
-        rotationTargetGO.transform.SetParent(handTransform);
-        indirectRotationTarget = rotationTargetGO.transform;
-        // ------------------------------------
+        // 创建用于旋转的子对象
+        CreateIndirectRotationTarget(handTransform);
 
         // 为避免跳变，初始化中间数据为当前手的位置/旋转
         middlePosition = indirectTarget.position;
@@ -255,12 +261,53 @@ public class BeGrabobject  : MonoBehaviour, IGrabable
         isIndirectGrabbing = false;
         indirectTarget = null;
 
-        // --- 新增逻辑：销毁子对象 ---
+        // 销毁子对象
         if (indirectRotationTarget != null)
         {
             Destroy(indirectRotationTarget.gameObject);
             indirectRotationTarget = null;
         }
-        // --------------------------
     }
+    
+    /// <summary>
+    /// 创建间接旋转目标对象
+    /// </summary>
+    /// <param name="handTransform">手部transform</param>
+    private void CreateIndirectRotationTarget(Transform handTransform)
+    {
+        if (indirectRotationTarget != null)
+        {
+            Destroy(indirectRotationTarget.gameObject);
+        }
+        GameObject rotationTargetGO = new GameObject("IndirectRotationTarget");
+        rotationTargetGO.transform.position = handTransform.position;
+        rotationTargetGO.transform.rotation = handTransform.rotation; // 同步初始旋转
+        rotationTargetGO.transform.SetParent(handTransform);
+        indirectRotationTarget = rotationTargetGO.transform;
+    }
+    
+    #endregion
+    
+    #region 工具方法
+    
+    /// <summary>
+    /// 获取手部名称用于调试
+    /// </summary>
+    /// <param name="handTransform">手部transform</param>
+    /// <returns>手部名称</returns>
+    private string GetHandName(Transform handTransform)
+    {
+        // 通过EditorPlayer获取手部名称
+        EditorPlayer editorPlayer = FindFirstObjectByType<EditorPlayer>();
+        if (editorPlayer != null)
+        {
+            if (handTransform == editorPlayer.leftHand)
+                return "左手";
+            else if (handTransform == editorPlayer.rightHand)
+                return "右手";
+        }
+        return "未知手部";
+    }
+    
+    #endregion
 }
