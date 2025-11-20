@@ -802,25 +802,28 @@ public class SaveLoadManager : MonoBehaviour
     /// </summary>
     /// <param name="jsonFileName">JSON文件名（不包含路径）</param>
     /// <param name="createPosition">创建位置</param>
-    public void LoadSelectedObjectsByFileName(string jsonFileName, Transform createPosition)
+    /// <returns>加载的对象列表</returns>
+    public List<GameObject> LoadSelectedObjectsByFileName(string jsonFileName, Transform createPosition)
     {
+        List<GameObject> loadedObjects = new List<GameObject>();
+        
         if (createPosition == null)
         {
             Debug.LogError("创建位置不能为空");
-            return;
+            return loadedObjects;
         }
 
         if (string.IsNullOrEmpty(jsonFileName))
         {
             Debug.LogError("JSON文件名不能为空");
-            return;
+            return loadedObjects;
         }
 
         string folderPath = GetSelectedObjectsFolderPath();
         if (!Directory.Exists(folderPath))
         {
             Debug.LogError("选中对象存档文件夹不存在");
-            return;
+            return loadedObjects;
         }
 
         // 确保文件名包含.json扩展名
@@ -834,7 +837,7 @@ public class SaveLoadManager : MonoBehaviour
         if (!File.Exists(filePath))
         {
             Debug.LogError($"选中对象存档文件不存在: {filePath}");
-            return;
+            return loadedObjects;
         }
 
         try
@@ -845,7 +848,7 @@ public class SaveLoadManager : MonoBehaviour
             if (saveData == null || saveData.objects == null || saveData.objects.Count == 0)
             {
                 Debug.LogError("存档数据为空或格式错误");
-                return;
+                return loadedObjects;
             }
 
             Debug.Log($"开始加载选中对象存档，共 {saveData.objectCount} 个对象");
@@ -854,7 +857,7 @@ public class SaveLoadManager : MonoBehaviour
             Debug.Log($"新的创建中心位置: {createPosition.position}");
 
             // 加载所有对象
-            LoadSelectedObjects(saveData, createPosition.position);
+            loadedObjects = LoadSelectedObjects(saveData, createPosition.position);
             
             Debug.Log("选中对象存档加载完成");
         }
@@ -862,25 +865,30 @@ public class SaveLoadManager : MonoBehaviour
         {
             Debug.LogError($"加载选中对象存档失败: {e.Message}");
         }
+        
+        return loadedObjects;
     }
 
     /// <summary>
     /// 读取第一个选中对象存档
     /// </summary>
     /// <param name="createPosition">创建位置</param>
-    public void LoadFirstSelectedObjects(Transform createPosition)
+    /// <returns>加载的对象列表</returns>
+    public List<GameObject> LoadFirstSelectedObjects(Transform createPosition)
     {
+        List<GameObject> loadedObjects = new List<GameObject>();
+        
         if (createPosition == null)
         {
             Debug.LogError("创建位置不能为空");
-            return;
+            return loadedObjects;
         }
 
         string folderPath = GetSelectedObjectsFolderPath();
         if (!Directory.Exists(folderPath))
         {
             Debug.LogError("选中对象存档文件夹不存在");
-            return;
+            return loadedObjects;
         }
 
         // 获取所有存档文件并按时间排序，获取最新的一个
@@ -888,7 +896,7 @@ public class SaveLoadManager : MonoBehaviour
         if (saveFiles.Length == 0)
         {
             Debug.LogError("没有找到选中对象存档文件");
-            return;
+            return loadedObjects;
         }
 
         // 按文件修改时间排序，获取最新的文件
@@ -903,7 +911,7 @@ public class SaveLoadManager : MonoBehaviour
             if (saveData == null || saveData.objects == null || saveData.objects.Count == 0)
             {
                 Debug.LogError("存档数据为空或格式错误");
-                return;
+                return loadedObjects;
             }
 
             Debug.Log($"开始加载选中对象存档，共 {saveData.objectCount} 个对象");
@@ -912,7 +920,7 @@ public class SaveLoadManager : MonoBehaviour
             Debug.Log($"新的创建中心位置: {createPosition.position}");
 
             // 加载所有对象
-            LoadSelectedObjects(saveData, createPosition.position);
+            loadedObjects = LoadSelectedObjects(saveData, createPosition.position);
             
             Debug.Log("选中对象存档加载完成");
         }
@@ -920,6 +928,8 @@ public class SaveLoadManager : MonoBehaviour
         {
             Debug.LogError($"加载选中对象存档失败: {e.Message}");
         }
+        
+        return loadedObjects;
     }
     
     /// <summary>
@@ -927,12 +937,15 @@ public class SaveLoadManager : MonoBehaviour
     /// </summary>
     /// <param name="saveData">存档数据</param>
     /// <param name="newCenterPosition">新的中心位置</param>
-    private void LoadSelectedObjects(SelectedObjectsSaveData saveData, Vector3 newCenterPosition)
+    /// <returns>加载的对象列表</returns>
+    private List<GameObject> LoadSelectedObjects(SelectedObjectsSaveData saveData, Vector3 newCenterPosition)
     {
+        List<GameObject> loadedObjects = new List<GameObject>();
+        
         if (saveData == null || saveData.objects == null || saveData.objects.Count == 0)
         {
             Debug.LogWarning("LoadSelectedObjects: 存档数据为空或没有对象");
-            return;
+            return loadedObjects;
         }
 
         Debug.Log($"原始中心位置: {saveData.centerPosition}");
@@ -955,6 +968,9 @@ public class SaveLoadManager : MonoBehaviour
                 GameObject newObject = Instantiate(prefab, worldPosition, objectData.rotation);
                 newObject.transform.localScale = objectData.scale;
                 newObject.name = objectData.objectName;
+                
+                // 添加到加载对象列表
+                loadedObjects.Add(newObject);
  
                 Debug.Log($"创建对象: {objectData.objectName}，相对位置: {objectData.position}，世界位置: {worldPosition}");
                 
@@ -966,6 +982,8 @@ public class SaveLoadManager : MonoBehaviour
                 Debug.LogError($"加载对象 {objectData.objectName} 失败: {e.Message}");
             }
         }
+        
+        return loadedObjects;
     }
     
     /// <summary>

@@ -2,6 +2,8 @@ using UnityEngine;
 using UnityEngine.UI;
 using UnityEngine.EventSystems;
 using YouYouTest;
+using YouYouTest.OutlineSystem;
+using System.Collections.Generic;
 
 public class SelectLoadButtonUI : MonoBehaviour, IPointerDownHandler
 {
@@ -24,7 +26,18 @@ public class SelectLoadButtonUI : MonoBehaviour, IPointerDownHandler
     public void OnPointerDown(PointerEventData eventData)
     {
         Debug.Log($"{ButtonName} 被按下，开始加载存档: {JsonName}");
-        // 直接调用SaveLoadManager的方法，使用按钮的Transform作为创建位置
-        SaveLoadManager.Instance.LoadSelectedObjectsByFileName(JsonName, transform);
+        // 调用SaveLoadManager的方法，使用按钮的Transform作为创建位置
+        List<GameObject> loadedObjects = SaveLoadManager.Instance.LoadSelectedObjectsByFileName(JsonName, transform);
+        
+        // 通过全局事件将加载的对象设置为选中状态
+        if (loadedObjects != null && loadedObjects.Count > 0)
+        {
+            GlobalEvent.OnLoadObjectsSetSelected.Invoke(loadedObjects);
+            Debug.Log($"已通过全局事件发送 {loadedObjects.Count} 个对象的选中请求");
+        }
+        else
+        {
+            Debug.LogWarning("没有加载的对象，无需设置选中状态");
+        }
     }
 }

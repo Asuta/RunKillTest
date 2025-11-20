@@ -79,6 +79,9 @@ public class EditorPlayer : MonoBehaviour
         
         // 初始化检测球体的渲染器和原始颜色
         InitializeCheckSpheres();
+        
+        // 注册全局事件监听
+        GlobalEvent.OnLoadObjectsSetSelected.AddListener(SetObjectsAsSelected);
     }
 
     // Update is called once per frame
@@ -906,6 +909,9 @@ public class EditorPlayer : MonoBehaviour
     void OnDestroy()
     {
         CleanupSelectionSphere();
+        
+        // 移除全局事件监听
+        GlobalEvent.OnLoadObjectsSetSelected.RemoveListener(SetObjectsAsSelected);
     }
     #endregion
 
@@ -988,6 +994,59 @@ public class EditorPlayer : MonoBehaviour
         {
             Debug.LogWarning("右手检测球体Renderer为空，无法设置颜色");
         }
+    }
+    #endregion
+    
+    #region 公共访问方法
+    /// <summary>
+    /// 获取HandOutlineController实例
+    /// </summary>
+    /// <returns>HandOutlineController实例</returns>
+    public HandOutlineController GetHandOutlineController()
+    {
+        return handOutlineController;
+    }
+    
+    /// <summary>
+    /// 将指定的对象列表设置为选中状态
+    /// </summary>
+    /// <param name="objects">要设置为选中状态的对象列表</param>
+    public void SetObjectsAsSelected(List<GameObject> objects)
+    {
+        if (handOutlineController == null)
+        {
+            Debug.LogError("HandOutlineController为空，无法设置选中状态");
+            return;
+        }
+        
+        if (objects == null || objects.Count == 0)
+        {
+            Debug.LogWarning("对象列表为空，无需设置选中状态");
+            return;
+        }
+        
+        // 清除之前的多选状态
+        handOutlineController.ClearAllMultiSelection();
+        
+        // 将所有对象添加到多选列表中
+        foreach (var obj in objects)
+        {
+            if (obj == null) continue;
+            
+            // 获取OutlineReceiver组件
+            OutlineReceiver outlineReceiver = obj.GetComponentInParent<OutlineReceiver>();
+            if (outlineReceiver != null)
+            {
+                handOutlineController.AddToMultiSelection(outlineReceiver);
+                Debug.Log($"已将对象 {obj.name} 添加到选中状态");
+            }
+            else
+            {
+                Debug.LogWarning($"对象 {obj.name} 上没有找到OutlineReceiver组件");
+            }
+        }
+        
+        Debug.Log($"已将 {objects.Count} 个对象设置为选中状态");
     }
     #endregion
 
