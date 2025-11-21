@@ -331,6 +331,10 @@ MonoBehaviour:
   configUIPanel: {fileID: 122803416}
   configUIPanelObject: {fileID: 122803412}
   buttonDelete: {fileID: 2036032887}
+  buttonSave: {fileID: 424329514}
+  saveUIPanelObject: {fileID: 1042014862}
+  saveConfirmButton: {fileID: 956855943}
+  saveCancelButton: {fileID: 838428899}
 --- !u!1 &6335337
 GameObject:
   m_ObjectHideFlags: 0
