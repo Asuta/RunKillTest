@@ -5,9 +5,11 @@ using System.Reflection;
 
 public class SelectSaveTest : MonoBehaviour
 {
+    #region 字段和属性
     private EditorPlayer editorPlayer;
-    public Transform createPosition;
+    #endregion
 
+    #region Unity生命周期
     // Start is called once before the first execution of Update after the MonoBehaviour is created
     void Start()
     {
@@ -28,10 +30,9 @@ public class SelectSaveTest : MonoBehaviour
             LogSelectedObjects();
         }
     }
+    #endregion
 
-
-
-
+    #region 加载选中对象
     [Button("读取第一个select存档")]
     public void LoadFirstSelectInfo(Transform createPosition)
     {
@@ -47,7 +48,9 @@ public class SelectSaveTest : MonoBehaviour
     {
         SaveLoadManager.Instance.LoadSelectedObjectsByFileName(jsonFileName, createPosition);
     }
+    #endregion
 
+    #region 记录和显示选中对象
     /// <summary>
     /// 获取并记录EditorPlayer中所有正在被select的对象，并在它们的中心位置生成一个立方体
     /// </summary>
@@ -130,7 +133,9 @@ public class SelectSaveTest : MonoBehaviour
 
         Debug.Log($"已在位置 {position} 创建中心立方体");
     }
+    #endregion
 
+    #region 保存选中对象
     /// <summary>
     /// 保存当前选中的对象到专门的选中对象存档文件夹
     /// </summary>
@@ -157,4 +162,5 @@ public class SelectSaveTest : MonoBehaviour
             Debug.LogError("无法找到EditorPlayer的GetSelectedObjects方法");
         }
     }
+    #endregion
 }
