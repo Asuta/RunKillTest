@@ -1261,6 +1261,87 @@ public class SaveLoadManager : MonoBehaviour
     }
     
     /// <summary>
+    /// 获取所有选中对象存档信息
+    /// </summary>
+    /// <returns>选中对象存档信息列表</returns>
+    public List<SelectedObjectsSaveInfo> GetAllSelectedObjectsSaves()
+    {
+        List<SelectedObjectsSaveInfo> saveInfos = new List<SelectedObjectsSaveInfo>();
+        
+        try
+        {
+            string folderPath = GetSelectedObjectsFolderPath();
+            
+            if (!Directory.Exists(folderPath))
+            {
+                if (enableDebugLog)
+                {
+                    Debug.Log("选中对象存档文件夹不存在，返回空列表");
+                }
+                return saveInfos;
+            }
+            
+            // 获取所有JSON文件
+            string[] jsonFiles = Directory.GetFiles(folderPath, "SelectedObjects_*.json");
+            
+            foreach (string filePath in jsonFiles)
+            {
+                string fileName = Path.GetFileNameWithoutExtension(filePath);
+                
+                // 获取文件信息
+                FileInfo fileInfo = new FileInfo(filePath);
+                
+                // 尝试读取保存信息
+                string saveName = fileName;
+                string saveTime = fileInfo.LastWriteTime.ToString("yyyy-MM-dd HH:mm:ss");
+                int objectCount = 0;
+                
+                try
+                {
+                    string jsonData = File.ReadAllText(filePath);
+                    if (!string.IsNullOrEmpty(jsonData))
+                    {
+                        SelectedObjectsSaveData saveData = JsonUtility.FromJson<SelectedObjectsSaveData>(jsonData);
+                        if (saveData != null)
+                        {
+                            saveName = saveData.saveName;
+                            saveTime = saveData.saveTime;
+                            objectCount = saveData.objectCount;
+                        }
+                    }
+                }
+                catch (System.Exception e)
+                {
+                    if (enableDebugLog)
+                    {
+                        Debug.LogWarning($"读取选中对象存档文件 {fileName} 的详细信息时出错: {e.Message}");
+                    }
+                }
+                
+                saveInfos.Add(new SelectedObjectsSaveInfo
+                {
+                    fileName = Path.GetFileName(filePath),
+                    saveName = saveName,
+                    saveTime = saveTime,
+                    objectCount = objectCount,
+                    fileSize = fileInfo.Length
+                });
+            }
+            
+            if (enableDebugLog)
+            {
+                Debug.Log($"找到 {saveInfos.Count} 个选中对象存档");
+            }
+        }
+        catch (System.Exception e)
+        {
+            Debug.LogError($"获取选中对象存档列表时出错: {e.Message}");
+        }
+        
+        return saveInfos;
+    }
+    
+    /// <summary>
     /// 合并ISaveable组件的数据到ObjectSaveData中
     /// </summary>
     /// <param name="saveData">要合并到的目标数据</param>
