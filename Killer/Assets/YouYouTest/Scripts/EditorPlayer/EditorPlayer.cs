@@ -82,6 +82,7 @@ public class EditorPlayer : MonoBehaviour
         
         // 注册全局事件监听
         GlobalEvent.OnLoadObjectsSetSelected.AddListener(SetObjectsAsSelected);
+        GlobalEvent.OnSaveSelectedObjects.AddListener(SaveSelectedObjects);
     }
 
     // Update is called once per frame
@@ -811,7 +812,7 @@ public class EditorPlayer : MonoBehaviour
     /// 获取当前选中的对象（支持单选和多选）
     /// </summary>
     /// <returns>选中的GameObject数组</returns>
-    private GameObject[] GetSelectedObjects()
+    public GameObject[] GetSelectedObjects()
     {
         var selectedObjects = new System.Collections.Generic.List<GameObject>();
         
@@ -912,6 +913,7 @@ public class EditorPlayer : MonoBehaviour
         
         // 移除全局事件监听
         GlobalEvent.OnLoadObjectsSetSelected.RemoveListener(SetObjectsAsSelected);
+        GlobalEvent.OnSaveSelectedObjects.RemoveListener(SaveSelectedObjects);
     }
     #endregion
 
@@ -1062,6 +1064,25 @@ public class EditorPlayer : MonoBehaviour
         }
         
         Debug.Log($"已将 {objects.Count} 个对象设置为选中状态并抓取");
+    }
+    
+    /// <summary>
+    /// 保存当前选中的对象到专门的选中对象存档文件夹
+    /// </summary>
+    /// <param name="saveName">存档名字（与JSON文件名不同）</param>
+    public void SaveSelectedObjects(string saveName = "未命名存档")
+    {
+        // 获取当前选中的对象
+        var selectedObjects = GetSelectedObjects();
+        
+        if (selectedObjects == null || selectedObjects.Length == 0)
+        {
+            Debug.LogWarning("没有选中的对象可以保存");
+            return;
+        }
+        
+        // 调用SaveLoadManager保存选中对象
+        SaveLoadManager.Instance.SaveSelectedObjects(selectedObjects, saveName);
     }
     #endregion
 

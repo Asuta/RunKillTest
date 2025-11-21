@@ -1,7 +1,6 @@
 using UnityEngine;
 using YouYouTest;
 using VInspector;
-using System.Reflection;
 
 public class SelectSaveTest : MonoBehaviour
 {
@@ -63,13 +62,8 @@ public class SelectSaveTest : MonoBehaviour
             return;
         }
 
-        // 使用反射获取私有的GetSelectedObjects方法
-        var getSelectedObjectsMethod = typeof(EditorPlayer).GetMethod("GetSelectedObjects",
-            System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance);
-
-        if (getSelectedObjectsMethod != null)
-        {
-            var selectedObjects = getSelectedObjectsMethod.Invoke(editorPlayer, null) as GameObject[];
+        // 直接调用公共的GetSelectedObjects方法
+        var selectedObjects = editorPlayer.GetSelectedObjects();
 
             if (selectedObjects != null && selectedObjects.Length > 0)
             {
@@ -103,11 +97,6 @@ public class SelectSaveTest : MonoBehaviour
             {
                 Debug.Log("当前没有选中的对象");
             }
-        }
-        else
-        {
-            Debug.LogError("无法找到EditorPlayer的GetSelectedObjects方法");
-        }
     }
 
     /// <summary>
@@ -158,19 +147,9 @@ public class SelectSaveTest : MonoBehaviour
             return;
         }
 
-        // 使用反射获取私有的GetSelectedObjects方法
-        var getSelectedObjectsMethod = typeof(EditorPlayer).GetMethod("GetSelectedObjects",
-            System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance);
-
-        if (getSelectedObjectsMethod != null)
-        {
-            var selectedObjects = getSelectedObjectsMethod.Invoke(editorPlayer, null) as GameObject[];
+        // 直接调用公共的GetSelectedObjects方法
+        var selectedObjects = editorPlayer.GetSelectedObjects();
             SaveLoadManager.Instance.SaveSelectedObjects(selectedObjects, saveName);
-        }
-        else
-        {
-            Debug.LogError("无法找到EditorPlayer的GetSelectedObjects方法");
-        }
     }
     #endregion
 }

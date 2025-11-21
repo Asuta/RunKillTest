@@ -89,6 +89,11 @@ public static class GlobalEvent
     public static readonly UnityEvent<List<GameObject>> OnLoadObjectsSetSelected = new UnityEvent<List<GameObject>>();
 
     /// <summary>
+    /// 保存选中对象事件
+    /// </summary>
+    public static readonly UnityEvent<string> OnSaveSelectedObjects = new UnityEvent<string>();
+
+    /// <summary>
     /// 射线命中UI状态变化事件
     /// </summary>
     public static readonly UnityEvent<bool> RaycastHittingUIChange = new UnityEvent<bool>();

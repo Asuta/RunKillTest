@@ -1,9 +1,10 @@
 using UnityEngine;
 using UnityEngine.UI;
 using UnityEngine.XR.Interaction.Toolkit.Samples.StarterAssets;
+using YouYouTest;
 
 
-public class SelectUI : MonoBehaviour
+public class SelectUI : AutoCleanupBehaviour
 {
     public GameObject[] delectObjects; // 改为数组支持多个对象
     public ConfigUIPanel configUIPanel;
@@ -13,6 +14,7 @@ public class SelectUI : MonoBehaviour
     public GameObject saveUIPanelObject;
     public Button saveConfirmButton;
     public Button saveCancelButton;
+    public TMPro.TMP_InputField saveInputField;
 
     // Start is called once before the first execution of Update after the MonoBehaviour is created
     void Start()
@@ -33,6 +35,12 @@ public class SelectUI : MonoBehaviour
         if (saveCancelButton != null)
         {
             saveCancelButton.onClick.AddListener(CloseSaveUIPanel);
+        }
+        
+        // 为保存确认按钮注册点击事件
+        if (saveConfirmButton != null)
+        {
+            saveConfirmButton.onClick.AddListener(SaveSelectedObjects);
         }
     }
 
@@ -94,5 +102,24 @@ public class SelectUI : MonoBehaviour
         {
             saveUIPanelObject.SetActive(false);
         }
+    }
+    
+    // 保存选中的对象
+    void SaveSelectedObjects()
+    {
+        // 获取存档名称，如果输入框为空则使用默认名称
+        string saveName = "未命名存档";
+        if (saveInputField != null && !string.IsNullOrEmpty(saveInputField.text))
+        {
+            saveName = saveInputField.text;
+        }
+        
+        // 通过全局事件触发保存操作
+        GlobalEvent.OnSaveSelectedObjects.Invoke(saveName);
+        
+        // 关闭保存UI面板
+        CloseSaveUIPanel();
+        
+        Debug.Log($"已触发保存选中对象事件，存档名称: {saveName}");
     }
 }
