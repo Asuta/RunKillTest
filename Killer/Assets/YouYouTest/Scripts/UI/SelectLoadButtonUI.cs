@@ -10,6 +10,9 @@ public class SelectLoadButtonUI : MonoBehaviour, IPointerDownHandler, IPointerUp
     public string ButtonName = "SelectLoadButton";
     public string JsonName = "SelectLoadJson";
     public TMPro.TextMeshProUGUI buttonText;
+    public Button  deleteButton;
+    public GameObject deleteConfirmUI;
+    public DeleteSelectUI deleteSelectUI;
     
     private Button buttonComponent;
     private int lastPointerId = -1;
@@ -21,6 +24,12 @@ public class SelectLoadButtonUI : MonoBehaviour, IPointerDownHandler, IPointerUp
         // 获取Button组件，用于控制交互状态
         buttonComponent = GetComponent<Button>();
         buttonText.text = ButtonName;
+        
+        // 为删除按钮绑定点击事件
+        if (deleteButton != null)
+        {
+            deleteButton.onClick.AddListener(OnDeleteButtonClick);
+        }
     }
 
     // Update is called once per frame
@@ -32,6 +41,12 @@ public class SelectLoadButtonUI : MonoBehaviour, IPointerDownHandler, IPointerUp
     // 吸收事件并阻断拖拽：在按下时立刻 Use() 事件并阻止拖拽流程
     public void OnPointerDown(PointerEventData eventData)
     {
+        // 如果点击的是删除按钮，则不处理，交由子物体处理
+        if (IsPointerOverDeleteButton(eventData))
+        {
+            return;
+        }
+
         // 记录指针信息，用于后续模拟 pointerUp/reset 可视状态
         lastPointerId = eventData.pointerId;
         lastPointerPosition = eventData.position;
@@ -62,6 +77,12 @@ public class SelectLoadButtonUI : MonoBehaviour, IPointerDownHandler, IPointerUp
     // 当父级（如 ScrollRect）准备开始拖拽时也强行吸收，防止其启动拖拽流程
     public void OnInitializePotentialDrag(PointerEventData eventData)
     {
+        // 如果点击的是删除按钮，则不处理
+        if (IsPointerOverDeleteButton(eventData))
+        {
+            return;
+        }
+
         // 吸收并清理可能导致拖拽的问题字段
         eventData.Use();
         eventData.pointerDrag = null;
@@ -143,6 +164,26 @@ public class SelectLoadButtonUI : MonoBehaviour, IPointerDownHandler, IPointerUp
 
             // 重置记录
             lastPointerId = -1;
+        }
+    }
+    
+    private bool IsPointerOverDeleteButton(PointerEventData eventData)
+    {
+        if (deleteButton != null && eventData.pointerEnter != null)
+        {
+            return eventData.pointerEnter.transform.IsChildOf(deleteButton.transform);
+        }
+        return false;
+    }
+
+    // 处理删除按钮点击事件
+    private void OnDeleteButtonClick()
+    {
+        if (deleteConfirmUI != null)
+        {
+            deleteConfirmUI.SetActive(true);
+            deleteSelectUI = deleteConfirmUI.GetComponent<DeleteSelectUI>();
+            deleteSelectUI.deleteObjectName = JsonName;
         }
     }
 }

@@ -14,6 +14,15 @@ public class DeleteSelectUI : MonoBehaviour
         deleteCancelButton.onClick.AddListener(() => {
             thisUI.SetActive(false);
         });
+        
+        // 为确认删除按钮绑定点击事件，点击时删除对应的select存档并禁用UI
+        deleteConfirmButton.onClick.AddListener(() => {
+            // 调用SaveLoadManager删除对应的select存档
+            SaveLoadManager.Instance.DeleteSelectedObjectsSave(deleteObjectName);
+            
+            // 删除完成后禁用UI
+            thisUI.SetActive(false);
+        });
     }
 
     // Update is called once per frame

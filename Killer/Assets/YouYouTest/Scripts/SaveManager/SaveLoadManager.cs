@@ -1342,6 +1342,64 @@ public class SaveLoadManager : MonoBehaviour
     }
     
     /// <summary>
+    /// 根据JSON文件名删除对应的选中对象存档
+    /// </summary>
+    /// <param name="fileName">JSON文件名（如：SelectedObjects_20251121_105151.json）</param>
+    /// <returns>是否删除成功</returns>
+    public bool DeleteSelectedObjectsSave(string fileName)
+    {
+        if (string.IsNullOrEmpty(fileName))
+        {
+            Debug.LogWarning("文件名不能为空");
+            return false;
+        }
+        
+        try
+        {
+            string folderPath = GetSelectedObjectsFolderPath();
+            
+            if (!Directory.Exists(folderPath))
+            {
+                Debug.LogWarning("选中对象存档文件夹不存在");
+                return false;
+            }
+            
+            // 确保文件名包含.json扩展名
+            if (!fileName.EndsWith(".json"))
+            {
+                fileName += ".json";
+            }
+            
+            string filePath = Path.Combine(folderPath, fileName);
+            
+            if (File.Exists(filePath))
+            {
+                File.Delete(filePath);
+                
+                if (enableDebugLog)
+                {
+                    Debug.Log($"成功删除选中对象存档文件: {fileName}");
+                }
+                
+                return true;
+            }
+            else
+            {
+                if (enableDebugLog)
+                {
+                    Debug.LogWarning($"存档文件不存在: {fileName}");
+                }
+                return false;
+            }
+        }
+        catch (System.Exception e)
+        {
+            Debug.LogError($"删除选中对象存档文件 {fileName} 时出错: {e.Message}");
+            return false;
+        }
+    }
+    
+    /// <summary>
     /// 合并ISaveable组件的数据到ObjectSaveData中
     /// </summary>
     /// <param name="saveData">要合并到的目标数据</param>
