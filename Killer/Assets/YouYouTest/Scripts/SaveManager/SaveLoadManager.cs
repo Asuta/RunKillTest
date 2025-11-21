@@ -1107,7 +1107,8 @@ public class SaveLoadManager : MonoBehaviour
     /// 保存当前选中的对象到专门的选中对象存档文件夹
     /// </summary>
     /// <param name="selectedObjects">选中的对象数组</param>
-    public void SaveSelectedObjects(GameObject[] selectedObjects)
+    /// <param name="saveName">存档名字（与JSON文件名不同）</param>
+    public void SaveSelectedObjects(GameObject[] selectedObjects, string saveName = "未命名存档")
     {
         if (selectedObjects == null || selectedObjects.Length == 0)
         {
@@ -1182,6 +1183,7 @@ public class SaveLoadManager : MonoBehaviour
                 SelectedObjectsSaveData selectedSaveData = new SelectedObjectsSaveData
                 {
                     saveTime = System.DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss"),
+                    saveName = saveName,
                     objectCount = selectedSaveDataList.Count,
                     centerPosition = centerPosition,
                     objects = selectedSaveDataList

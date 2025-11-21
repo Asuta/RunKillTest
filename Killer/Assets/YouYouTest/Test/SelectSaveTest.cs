@@ -139,8 +139,18 @@ public class SelectSaveTest : MonoBehaviour
     /// <summary>
     /// 保存当前选中的对象到专门的选中对象存档文件夹
     /// </summary>
-    [Button("保存选中对象")]
+    [Button("保存选中对象(没有名字)")]
     public void SaveSelectedObjects()
+    {
+        SaveSelectedObjectsWithCustomName("未命名存档");
+    }
+
+    /// <summary>
+    /// 保存当前选中的对象到专门的选中对象存档文件夹，并指定存档名字
+    /// </summary>
+    /// <param name="saveName">存档名字（与JSON文件名不同）</param>
+    [Button("保存选中对象并指定存档名")]
+    public void SaveSelectedObjectsWithCustomName(string saveName)
     {
         if (editorPlayer == null)
         {
@@ -155,7 +165,7 @@ public class SelectSaveTest : MonoBehaviour
         if (getSelectedObjectsMethod != null)
         {
             var selectedObjects = getSelectedObjectsMethod.Invoke(editorPlayer, null) as GameObject[];
-            SaveLoadManager.Instance.SaveSelectedObjects(selectedObjects);
+            SaveLoadManager.Instance.SaveSelectedObjects(selectedObjects, saveName);
         }
         else
         {
