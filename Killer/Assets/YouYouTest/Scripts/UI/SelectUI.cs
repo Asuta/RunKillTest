@@ -9,6 +9,11 @@ public class SelectUI : MonoBehaviour
     public ConfigUIPanel configUIPanel;
     public GameObject configUIPanelObject;
     public Button buttonDelete;
+    public Button buttonSave;
+    public GameObject saveUIPanelObject;
+    public Button saveConfirmButton;
+    public Button saveCancelButton;
+
     // Start is called once before the first execution of Update after the MonoBehaviour is created
     void Start()
     {
@@ -16,6 +21,18 @@ public class SelectUI : MonoBehaviour
         if (buttonDelete != null)
         {
             buttonDelete.onClick.AddListener(DeleteObject);
+        }
+        
+        // 为保存按钮注册点击事件
+        if (buttonSave != null)
+        {
+            buttonSave.onClick.AddListener(ToggleSaveUIPanel);
+        }
+        
+        // 为保存取消按钮注册点击事件
+        if (saveCancelButton != null)
+        {
+            saveCancelButton.onClick.AddListener(CloseSaveUIPanel);
         }
     }
 
@@ -58,5 +75,24 @@ public class SelectUI : MonoBehaviour
         }
 
         Destroy(this.gameObject); // 删除UI自身
+    }
+    
+    // 切换保存UI面板的显示状态
+    void ToggleSaveUIPanel()
+    {
+        if (saveUIPanelObject != null)
+        {
+            bool currentState = saveUIPanelObject.activeSelf;
+            saveUIPanelObject.SetActive(!currentState);
+        }
+    }
+    
+    // 关闭保存UI面板
+    void CloseSaveUIPanel()
+    {
+        if (saveUIPanelObject != null)
+        {
+            saveUIPanelObject.SetActive(false);
+        }
     }
 }
