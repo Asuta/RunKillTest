@@ -9,6 +9,7 @@ public class SelectLoadButtonUI : MonoBehaviour, IPointerDownHandler, IPointerUp
 {
     public string ButtonName = "SelectLoadButton";
     public string JsonName = "SelectLoadJson";
+    public TMPro.TextMeshProUGUI buttonText;
     
     private Button buttonComponent;
     private int lastPointerId = -1;
@@ -19,6 +20,7 @@ public class SelectLoadButtonUI : MonoBehaviour, IPointerDownHandler, IPointerUp
     {
         // 获取Button组件，用于控制交互状态
         buttonComponent = GetComponent<Button>();
+        buttonText.text = ButtonName;
     }
 
     // Update is called once per frame

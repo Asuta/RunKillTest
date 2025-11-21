@@ -9615,6 +9615,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   ButtonName: SelectLoadButton
   JsonName: SelectedObjects_20251121_105151
+  buttonText: {fileID: 533029384}
 --- !u!1 &785452729
 GameObject:
   m_ObjectHideFlags: 0
