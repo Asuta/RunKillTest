@@ -83,6 +83,12 @@ public static class GlobalEvent
     /// </summary>
     public static readonly UnityEvent OnSelect = new UnityEvent();
 
+
+    /// <summary>
+    /// 指定select被删除事件
+    /// </summary>
+    public static readonly UnityEvent OnSelectDelete = new UnityEvent();
+
     /// <summary>
     /// 加载对象后设置选中状态事件
     /// </summary>

@@ -20,6 +20,7 @@ public class DeleteSelectUI : MonoBehaviour
             // 调用SaveLoadManager删除对应的select存档
             SaveLoadManager.Instance.DeleteSelectedObjectsSave(deleteObjectName);
             
+            GlobalEvent.OnSelectDelete.Invoke();
             // 删除完成后禁用UI
             thisUI.SetActive(false);
         });

@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using UnityEngine;
 using YouYouTest;
@@ -11,7 +12,13 @@ public class SelectLoaderUI : MonoBehaviour
     // Start is called once before the first execution of Update after the MonoBehaviour is created
     void Start()
     {
-        
+        GlobalEvent.OnSelectDelete.AddListener(OnSelectDeleteHandler);
+    }
+
+    private void OnSelectDeleteHandler()
+    {
+        //选中对象被删除后，刷新加载按钮列表
+        OnEnable();
     }
 
     // Update is called once per frame
