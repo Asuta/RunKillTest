@@ -354,8 +354,8 @@ public class BeGrabAndScaleobject : MonoBehaviour, IGrabable
             isTwoHandScaling = false;
         }
         
-        // 执行间接抓取
-        StartIndirectGrab(handTransform);
+        // 执行批量间接抓取（使用自身作为中心点）
+        BatchIndirectGrab(handTransform, transform);
         
         Debug.Log($"{gameObject.name} 被 {GetHandName(handTransform)} 统一抓取（间接抓取）");
     }
@@ -363,8 +363,16 @@ public class BeGrabAndScaleobject : MonoBehaviour, IGrabable
     // 释放一只手：若仍有另一只手抓取，则切回单手；否则完全释放
     public void OnReleased(Transform releasedHandTransform)
     {
-        // 统一停止所有抓取状态（包括间接抓取）
-        StopIndirectGrab();
+        // 停止间接抓取状态
+        isIndirectGrabbing = false;
+        indirectTarget = null;
+
+        // 销毁子对象
+        if (indirectRotationTarget != null)
+        {
+            Destroy(indirectRotationTarget.gameObject);
+            indirectRotationTarget = null;
+        }
         
         if (!isGrabbed) return;
 

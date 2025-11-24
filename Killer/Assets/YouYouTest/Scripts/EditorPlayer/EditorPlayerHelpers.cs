@@ -152,7 +152,7 @@ namespace YouYouTest
                 if (go == null) continue;
 
                 // 统一对所有对象使用间接抓取
-                grabable.StartIndirectGrab(hand);
+                grabable.BatchIndirectGrab(hand, hand);
 
                 multiGrabbedObjects.Add(grabable);
             }

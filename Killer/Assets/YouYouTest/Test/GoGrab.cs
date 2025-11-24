@@ -13,13 +13,13 @@ public class GoGrab : MonoBehaviour
         if (Input.GetKeyDown(KeyCode.G))
         {
             // 将自己的 Transform 传入目标的间接抓取方法
-            target.StartIndirectGrab(this.transform);
+            target.BatchIndirectGrab(this.transform, this.transform);
             Debug.Log($"GoGrab: StartIndirectGrab -> {target.ObjectGameObject.name}");
         }
 
         if (Input.GetKeyUp(KeyCode.G))
         {
-            target.StopIndirectGrab();
+            // 批量间接抓取不需要停止方法，因为会被新的批量抓取覆盖
             Debug.Log($"GoGrab: StopIndirectGrab -> {target.ObjectGameObject.name}");
         }
     }

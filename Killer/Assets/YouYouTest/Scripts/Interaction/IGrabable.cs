@@ -34,17 +34,6 @@ public interface IGrabable
     void OnReleased(Transform releasedHandTransform);
     
     /// <summary>
-    /// 开始间接抓取
-    /// </summary>
-    /// <param name="handTransform">抓住它的手部transform</param>
-    void StartIndirectGrab(Transform handTransform);
-    
-    /// <summary>
-    /// 停止间接抓取
-    /// </summary>
-    void StopIndirectGrab();
-    
-    /// <summary>
     /// 批量间接抓取：让物体跟随centerObject移动，而不是跟随手部移动
     /// </summary>
     /// <param name="handTransform">抓取的手部transform</param>

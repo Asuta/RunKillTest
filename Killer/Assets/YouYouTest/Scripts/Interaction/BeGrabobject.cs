@@ -158,8 +158,8 @@ public class BeGrabobject  : MonoBehaviour, IGrabable
             grabHand = handTransform;
         }
         
-        // 执行间接抓取
-        StartIndirectGrab(handTransform);
+        // 执行批量间接抓取（使用自身作为中心点）
+        BatchIndirectGrab(handTransform, transform);
         
         Debug.Log($"{gameObject.name} 被 {GetHandName(handTransform)} 统一抓取（间接抓取）");
     }
@@ -170,8 +170,16 @@ public class BeGrabobject  : MonoBehaviour, IGrabable
     /// <param name="releasedHandTransform">释放的手部transform</param>
     public void OnReleased(Transform releasedHandTransform)
     {
-        // 统一停止所有抓取状态（包括间接抓取）
-        StopIndirectGrab();
+        // 停止间接抓取状态
+        isIndirectGrabbing = false;
+        indirectTarget = null;
+
+        // 销毁子对象
+        if (indirectRotationTarget != null)
+        {
+            Destroy(indirectRotationTarget.gameObject);
+            indirectRotationTarget = null;
+        }
         
         if (!isGrabbed) return; // 没有被抓取，不处理
 
@@ -225,49 +233,7 @@ public class BeGrabobject  : MonoBehaviour, IGrabable
     
     #endregion
     
-    #region 间接抓取方法
-    
-    /// <summary>
-    /// 开始"间接差值抓取"
-    /// - 不修改现有 OnGrabbed/OnReleased 行为
-    /// - 使用一个内部中间数据（middlePosition/middleRotation）以差值追踪 handTransform
-    /// - 记录本物体相对于中间数据的偏移，随后每帧让物体立即保持该相对关系（无插值）
-    /// </summary>
-    public void StartIndirectGrab(Transform handTransform)
-    {
-        if (handTransform == null) return;
-    
-        indirectTarget = handTransform;
-
-        // 创建用于旋转的子对象
-        CreateIndirectRotationTarget(handTransform);
-
-        // 为避免跳变，初始化中间数据为当前手的位置/旋转
-        middlePosition = indirectTarget.position;
-        middleRotation = indirectTarget.rotation;
-    
-        // 记录本物体相对于中间数据的偏移
-        indirectGrabOffset = Quaternion.Inverse(middleRotation) * (transform.position - middlePosition);
-        indirectGrabRotationOffset = Quaternion.Inverse(middleRotation) * transform.rotation;
-    
-        isIndirectGrabbing = true;
-    }
-    
-    /// <summary>
-    /// 停止间接抓取
-    /// </summary>
-    public void StopIndirectGrab()
-    {
-        isIndirectGrabbing = false;
-        indirectTarget = null;
-
-        // 销毁子对象
-        if (indirectRotationTarget != null)
-        {
-            Destroy(indirectRotationTarget.gameObject);
-            indirectRotationTarget = null;
-        }
-    }
+    #region 批量间接抓取方法
     
     /// <summary>
     /// 批量间接抓取实现
@@ -279,13 +245,25 @@ public class BeGrabobject  : MonoBehaviour, IGrabable
         if (handTransform == null || centerTransform == null) return;
         
         // 停止现有的间接抓取
-        StopIndirectGrab();
+        isIndirectGrabbing = false;
+        indirectTarget = null;
+
+        // 销毁子对象
+        if (indirectRotationTarget != null)
+        {
+            Destroy(indirectRotationTarget.gameObject);
+            indirectRotationTarget = null;
+        }
         
         // 设置间接目标为中心点
         indirectTarget = centerTransform;
         
         // 创建用于旋转的子对象
-        CreateIndirectRotationTarget(centerTransform);
+        GameObject rotationTargetGO = new GameObject("IndirectRotationTarget");
+        rotationTargetGO.transform.position = centerTransform.position;
+        rotationTargetGO.transform.rotation = centerTransform.rotation;
+        rotationTargetGO.transform.SetParent(centerTransform);
+        indirectRotationTarget = rotationTargetGO.transform;
         
         // 初始化中间数据为中心点的当前位置和旋转
         middlePosition = centerTransform.position;
@@ -297,23 +275,6 @@ public class BeGrabobject  : MonoBehaviour, IGrabable
         
         isIndirectGrabbing = true;
         Debug.Log($"{gameObject.name} 开始批量间接抓取，跟随中心点移动");
-    }
-    
-    /// <summary>
-    /// 创建间接旋转目标对象
-    /// </summary>
-    /// <param name="handTransform">手部transform</param>
-    private void CreateIndirectRotationTarget(Transform handTransform)
-    {
-        if (indirectRotationTarget != null)
-        {
-            Destroy(indirectRotationTarget.gameObject);
-        }
-        GameObject rotationTargetGO = new GameObject("IndirectRotationTarget");
-        rotationTargetGO.transform.position = handTransform.position;
-        rotationTargetGO.transform.rotation = handTransform.rotation; // 同步初始旋转
-        rotationTargetGO.transform.SetParent(handTransform);
-        indirectRotationTarget = rotationTargetGO.transform;
     }
     
     #endregion
