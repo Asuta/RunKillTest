@@ -18,9 +18,8 @@ public class BeGrabobject  : MonoBehaviour, IGrabable
     [Header("跟随设置")]
     public bool freezeYaxis = false;
     
-    [Header("间接抓取设置")]
-    // 用于"间接差值跟随"算法的中间数据（不依赖可视化 controlObject）
-    // indirectTarget 表示要追踪的 Transform（例如手或其它目标）
+    [Header("批量间接抓取设置")]
+    // 用于批量间接抓取的中间数据
     private Transform indirectTarget;
     private Vector3 middlePosition;
     private Quaternion middleRotation = Quaternion.identity;
@@ -49,10 +48,12 @@ public class BeGrabobject  : MonoBehaviour, IGrabable
     // Update is called once per frame
     void Update()
     {
-        // 优先处理"间接差值跟随"流程（如果启用，则独占控制，不与普通抓取逻辑混用）
+        // 优先处理批量间接抓取流程（如果启用，则独占控制，不与普通抓取逻辑混用）
         if (isIndirectGrabbing && indirectTarget != null)
         {
-            UpdateIndirectGrab();
+            // 立即跟随中心点，不使用插值
+            transform.position = indirectTarget.position + indirectTarget.rotation * indirectGrabOffset;
+            transform.rotation = indirectTarget.rotation * indirectGrabRotationOffset;
             return;
         }
     
@@ -66,27 +67,6 @@ public class BeGrabobject  : MonoBehaviour, IGrabable
     #endregion
     
     #region 抓取更新逻辑
-    
-    /// <summary>
-    /// 更新间接抓取逻辑
-    /// </summary>
-    private void UpdateIndirectGrab()
-    {
-        float posAlphaIndirect = 1f - Mathf.Exp(-positionSmoothSpeed * Time.deltaTime);
-        float rotAlphaIndirect = 1f - Mathf.Exp(-rotationSmoothSpeed * Time.deltaTime);
-
-        // 中间数据以差值方式追踪 indirectTarget
-        middlePosition = Vector3.Lerp(middlePosition, indirectTarget.position, posAlphaIndirect);
-        // 只对Y轴进行插值，保持X轴和Z轴不变
-        Vector3 currentEuler = middleRotation.eulerAngles;
-        Vector3 targetEuler = indirectRotationTarget.rotation.eulerAngles;
-        float newY = Mathf.LerpAngle(currentEuler.y, targetEuler.y, rotAlphaIndirect);
-        middleRotation = Quaternion.Euler(currentEuler.x, newY, currentEuler.z);
-
-        // 本物体（grabObject）立即依据中间数据与记录的偏移保持相对关系（无差值）
-        transform.position = middlePosition + middleRotation * indirectGrabOffset;
-        transform.rotation = middleRotation * indirectGrabRotationOffset;
-    }
     
     /// <summary>
     /// 更新普通抓取逻辑
@@ -247,8 +227,8 @@ public class BeGrabobject  : MonoBehaviour, IGrabable
         // 停止现有的间接抓取
         isIndirectGrabbing = false;
         indirectTarget = null;
-
-        // 销毁子对象
+        
+        // 销毁旧的旋转目标
         if (indirectRotationTarget != null)
         {
             Destroy(indirectRotationTarget.gameObject);
@@ -265,13 +245,9 @@ public class BeGrabobject  : MonoBehaviour, IGrabable
         rotationTargetGO.transform.SetParent(centerTransform);
         indirectRotationTarget = rotationTargetGO.transform;
         
-        // 初始化中间数据为中心点的当前位置和旋转
-        middlePosition = centerTransform.position;
-        middleRotation = centerTransform.rotation;
-        
         // 记录本物体相对于中心点的偏移
-        indirectGrabOffset = Quaternion.Inverse(middleRotation) * (transform.position - middlePosition);
-        indirectGrabRotationOffset = Quaternion.Inverse(middleRotation) * transform.rotation;
+        indirectGrabOffset = Quaternion.Inverse(centerTransform.rotation) * (transform.position - centerTransform.position);
+        indirectGrabRotationOffset = Quaternion.Inverse(centerTransform.rotation) * transform.rotation;
         
         isIndirectGrabbing = true;
         Debug.Log($"{gameObject.name} 开始批量间接抓取，跟随中心点移动");
