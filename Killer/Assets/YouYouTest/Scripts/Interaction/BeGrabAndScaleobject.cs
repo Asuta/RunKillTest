@@ -32,6 +32,14 @@ public class BeGrabAndScaleobject : MonoBehaviour, IGrabable
 
     [Header("跟随设置")]
     public bool freezeYaxis = false;
+
+    [Header("缩放控制")]
+    [SerializeField] private bool scaleControlEnabled = true;
+    public bool ScaleControlEnabled
+    {
+        get => scaleControlEnabled;
+        set => scaleControlEnabled = value;
+    }
     
     private bool isGrabbed = false;
     private Transform primaryHand;   // 主手（用于位置/旋转跟随）
@@ -126,12 +134,12 @@ public class BeGrabAndScaleobject : MonoBehaviour, IGrabable
                 secondaryHand = (primaryHand == editorPlayer.leftHand) ? editorPlayer.rightHand : editorPlayer.leftHand;
                 initialHandsDistance = Vector3.Distance(editorPlayer.leftHand.position, editorPlayer.rightHand.position);
                 baseScale = transform.localScale;
-                    Quaternion avgRot = Quaternion.Slerp(editorPlayer.leftHand.rotation, editorPlayer.rightHand.rotation, 0.5f);
-                    twoHandRotationOffset = Quaternion.Inverse(avgRot) * transform.rotation;
+                        Quaternion avgRot = Quaternion.Slerp(editorPlayer.leftHand.rotation, editorPlayer.rightHand.rotation, 0.5f);
+                        twoHandRotationOffset = Quaternion.Inverse(avgRot) * transform.rotation;
             }
             
             // 创建缩放命令
-            CreateScaleCommand();
+                    CreateScaleCommand();
         }
         // 退出双手状态（其中一只手松开）
         else if (isTwoHandScaling && !nowTwoHand)
@@ -192,7 +200,7 @@ public class BeGrabAndScaleobject : MonoBehaviour, IGrabable
         transform.rotation = Quaternion.Slerp(transform.rotation, targetRot, rotAlpha);
     
         // 双手缩放：使用单轴缩放
-        if (isTwoHandScaling && editorPlayer != null && editorPlayer.leftHand != null && editorPlayer.rightHand != null)
+        if (isTwoHandScaling && scaleControlEnabled && editorPlayer != null && editorPlayer.leftHand != null && editorPlayer.rightHand != null)
         {
             PerformSingleAxisScaling();
         }
@@ -203,6 +211,8 @@ public class BeGrabAndScaleobject : MonoBehaviour, IGrabable
     /// </summary>
     private void PerformSingleAxisScaling()
     {
+        if (!scaleControlEnabled) return;
+
         // 获取双手向量
         Vector3 handVector = editorPlayer.rightHand.position - editorPlayer.leftHand.position;
         
@@ -480,6 +490,11 @@ public class BeGrabAndScaleobject : MonoBehaviour, IGrabable
     /// </summary>
     private void CreateScaleCommand()
     {
+        if (!scaleControlEnabled)
+        {
+            return;
+        }
+
         if (!isCommandActive)
         {
             ScaleAxis? scaleAxis = lastScaleAxis;
