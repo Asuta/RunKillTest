@@ -53,7 +53,18 @@ public class EditorPlayer : MonoBehaviour
     // 右手 A 键长按多选相关变量
     private bool rightALongPressActive = false;
     private float rightALongPressStartTime = 0f;
+    public Transform centerObject;
     private const float RIGHT_A_LONG_PRESS_THRESHOLD = 0.2f; // A键长按阈值（秒）
+    
+    // 多抓取中心点相关变量
+    private Vector3 centerOffset; // 中心点相对于手的偏移
+    private Quaternion initialRotationOffset; // 初始旋转偏移
+    private bool isUsingCenterObject = false; // 是否正在使用中心点跟随模式
+    
+    // 平滑设置（参考BeGrabobject）
+    [SerializeField] private float centerPositionSmoothSpeed = 10f; // 位置平滑速度
+    [SerializeField] private float centerRotationSmoothSpeed = 15f; // 旋转平滑速度
+    [SerializeField] private bool centerFreezeYaxis = false; // 是否锁定中心点的Y轴旋转
     
     // 持续范围选择时显示的青色球相关变量
     private Material selectionSphereMaterial;
@@ -330,6 +341,9 @@ public class EditorPlayer : MonoBehaviour
                 Debug.Log("B键抬起：重新生成selectUI以更新注入的对象");
             }
         }
+
+        // 处理多抓取中心点跟随逻辑
+        UpdateCenterObjectFollow();
     }
     #endregion
 
@@ -390,6 +404,12 @@ public class EditorPlayer : MonoBehaviour
     {
         // 处理多抓取对象的释放
         EditorPlayerHelpers.ReleaseMultiGrabbedObjects(leftMultiGrabbedObjects, leftHand, true);
+
+        // 如果左手的多抓取对象被释放，停止中心点跟随
+        if (leftMultiGrabbedObjects.Count == 0 && isUsingCenterObject)
+        {
+            isUsingCenterObject = false;
+        }
 
         // 处理单抓取对象的释放
         EditorPlayerHelpers.ReleaseGrab(ref leftGrabbedObject, ref leftCurrentGrabCommand, leftHand, true, handOutlineController);
@@ -457,6 +477,12 @@ public class EditorPlayer : MonoBehaviour
         // 处理多抓取对象的释放
         EditorPlayerHelpers.ReleaseMultiGrabbedObjects(rightMultiGrabbedObjects, rightHand, false);
 
+        // 如果右手的多抓取对象被释放，停止中心点跟随
+        if (rightMultiGrabbedObjects.Count == 0 && isUsingCenterObject)
+        {
+            isUsingCenterObject = false;
+        }
+
         // 处理单抓取对象的释放
         EditorPlayerHelpers.ReleaseGrab(ref rightGrabbedObject, ref rightCurrentGrabCommand, rightHand, false, handOutlineController);
     }
@@ -491,6 +517,12 @@ public class EditorPlayer : MonoBehaviour
         {
             Debug.LogWarning($"{(isLeftHand ? "左手" : "右手")}多选抓取失败，未找到有效对象");
             if (!isLeftHand) currentBatchMoveCommand = null; // 清理失败的批量移动命令
+        }
+        
+        // 如果是多抓取，初始化中心点跟随
+        if (grabbedAny && targetMultiGrabbedObjects.Count > 1 && centerObject != null)
+        {
+            InitializeCenterObjectFollow(hand, targetMultiGrabbedObjects);
         }
     }
     #endregion
@@ -1083,6 +1115,113 @@ public class EditorPlayer : MonoBehaviour
         
         // 调用SaveLoadManager保存选中对象
         SaveLoadManager.Instance.SaveSelectedObjects(selectedObjects, saveName);
+    }
+    #endregion
+
+    #region 多抓取中心点跟随方法
+    /// <summary>
+    /// 初始化中心点跟随模式
+    /// </summary>
+    /// <param name="hand">手部Transform</param>
+    /// <param name="grabbedObjects">被抓取的对象列表</param>
+    private void InitializeCenterObjectFollow(Transform hand, System.Collections.Generic.List<IGrabable> grabbedObjects)
+    {
+        if (centerObject == null || hand == null || grabbedObjects == null || grabbedObjects.Count <= 1)
+        {
+            isUsingCenterObject = false;
+            return;
+        }
+
+        // 计算所有被抓取物体的中心位置
+        Vector3 centerPosition = Vector3.zero;
+        foreach (var grabable in grabbedObjects)
+        {
+            if (grabable != null && grabable.ObjectTransform != null)
+            {
+                centerPosition += grabable.ObjectTransform.position;
+            }
+        }
+        centerPosition /= grabbedObjects.Count;
+
+        // 立即将centerObject移动到被抓取物体的中心位置
+        centerObject.position = centerPosition;
+
+        // 让中心点的初始朝向参考多选对象，而不是强制跟随手部
+        Quaternion referenceRotation = centerObject.rotation;
+        foreach (var grabable in grabbedObjects)
+        {
+            if (grabable != null && grabable.ObjectTransform != null)
+            {
+                referenceRotation = grabable.ObjectTransform.rotation;
+                break;
+            }
+        }
+        centerObject.rotation = referenceRotation;
+
+        if (centerFreezeYaxis)
+        {
+            // 初始化时也保持水平，只记录引用对象的Y轴
+            Vector3 refEuler = centerObject.rotation.eulerAngles;
+            centerObject.rotation = Quaternion.Euler(0f, refEuler.y, 0f);
+        }
+
+        // 计算并记录中心点相对于手的偏移（用于子物体式跟随）
+        // 注意：这里使用手部的当前旋转来计算正确的偏移
+        centerOffset = Quaternion.Inverse(hand.rotation) * (centerObject.position - hand.position);
+        
+        // 计算初始旋转偏移（保持当前旋转）
+        initialRotationOffset = Quaternion.Inverse(hand.rotation) * centerObject.rotation;
+
+        isUsingCenterObject = true;
+        Debug.Log($"初始化中心点跟随模式，中心位置: {centerPosition}，centerObject已移动到中心点并将像子物体一样跟随手部");
+    }
+
+    /// <summary>
+    /// 更新中心点跟随手的移动（完全按照BeGrabobject的Y轴锁定逻辑）
+    /// </summary>
+    private void UpdateCenterObjectFollow()
+    {
+        if (!isUsingCenterObject || centerObject == null)
+            return;
+
+        // 确定当前使用的手部（左手或右手）
+        Transform activeHand = null;
+        System.Collections.Generic.List<IGrabable> activeGrabbedObjects = null;
+
+        if (leftMultiGrabbedObjects.Count > 1)
+        {
+            activeHand = leftHand;
+            activeGrabbedObjects = leftMultiGrabbedObjects;
+        }
+        else if (rightMultiGrabbedObjects.Count > 1)
+        {
+            activeHand = rightHand;
+            activeGrabbedObjects = rightMultiGrabbedObjects;
+        }
+
+        // 如果没有有效的手部或多抓取对象，停止跟随
+        if (activeHand == null || activeGrabbedObjects == null || activeGrabbedObjects.Count <= 1)
+        {
+            isUsingCenterObject = false;
+            return;
+        }
+
+        // 完全按照BeGrabobject.cs的UpdateNormalGrab逻辑实现
+        // 计算目标位置和旋转
+        Vector3 targetPosition = activeHand.position + activeHand.rotation * centerOffset;
+        Quaternion targetRotation = activeHand.rotation * initialRotationOffset;
+        
+        if (centerFreezeYaxis)
+        {
+            // 只保留目标的Y轴旋转，与BeGrabobject保持一致
+            Vector3 currentEuler = centerObject.rotation.eulerAngles;
+            Vector3 targetEuler = targetRotation.eulerAngles;
+            targetRotation = Quaternion.Euler(currentEuler.x, targetEuler.y, currentEuler.z);
+        }
+        
+        // 使用Lerp进行平滑移动（完全复制BeGrabobject的逻辑）
+        centerObject.position = Vector3.Lerp(centerObject.position, targetPosition, centerPositionSmoothSpeed * Time.deltaTime);
+        centerObject.rotation = Quaternion.Slerp(centerObject.rotation, targetRotation, centerRotationSmoothSpeed * Time.deltaTime);
     }
     #endregion
 
