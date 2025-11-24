@@ -53,7 +53,7 @@ public class EditorPlayer : MonoBehaviour
     // 右手 A 键长按多选相关变量
     private bool rightALongPressActive = false;
     private float rightALongPressStartTime = 0f;
-    public Transform centerObject;
+    private Transform centerObject; // 动态生成的中心点对象
     private const float RIGHT_A_LONG_PRESS_THRESHOLD = 0.2f; // A键长按阈值（秒）
     
     // 多抓取中心点相关变量
@@ -405,10 +405,11 @@ public class EditorPlayer : MonoBehaviour
         // 处理多抓取对象的释放
         EditorPlayerHelpers.ReleaseMultiGrabbedObjects(leftMultiGrabbedObjects, leftHand, true);
 
-        // 如果左手的多抓取对象被释放，停止中心点跟随
+        // 如果左手的多抓取对象被释放，停止中心点跟随并销毁中心点对象
         if (leftMultiGrabbedObjects.Count == 0 && isUsingCenterObject)
         {
             isUsingCenterObject = false;
+            DestroyCenterObject();
         }
 
         // 处理单抓取对象的释放
@@ -477,10 +478,11 @@ public class EditorPlayer : MonoBehaviour
         // 处理多抓取对象的释放
         EditorPlayerHelpers.ReleaseMultiGrabbedObjects(rightMultiGrabbedObjects, rightHand, false);
 
-        // 如果右手的多抓取对象被释放，停止中心点跟随
+        // 如果右手的多抓取对象被释放，停止中心点跟随并销毁中心点对象
         if (rightMultiGrabbedObjects.Count == 0 && isUsingCenterObject)
         {
             isUsingCenterObject = false;
+            DestroyCenterObject();
         }
 
         // 处理单抓取对象的释放
@@ -519,9 +521,10 @@ public class EditorPlayer : MonoBehaviour
             if (!isLeftHand) currentBatchMoveCommand = null; // 清理失败的批量移动命令
         }
         
-        // 如果是多抓取，初始化中心点跟随并使用批量间接抓取
-        if (grabbedAny && targetMultiGrabbedObjects.Count > 1 && centerObject != null)
+        // 如果是多抓取，创建中心点对象并初始化中心点跟随
+        if (grabbedAny && targetMultiGrabbedObjects.Count > 1)
         {
+            CreateCenterObject();
             InitializeCenterObjectFollow(hand, targetMultiGrabbedObjects);
             
             // 对所有被抓取的对象使用批量间接抓取，让它们跟随centerObject移动
@@ -951,6 +954,7 @@ public class EditorPlayer : MonoBehaviour
     void OnDestroy()
     {
         CleanupSelectionSphere();
+        DestroyCenterObject(); // 清理中心点对象
         
         // 移除全局事件监听
         GlobalEvent.OnLoadObjectsSetSelected.RemoveListener(SetObjectsAsSelected);
@@ -1099,9 +1103,42 @@ public class EditorPlayer : MonoBehaviour
         var selectedGrabables = handOutlineController.GetAllMultiSelectedGrabables();
         if (selectedGrabables != null && selectedGrabables.Count > 0)
         {
-            // 使用辅助方法统一抓取所有选中的对象
-            EditorPlayerHelpers.GrabMultipleObjects(selectedGrabables, rightHand, rightMultiGrabbedObjects);
-            Debug.Log($"已将 {selectedGrabables.Count} 个选中的对象设置为正在被右手抓住的状态");
+            // 如果是多选，创建中心点对象并初始化中心点跟随
+            if (selectedGrabables != null && selectedGrabables.Count > 1)
+            {
+                CreateCenterObject();
+                InitializeCenterObjectFollow(rightHand, selectedGrabables);
+                
+                // 对所有选中的对象使用批量间接抓取，让它们跟随centerObject移动
+                foreach (var grabable in selectedGrabables)
+                {
+                    if (grabable != null)
+                    {
+                        grabable.BatchIndirectGrab(rightHand, centerObject);
+                    }
+                }
+                
+                // 将所有选中的对象添加到多抓取列表
+                rightMultiGrabbedObjects.Clear();
+                foreach (var grabable in selectedGrabables)
+                {
+                    if (grabable != null)
+                    {
+                        rightMultiGrabbedObjects.Add(grabable);
+                    }
+                }
+            }
+            else if (selectedGrabables != null && selectedGrabables.Count == 1)
+            {
+                // 单选时使用普通抓取
+                var grabable = selectedGrabables[0];
+                if (grabable != null)
+                {
+                    grabable.UnifiedGrab(rightHand);
+                    rightMultiGrabbedObjects.Add(grabable);
+                }
+            }
+            Debug.Log($"已将 {selectedGrabables?.Count ?? 0} 个选中的对象设置为正在被右手抓住的状态");
         }
         
         Debug.Log($"已将 {objects.Count} 个对象设置为选中状态并抓取");
@@ -1128,6 +1165,38 @@ public class EditorPlayer : MonoBehaviour
     #endregion
 
     #region 多抓取中心点跟随方法
+    /// <summary>
+    /// 创建中心点对象（隐形的空GameObject）
+    /// </summary>
+    private void CreateCenterObject()
+    {
+        if (centerObject != null)
+        {
+            DestroyCenterObject(); // 销毁已存在的中心点对象
+        }
+        
+        GameObject centerGO = new GameObject("DynamicCenterObject");
+        centerObject = centerGO.transform;
+        centerGO.hideFlags = HideFlags.HideInHierarchy; // 在Hierarchy中隐藏
+        Debug.Log("创建了动态中心点对象");
+    }
+    
+    /// <summary>
+    /// 销毁中心点对象
+    /// </summary>
+    private void DestroyCenterObject()
+    {
+        if (centerObject != null)
+        {
+            if (centerObject.gameObject != null)
+            {
+                Destroy(centerObject.gameObject);
+            }
+            centerObject = null;
+            Debug.Log("销毁了动态中心点对象");
+        }
+    }
+    
     /// <summary>
     /// 初始化中心点跟随模式
     /// </summary>

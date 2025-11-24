@@ -134,7 +134,7 @@ namespace YouYouTest
         }
 
         /// <summary>
-        /// 抓取多个对象（统一使用间接抓取）
+        /// 抓取多个对象（不执行批量间接抓取，由调用者处理）
         /// </summary>
         /// <param name="sourceObjects">源对象列表</param>
         /// <param name="hand">手部Transform</param>
@@ -151,15 +151,13 @@ namespace YouYouTest
                 GameObject go = grabable.ObjectGameObject;
                 if (go == null) continue;
 
-                // 统一对所有对象使用间接抓取
-                grabable.BatchIndirectGrab(hand, hand);
-
+                // 只添加到多抓取列表，不执行抓取逻辑，由调用者处理
                 multiGrabbedObjects.Add(grabable);
             }
         }
 
         /// <summary>
-        /// 根据 HandOutlineController 的多选集合执行多抓取
+        /// 根据 HandOutlineController 的多选集合执行多抓取（不执行抓取逻辑，由调用者处理）
         /// </summary>
         /// <param name="selectedGrabables">当前多选的 IGrabable 集合</param>
         /// <param name="hand">执行抓取的手部 Transform</param>
@@ -191,7 +189,7 @@ namespace YouYouTest
                 GameObject go = grabable.ObjectGameObject;
                 if (go == null) continue;
 
-                grabable.UnifiedGrab(hand);
+                // 只添加到多抓取列表，不执行抓取逻辑，由调用者处理
                 multiGrabbedObjects.Add(grabable);
                 grabbedCount++;
             }
