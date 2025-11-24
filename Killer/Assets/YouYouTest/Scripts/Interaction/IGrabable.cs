@@ -32,4 +32,15 @@ public interface IGrabable
     /// </summary>
     /// <param name="releasedHandTransform">释放的手部transform</param>
     void OnReleased(Transform releasedHandTransform);
+    
+    /// <summary>
+    /// 开始间接抓取
+    /// </summary>
+    /// <param name="handTransform">抓住它的手部transform</param>
+    void StartIndirectGrab(Transform handTransform);
+    
+    /// <summary>
+    /// 停止间接抓取
+    /// </summary>
+    void StopIndirectGrab();
 }

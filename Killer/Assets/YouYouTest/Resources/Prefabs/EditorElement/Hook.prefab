@@ -131,11 +131,11 @@ GameObject:
   m_Component:
   - component: {fileID: 8599960947387171839}
   - component: {fileID: 139086575799208855}
-  - component: {fileID: -5690230171930293678}
   - component: {fileID: 7924569093807002839}
   - component: {fileID: 395104664902011905}
   - component: {fileID: 4494702998411507030}
   - component: {fileID: 2014993172373363733}
+  - component: {fileID: -3162246114433576954}
   m_Layer: 0
   m_Name: Hook
   m_TagString: Untagged
@@ -178,21 +178,6 @@ MonoBehaviour:
   shortSign: {fileID: 39180682667186388}
   scopeMesh: {fileID: 7718274266564862041}
   _radius: 12
---- !u!114 &-5690230171930293678
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 4516854478343874578}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: cd83b80d97978014ebc5d8d26e4c37ac, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  positionSmoothSpeed: 10
-  rotationSmoothSpeed: 15
-  freezeYaxis: 1
 --- !u!54 &7924569093807002839
 Rigidbody:
   m_ObjectHideFlags: 0
@@ -343,6 +328,22 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   hoverColor: {r: 1, g: 0.92156863, b: 0.015686275, a: 1}
   selectedColor: {r: 0, g: 1, b: 1, a: 1}
+--- !u!114 &-3162246114433576954
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 4516854478343874578}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 5180ad4ef285b314f9552a058220fb14, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  positionSmoothSpeed: 10
+  rotationSmoothSpeed: 15
+  freezeYaxis: 1
+  scaleControlEnabled: 0
 --- !u!1 &5294326535517076037
 GameObject:
   m_ObjectHideFlags: 0

@@ -152,14 +152,7 @@ namespace YouYouTest
                 if (go == null) continue;
 
                 // 统一对所有对象使用间接抓取
-                if (grabable is BeGrabAndScaleobject bg)
-                {
-                    bg.StartIndirectGrab(hand);
-                }
-                else
-                {
-                    grabable.OnGrabbed(hand);
-                }
+                grabable.StartIndirectGrab(hand);
 
                 multiGrabbedObjects.Add(grabable);
             }
