@@ -519,10 +519,19 @@ public class EditorPlayer : MonoBehaviour
             if (!isLeftHand) currentBatchMoveCommand = null; // 清理失败的批量移动命令
         }
         
-        // 如果是多抓取，初始化中心点跟随
+        // 如果是多抓取，初始化中心点跟随并使用批量间接抓取
         if (grabbedAny && targetMultiGrabbedObjects.Count > 1 && centerObject != null)
         {
             InitializeCenterObjectFollow(hand, targetMultiGrabbedObjects);
+            
+            // 对所有被抓取的对象使用批量间接抓取，让它们跟随centerObject移动
+            foreach (var grabable in targetMultiGrabbedObjects)
+            {
+                if (grabable != null)
+                {
+                    grabable.BatchIndirectGrab(hand, centerObject);
+                }
+            }
         }
     }
     #endregion

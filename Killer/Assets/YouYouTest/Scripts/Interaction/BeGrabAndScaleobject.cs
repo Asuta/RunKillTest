@@ -486,6 +486,46 @@ public class BeGrabAndScaleobject : MonoBehaviour, IGrabable
     }
     
     /// <summary>
+    /// 批量间接抓取实现
+    /// </summary>
+    /// <param name="handTransform">抓取的手部transform</param>
+    /// <param name="centerTransform">中心点transform</param>
+    public void BatchIndirectGrab(Transform handTransform, Transform centerTransform)
+    {
+        if (handTransform == null || centerTransform == null) return;
+        
+        // 停止现有的间接抓取
+        StopIndirectGrab();
+        
+        // 设置间接目标为中心点
+        indirectTarget = centerTransform;
+        
+        // 创建用于旋转的子对象
+        // --- 创建用于旋转的子对象 ---
+        if (indirectRotationTarget != null)
+        {
+            Destroy(indirectRotationTarget.gameObject);
+        }
+        GameObject rotationTargetGO = new GameObject("IndirectRotationTarget");
+        rotationTargetGO.transform.position = centerTransform.position;
+        rotationTargetGO.transform.rotation = centerTransform.rotation;
+        rotationTargetGO.transform.SetParent(centerTransform);
+        indirectRotationTarget = rotationTargetGO.transform;
+        // ------------------------------------
+        
+        // 初始化中间数据为中心点的当前位置和旋转
+        middlePosition = centerTransform.position;
+        middleRotation = centerTransform.rotation;
+        
+        // 记录本物体相对于中心点的偏移
+        indirectGrabOffset = Quaternion.Inverse(middleRotation) * (transform.position - middlePosition);
+        indirectGrabRotationOffset = Quaternion.Inverse(middleRotation) * transform.rotation;
+        
+        isIndirectGrabbing = true;
+        Debug.Log($"{gameObject.name} 开始批量间接抓取，跟随中心点移动");
+    }
+    
+    /// <summary>
     /// 创建缩放命令
     /// </summary>
     private void CreateScaleCommand()
