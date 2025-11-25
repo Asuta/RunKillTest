@@ -226,6 +226,24 @@ public class HandOutlineController : MonoBehaviour
         return grabables;
     }
 
+    /// <summary>
+    /// 获取当前选中的单个对象（非多选）
+    /// </summary>
+    /// <returns>选中的IGrabable对象，如果没有则返回null</returns>
+    public IGrabable GetSingleSelectedObject()
+    {
+        if (lastSelectedReceiver != null && lastSelectedReceiver.IsSelected)
+        {
+            // 检查这个对象是否在多选列表中，如果不在，才是真正的单选对象
+            if (!IsInMultiSelection(lastSelectedReceiver))
+            {
+                return lastSelectedReceiver.GetComponent<IGrabable>();
+            }
+        }
+        
+        return null;
+    }
+
     private void OnDisable()
     {
         if (hoveredReceiverLeft != null)

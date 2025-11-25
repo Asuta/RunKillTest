@@ -155,10 +155,20 @@ public class EditorPlayer : MonoBehaviour
                 GrabMultiForHand(true);
                 Debug.Log($"左手扳机按下，抓取多选对象，共 {multi.Count} 个");
             }
-            else if (leftHoldObject != null)
+            else
             {
-                LeftHandGrab(leftHoldObject.ObjectGameObject);
-                Debug.Log($"左手扳机按下，抓取物体: {leftHoldObject.ObjectGameObject.name}");
+                // 尝试获取当前选中的单个对象
+                var selectedObject = GetSingleSelectedObject();
+                if (selectedObject != null)
+                {
+                    LeftHandGrab(selectedObject.ObjectGameObject);
+                    Debug.Log($"左手扳机按下，抓取选中的对象: {selectedObject.ObjectGameObject.name}");
+                }
+                else if (leftHoldObject != null)
+                {
+                    LeftHandGrab(leftHoldObject.ObjectGameObject);
+                    Debug.Log($"左手扳机按下，抓取物体: {leftHoldObject.ObjectGameObject.name}");
+                }
             }
         }
 
@@ -188,10 +198,20 @@ public class EditorPlayer : MonoBehaviour
                 GrabMultiForHand(false);
                 Debug.Log($"右手扳机按下，抓取多选对象，共 {multi.Count} 个");
             }
-            else if (rightHoldObject != null)
+            else
             {
-                RightHandGrab(rightHoldObject.ObjectGameObject);
-                Debug.Log($"右手扳机按下，抓取物体: {rightHoldObject.ObjectGameObject.name}");
+                // 尝试获取当前选中的单个对象
+                var selectedObject = GetSingleSelectedObject();
+                if (selectedObject != null)
+                {
+                    RightHandGrab(selectedObject.ObjectGameObject);
+                    Debug.Log($"右手扳机按下，抓取选中的对象: {selectedObject.ObjectGameObject.name}");
+                }
+                else if (rightHoldObject != null)
+                {
+                    RightHandGrab(rightHoldObject.ObjectGameObject);
+                    Debug.Log($"右手扳机按下，抓取物体: {rightHoldObject.ObjectGameObject.name}");
+                }
             }
         }
 
@@ -913,6 +933,16 @@ public class EditorPlayer : MonoBehaviour
         }
         
         return selectedObjects.ToArray();
+    }
+
+    /// <summary>
+    /// 获取当前选中的单个对象（非多选）
+    /// </summary>
+    /// <returns>选中的IGrabable对象，如果没有则返回null</returns>
+    private IGrabable GetSingleSelectedObject()
+    {
+        // 使用HandOutlineController的公共方法获取单个选中对象
+        return handOutlineController?.GetSingleSelectedObject();
     }
 
     #endregion
