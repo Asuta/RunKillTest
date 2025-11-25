@@ -44,6 +44,9 @@ public class SelectLoaderUI : MonoBehaviour
         {
             CreateLoadButton(saveInfo);
         }
+        
+        // 清理没有对应JSON存档的多余图片
+        CleanupOrphanedImages(selectedSaves);
     }
     
     /// <summary>
@@ -209,6 +212,59 @@ public class SelectLoaderUI : MonoBehaviour
         catch (System.Exception e)
         {
             Debug.LogError($"加载快照图片时出错: {e.Message}");
+        }
+    }
+    
+    /// <summary>
+    /// 清理没有对应JSON存档的多余图片
+    /// </summary>
+    /// <param name="selectedSaves">当前存在的存档信息列表</param>
+    private void CleanupOrphanedImages(List<SelectedObjectsSaveInfo> selectedSaves)
+    {
+        try
+        {
+            // 获取图片文件夹路径
+            string imageFolderPath = Path.Combine(Application.persistentDataPath, "a");
+            
+            // 如果文件夹不存在，直接返回
+            if (!Directory.Exists(imageFolderPath))
+            {
+                return;
+            }
+            
+            // 获取所有有效的JSON文件名（不包含扩展名）
+            HashSet<string> validFileNames = new HashSet<string>();
+            foreach (var save in selectedSaves)
+            {
+                string fileNameWithoutExt = Path.GetFileNameWithoutExtension(save.fileName);
+                validFileNames.Add(fileNameWithoutExt);
+            }
+            
+            // 获取所有PNG文件
+            string[] pngFiles = Directory.GetFiles(imageFolderPath, "*.png");
+            
+            int deletedCount = 0;
+            foreach (string pngFile in pngFiles)
+            {
+                string fileNameWithoutExt = Path.GetFileNameWithoutExtension(pngFile);
+                
+                // 如果这个PNG文件没有对应的JSON存档，则删除
+                if (!validFileNames.Contains(fileNameWithoutExt))
+                {
+                    File.Delete(pngFile);
+                    deletedCount++;
+                    Debug.Log($"删除多余的图片文件: {pngFile}");
+                }
+            }
+            
+            if (deletedCount > 0)
+            {
+                Debug.Log($"清理完成，共删除了 {deletedCount} 个多余的图片文件");
+            }
+        }
+        catch (System.Exception e)
+        {
+            Debug.LogError($"清理多余图片时出错: {e.Message}");
         }
     }
 }
