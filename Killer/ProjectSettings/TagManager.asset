@@ -7,6 +7,7 @@ TagManager:
   - Enemy
   - Wall
   - Missile
+  - Standart
   layers:
   - Default
   - TransparentFX
@@ -17,7 +18,7 @@ TagManager:
   - Building
   - Player
   - Interactable
-  - 
+  - Snapshot
   - 
   - 
   - 
