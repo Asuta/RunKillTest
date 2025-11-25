@@ -5,6 +5,9 @@ using UnityEngine;
 public class ObjectSnapshot : MonoBehaviour
 {
     [Header("设置")]
+    [Tooltip("是否使用临时生成的相机")]
+    public bool useTemporaryCamera = true;
+    [Tooltip("专用的摄像机（当useTemporaryCamera为false时使用）")]
     public Camera snapshotCamera; // 拖入一个专用的摄像机，或者代码里动态生成
     [Header("调整")]
     [Range(0.1f, 2f)]
@@ -26,34 +29,60 @@ public class ObjectSnapshot : MonoBehaviour
     {
         if (targets == null || targets.Count == 0) return;
 
-        // 1. 准备环境：记录物体原本的Layer，并移动到Snapshot Layer
-        Dictionary<Transform, int> originalLayers = new Dictionary<Transform, int>();
-        int layerIndex = GetLayerIndexFromMask(snapshotLayer);
-
-        foreach (var go in targets)
+        Camera tempCamera = null;
+        
+        try
         {
-            SetLayerRecursively(go.transform, layerIndex, originalLayers);
+            // 0. 准备相机
+            if (useTemporaryCamera)
+            {
+                tempCamera = CreateTemporaryCamera();
+                snapshotCamera = tempCamera;
+            }
+            else if (snapshotCamera == null)
+            {
+                Debug.LogError("未指定快照相机且useTemporaryCamera为false！");
+                return;
+            }
+
+            // 1. 准备环境：记录物体原本的Layer，并移动到Snapshot Layer
+            Dictionary<Transform, int> originalLayers = new Dictionary<Transform, int>();
+            int layerIndex = GetLayerIndexFromMask(snapshotLayer);
+
+            foreach (var go in targets)
+            {
+                SetLayerRecursively(go.transform, layerIndex, originalLayers);
+            }
+
+            // 2. 计算所有物体的合并包围盒 (Bounds)
+            Bounds combinedBounds = CalculateBounds(targets);
+
+            // 3. 设置摄像机位置和参数
+            SetupCamera(combinedBounds);
+
+            // 4. 渲染并保存图片
+            Texture2D screenshot = RenderToTexture();
+            byte[] bytes = screenshot.EncodeToPNG();
+            File.WriteAllBytes(savePath, bytes);
+
+            Debug.Log($"截图已保存至: {savePath}");
+
+            // 5. 清理：恢复物体原本的Layer，销毁临时资源
+            foreach (var kvp in originalLayers)
+            {
+                kvp.Key.gameObject.layer = kvp.Value;
+            }
+            Destroy(screenshot);
         }
-
-        // 2. 计算所有物体的合并包围盒 (Bounds)
-        Bounds combinedBounds = CalculateBounds(targets);
-
-        // 3. 设置摄像机位置和参数
-        SetupCamera(combinedBounds);
-
-        // 4. 渲染并保存图片
-        Texture2D screenshot = RenderToTexture();
-        byte[] bytes = screenshot.EncodeToPNG();
-        File.WriteAllBytes(savePath, bytes);
-
-        Debug.Log($"截图已保存至: {savePath}");
-
-        // 5. 清理：恢复物体原本的Layer，销毁临时资源
-        foreach (var kvp in originalLayers)
+        finally
         {
-            kvp.Key.gameObject.layer = kvp.Value;
+            // 6. 销毁临时相机
+            if (tempCamera != null)
+            {
+                DestroyImmediate(tempCamera.gameObject);
+                snapshotCamera = null;
+            }
         }
-        Destroy(screenshot);
     }
 
     // --- 辅助逻辑 ---
@@ -158,5 +187,35 @@ public class ObjectSnapshot : MonoBehaviour
             layer++;
         }
         return 0;
+    }
+
+    /// <summary>
+    /// 创建一个临时相机用于截图
+    /// </summary>
+    /// <returns>临时创建的相机</returns>
+    private Camera CreateTemporaryCamera()
+    {
+        // 创建一个新的游戏对象作为相机容器
+        GameObject cameraGO = new GameObject("TemporarySnapshotCamera");
+        
+        // 添加相机组件
+        Camera camera = cameraGO.AddComponent<Camera>();
+        
+        // 设置相机基本参数
+        camera.enabled = true;
+        camera.cullingMask = snapshotLayer;
+        camera.clearFlags = CameraClearFlags.SolidColor;
+        camera.backgroundColor = backgroundColor;
+        camera.orthographic = false; // 默认使用透视相机
+        camera.fieldOfView = 60f; // 默认视野角度
+        
+        // 确保相机不会渲染到屏幕
+        camera.targetTexture = null;
+        
+        // 设置相机位置为原点，稍后会在SetupCamera中重新设置
+        camera.transform.position = Vector3.zero;
+        camera.transform.rotation = Quaternion.identity;
+        
+        return camera;
     }
 }
