@@ -29,15 +29,15 @@ public static class ObjectSnapshot
     /// </summary>
     /// <param name="targets">选中的游戏对象列表</param>
     /// <param name="saveType">保存类型枚举，决定保存到哪个子文件夹</param>
-    /// <param name="snapshotLayer">专门用于拍照的Layer</param>
+    /// <param name="name">图片的名称</param>
     /// <param name="zoomFactor">缩放因子，数值越小，相机离物体越近，画面越紧凑</param>
     /// <param name="width">截图宽度</param>
     /// <param name="height">截图高度</param>
     /// <param name="backgroundColor">背景颜色</param>
     /// <param name="cameraDirection">拍照时的观察角度</param>
-    public static void CaptureAndSave(List<GameObject> targets, SnapshotSaveType saveType, 
-        LayerMask snapshotLayer, float zoomFactor = DefaultZoomFactor, 
-        int width = DefaultWidth, int height = DefaultHeight, 
+    public static void CaptureAndSave(List<GameObject> targets, SnapshotSaveType saveType,
+        string name, float zoomFactor = DefaultZoomFactor,
+        int width = DefaultWidth, int height = DefaultHeight,
         Color? backgroundColor = null, Vector3? cameraDirection = null)
     {
         if (targets == null || targets.Count == 0) return;
@@ -46,6 +46,9 @@ public static class ObjectSnapshot
         
         try
         {
+            // 获取Snapshot层的LayerMask
+            LayerMask snapshotLayer = LayerMask.GetMask("Snapshot");
+            
             // 0. 创建临时相机
             tempCamera = CreateTemporaryCamera(snapshotLayer, backgroundColor ?? DefaultBackgroundColor);
 
@@ -62,27 +65,27 @@ public static class ObjectSnapshot
             Bounds combinedBounds = CalculateBounds(targets);
 
             // 3. 设置摄像机位置和参数
-            SetupCamera(tempCamera, combinedBounds, snapshotLayer, zoomFactor, 
+            SetupCamera(tempCamera, combinedBounds, snapshotLayer, zoomFactor,
                 backgroundColor ?? DefaultBackgroundColor, cameraDirection ?? DefaultCameraDirection);
 
             // 4. 渲染并保存图片
             Texture2D screenshot = RenderToTexture(tempCamera, width, height);
             byte[] bytes = screenshot.EncodeToPNG();
-            
+
             // 根据枚举类型确定保存路径
             string subFolder = saveType == SnapshotSaveType.TypeA ? "a" : "b";
             string directoryPath = Path.Combine(Application.persistentDataPath, subFolder);
-            
+
             // 确保目录存在
             if (!Directory.Exists(directoryPath))
             {
                 Directory.CreateDirectory(directoryPath);
             }
-            
-            // 生成文件名（使用时间戳）
-            string fileName = $"snapshot_{System.DateTime.Now:yyyyMMdd_HHmmss}.png";
+
+            // 生成文件名（只使用提供的名称）
+            string fileName = $"{name}.png";
             string savePath = Path.Combine(directoryPath, fileName);
-            
+
             File.WriteAllBytes(savePath, bytes);
 
             Debug.Log($"截图已保存至: {savePath}");
@@ -143,7 +146,7 @@ public static class ObjectSnapshot
     }
 
     // 调整摄像机以适应包围盒
-    private static void SetupCamera(Camera camera, Bounds bounds, LayerMask snapshotLayer, 
+    private static void SetupCamera(Camera camera, Bounds bounds, LayerMask snapshotLayer,
         float zoomFactor, Color backgroundColor, Vector3 cameraDirection)
     {
         // 基础设置
@@ -151,7 +154,7 @@ public static class ObjectSnapshot
         camera.cullingMask = snapshotLayer;
         camera.clearFlags = CameraClearFlags.SolidColor;
         camera.backgroundColor = backgroundColor;
-        
+
         // 1. 算出物体大概有多大（半径）
         float objectRadius = bounds.extents.magnitude;
         // 2. 设置相机朝向（看向物体中心）
@@ -220,10 +223,10 @@ public static class ObjectSnapshot
     {
         // 创建一个新的游戏对象作为相机容器
         GameObject cameraGO = new GameObject("TemporarySnapshotCamera");
-        
+
         // 添加相机组件
         Camera camera = cameraGO.AddComponent<Camera>();
-        
+
         // 设置相机基本参数
         camera.enabled = true;
         camera.cullingMask = snapshotLayer;
@@ -231,14 +234,14 @@ public static class ObjectSnapshot
         camera.backgroundColor = backgroundColor;
         camera.orthographic = false; // 默认使用透视相机
         camera.fieldOfView = DefaultFieldOfView; // 默认视野角度
-        
+
         // 确保相机不会渲染到屏幕
         camera.targetTexture = null;
-        
+
         // 设置相机位置为原点，稍后会在SetupCamera中重新设置
         camera.transform.position = Vector3.zero;
         camera.transform.rotation = Quaternion.identity;
-        
+
         return camera;
     }
 }
