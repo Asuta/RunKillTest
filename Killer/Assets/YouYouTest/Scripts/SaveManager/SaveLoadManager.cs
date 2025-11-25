@@ -1,6 +1,7 @@
 using UnityEngine;
 using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using YouYouTest.CommandFramework;
 using YouYouTest;
 #if UNITY_EDITOR
@@ -1192,12 +1193,33 @@ public class SaveLoadManager : MonoBehaviour
                 // 序列化为JSON
                 string jsonData = JsonUtility.ToJson(selectedSaveData, true);
 
+                // 生成文件名（不包含扩展名）
+                string fileNameWithoutExt = "SelectedObjects_" + System.DateTime.Now.ToString("yyyyMMdd_HHmmss");
+                
                 // 保存到专门的选中对象存档文件夹
-                bool success = SaveSelectedObjectsToFile("SelectedObjects_" + System.DateTime.Now.ToString("yyyyMMdd_HHmmss") + ".json", jsonData);
+                bool success = SaveSelectedObjectsToFile(fileNameWithoutExt + ".json", jsonData);
 
                 if (success)
                 {
                     Debug.Log($"成功保存 {selectedSaveDataList.Count} 个选中对象到专门的存档文件夹");
+                    
+                    // 保存JSON文件后，生成截图
+                    try
+                    {
+                        // 将GameObject数组转换为List<GameObject>
+                        List<GameObject> selectedObjectsList = selectedObjects.Where(obj => obj != null).ToList();
+                        
+                        if (selectedObjectsList.Count > 0)
+                        {
+                            // 调用截图方法，使用JSON文件名作为图片名
+                            ObjectSnapshot.CaptureAndSave(selectedObjectsList, SnapshotSaveType.TypeA, fileNameWithoutExt);
+                            Debug.Log($"已生成选中对象的截图: {fileNameWithoutExt}.png");
+                        }
+                    }
+                    catch (System.Exception e)
+                    {
+                        Debug.LogError($"生成截图时出错: {e.Message}");
+                    }
                 }
             }
             else
