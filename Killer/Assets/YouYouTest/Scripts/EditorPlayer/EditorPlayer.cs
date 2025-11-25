@@ -756,17 +756,51 @@ public class EditorPlayer : MonoBehaviour
             }
         }
 
-        // 3) 抓取所有复制的对象（让它们跟随手移动）
+        // 3) 收集所有复制出来的 IGrabable（保持与批量命令一致的顺序）
         var duplicatedGrabables = new System.Collections.Generic.List<IGrabable>();
         foreach (var go in duplicatedGameObjects)
         {
             if (go == null) continue;
             var grabable = EditorPlayerHelpers.GetGrabableFromGameObject(go);
-            if (grabable != null) duplicatedGrabables.Add(grabable);
+            if (grabable != null)
+            {
+                duplicatedGrabables.Add(grabable);
+            }
         }
 
-        // 使用辅助方法统一抓取所有复制的对象
-        EditorPlayerHelpers.GrabMultipleObjects(duplicatedGrabables, rightHand, rightMultiGrabbedObjects);
+        if (duplicatedGrabables.Count == 0)
+        {
+            Debug.LogWarning("批量复制失败：生成的对象上没有可抓取组件");
+            return;
+        }
+
+        // 4) 让右手直接抓住所有新复制的对象（保持命令顺序以便释放时同步变换）
+        rightMultiGrabbedObjects.Clear();
+        rightGrabbedObject = null;
+
+        foreach (var grabable in duplicatedGrabables)
+        {
+            rightMultiGrabbedObjects.Add(grabable);
+        }
+
+        currentBatchMoveCommand = EditorPlayerHelpers.CreateBatchMoveCommand(rightMultiGrabbedObjects);
+
+        if (rightMultiGrabbedObjects.Count > 1)
+        {
+            CreateCenterObject();
+            InitializeCenterObjectFollow(rightHand, rightMultiGrabbedObjects);
+            foreach (var grabable in rightMultiGrabbedObjects)
+            {
+                grabable?.BatchIndirectGrab(rightHand, centerObject);
+            }
+        }
+        else if (rightMultiGrabbedObjects.Count == 1)
+        {
+            var singleGrabable = rightMultiGrabbedObjects[0];
+            singleGrabable?.OnGrabbed(rightHand);
+            rightGrabbedObject = singleGrabable;
+            handOutlineController?.UpdateTarget(false, rightHoldObject, rightHoldObject, rightGrabbedObject);
+        }
 
         Debug.Log($"批量复制并切换选中目标完成：复制 {duplicatedGameObjects.Count} 个对象，抓取 {rightMultiGrabbedObjects.Count} 个对象");
     }
