@@ -618,7 +618,7 @@ MonoBehaviour:
     m_Bits: 512
   width: 512
   height: 384
-  backgroundColor: {r: 0, g: 0, b: 0, a: 0}
+  backgroundColor: {r: 0.7137255, g: 0.17916827, b: 0.11372547, a: 1}
 --- !u!1 &1126207436
 GameObject:
   m_ObjectHideFlags: 0

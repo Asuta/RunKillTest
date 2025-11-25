@@ -101,7 +101,7 @@ public class ObjectSnapshot : MonoBehaviour
         snapshotCamera.enabled = true;
         snapshotCamera.cullingMask = snapshotLayer;
         snapshotCamera.clearFlags = CameraClearFlags.SolidColor;
-        // snapshotCamera.backgroundColor = backgroundColor; // 如果你还是想用代码控制背景色，把这行取消注释
+        snapshotCamera.backgroundColor = backgroundColor; // 如果你还是想用代码控制背景色，把这行取消注释
         // 1. 算出物体大概有多大（半径）
         float objectRadius = bounds.extents.magnitude;
         // 2. 设置相机朝向（看向物体中心）
