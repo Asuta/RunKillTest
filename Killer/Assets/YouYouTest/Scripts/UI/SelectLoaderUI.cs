@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.IO;
 using UnityEngine;
 using YouYouTest;
 
@@ -83,6 +84,9 @@ public class SelectLoaderUI : MonoBehaviour
             string fileNameWithoutExtension = System.IO.Path.GetFileNameWithoutExtension(saveInfo.fileName);
             buttonUI.JsonName = fileNameWithoutExtension;
             
+            // 加载对应的图片
+            LoadSnapshotImage(buttonUI, fileNameWithoutExtension);
+            
             // 设置按钮的ButtonName为存档名称
             buttonUI.ButtonName = saveInfo.saveName;
             
@@ -161,6 +165,50 @@ public class SelectLoaderUI : MonoBehaviour
             {
                 text.text = saveInfo.saveName;
             }
+        }
+    }
+    
+    /// <summary>
+    /// 加载对应的快照图片
+    /// </summary>
+    /// <param name="buttonUI">按钮UI组件</param>
+    /// <param name="fileNameWithoutExtension">文件名（不包含扩展名）</param>
+    private void LoadSnapshotImage(SelectLoadButtonUI buttonUI, string fileNameWithoutExtension)
+    {
+        try
+        {
+            // 构建图片文件路径（保存在a文件夹中）
+            string imagePath = Path.Combine(Application.persistentDataPath, "a", fileNameWithoutExtension + ".png");
+            
+            // 检查文件是否存在
+            if (File.Exists(imagePath))
+            {
+                // 读取图片数据
+                byte[] imageData = File.ReadAllBytes(imagePath);
+                
+                // 创建Texture2D
+                Texture2D texture = new Texture2D(2, 2);
+                texture.LoadImage(imageData);
+                
+                // 设置到Image组件
+                if (buttonUI.selectUIImage != null)
+                {
+                    buttonUI.selectUIImage.sprite = Sprite.Create(texture, new Rect(0, 0, texture.width, texture.height), new Vector2(0.5f, 0.5f));
+                    Debug.Log($"成功加载快照图片: {imagePath}");
+                }
+                else
+                {
+                    Debug.LogWarning($"按钮 {buttonUI.ButtonName} 的selectUIImage组件为空，无法设置图片");
+                }
+            }
+            else
+            {
+                Debug.LogWarning($"快照图片文件不存在: {imagePath}");
+            }
+        }
+        catch (System.Exception e)
+        {
+            Debug.LogError($"加载快照图片时出错: {e.Message}");
         }
     }
 }

@@ -13,6 +13,7 @@ public class SelectLoadButtonUI : MonoBehaviour, IPointerDownHandler, IPointerUp
     public Button  deleteButton;
     public GameObject deleteConfirmUI;
     public DeleteSelectUI deleteSelectUI;
+    public Image selectUIImage;
     
     private Button buttonComponent;
     private int lastPointerId = -1;
