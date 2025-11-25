@@ -2,6 +2,15 @@ using System.Collections.Generic;
 using System.IO;
 using UnityEngine;
 
+/// <summary>
+/// 快照保存类型枚举
+/// </summary>
+public enum SnapshotSaveType
+{
+    TypeA,
+    TypeB
+}
+
 public class ObjectSnapshot : MonoBehaviour
 {
     [Header("设置")]
@@ -24,8 +33,8 @@ public class ObjectSnapshot : MonoBehaviour
     /// 对选中的多个物体进行截图并保存
     /// </summary>
     /// <param name="targets">选中的游戏对象列表</param>
-    /// <param name="savePath">保存路径 (例如 Application.persistentDataPath + "/save1_thumb.png")</param>
-    public void CaptureAndSave(List<GameObject> targets, string savePath)
+    /// <param name="saveType">保存类型枚举，决定保存到哪个子文件夹</param>
+    public void CaptureAndSave(List<GameObject> targets, SnapshotSaveType saveType)
     {
         if (targets == null || targets.Count == 0) return;
 
@@ -63,6 +72,21 @@ public class ObjectSnapshot : MonoBehaviour
             // 4. 渲染并保存图片
             Texture2D screenshot = RenderToTexture();
             byte[] bytes = screenshot.EncodeToPNG();
+            
+            // 根据枚举类型确定保存路径
+            string subFolder = saveType == SnapshotSaveType.TypeA ? "a" : "b";
+            string directoryPath = Path.Combine(Application.persistentDataPath, subFolder);
+            
+            // 确保目录存在
+            if (!Directory.Exists(directoryPath))
+            {
+                Directory.CreateDirectory(directoryPath);
+            }
+            
+            // 生成文件名（使用时间戳）
+            string fileName = $"snapshot_{System.DateTime.Now:yyyyMMdd_HHmmss}.png";
+            string savePath = Path.Combine(directoryPath, fileName);
+            
             File.WriteAllBytes(savePath, bytes);
 
             Debug.Log($"截图已保存至: {savePath}");
