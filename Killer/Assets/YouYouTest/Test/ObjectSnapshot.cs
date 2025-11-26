@@ -23,6 +23,8 @@ public static class ObjectSnapshot
     private const int DefaultHeight = 384;
     private static readonly Color DefaultBackgroundColor = new Color(0.23f, 0.72f, 0.73f, 1f);
     private const float DefaultFieldOfView = 60f;
+    // 防止并发调用导致 layer 恢复被覆盖
+    private static readonly object _captureLock = new object();
 
     /// <summary>
     /// 对选中的多个物体进行截图并保存
@@ -43,80 +45,152 @@ public static class ObjectSnapshot
         if (targets == null || targets.Count == 0) return;
 
         Camera tempCamera = null;
+        Texture2D screenshot = null;
+        // 将原始 Layer 记录提前声明，以便在 finally 中无论何种异常都能尝试恢复
+        Dictionary<GameObject, int> originalLayers = new Dictionary<GameObject, int>();
         
         try
         {
-            // 获取Snapshot层的LayerMask
-            LayerMask snapshotLayer = LayerMask.GetMask("Snapshot");
-            
-            // 0. 创建临时相机
-            tempCamera = CreateTemporaryCamera(snapshotLayer, backgroundColor ?? DefaultBackgroundColor);
-
-            // 1. 准备环境：记录物体原本的Layer，并移动到Snapshot Layer
-            Dictionary<Transform, int> originalLayers = new Dictionary<Transform, int>();
-            int layerIndex = GetLayerIndexFromMask(snapshotLayer);
-
-            foreach (var go in targets)
+            lock (_captureLock)
             {
-                SetLayerRecursively(go.transform, layerIndex, originalLayers);
+                // 获取Snapshot层的LayerMask
+                LayerMask snapshotLayer = LayerMask.GetMask("Snapshot");
+
+                // 检查 Snapshot Layer 是否存在
+                int layerIndex = GetLayerIndexFromMask(snapshotLayer);
+                if (layerIndex < 0)
+                {
+                    Debug.LogWarning("ObjectSnapshot: 未找到名为 'Snapshot' 的 Layer，请在 Project Settings -> Tags and Layers 中创建该 Layer。默认将使用 layer 0 进行渲染，可能影响其它对象。");
+                    layerIndex = 0;
+                }
+
+                // 0. 创建临时相机
+                tempCamera = CreateTemporaryCamera(snapshotLayer, backgroundColor ?? DefaultBackgroundColor);
+
+                // 1. 准备环境：记录物体原本的Layer，并移动到Snapshot Layer
+                foreach (var go in targets)
+                {
+                    SetLayerRecursively(go, layerIndex, originalLayers);
+                }
+
+                // 2. 计算所有物体的合并包围盒 (Bounds)
+                Bounds combinedBounds = CalculateBounds(targets);
+
+                // 3. 设置摄像机位置和参数
+                SetupCamera(tempCamera, combinedBounds, snapshotLayer, zoomFactor,
+                    backgroundColor ?? DefaultBackgroundColor, cameraDirection ?? DefaultCameraDirection);
+
+                // 4. 渲染并保存图片
+                screenshot = RenderToTexture(tempCamera, width, height);
+                byte[] bytes = screenshot.EncodeToPNG();
+
+                // 根据枚举类型确定保存路径
+                string subFolder = saveType == SnapshotSaveType.TypeSelect ? "SelectImages" : "LevelImages";
+                string directoryPath = Path.Combine(Application.persistentDataPath, subFolder);
+
+                // 确保目录存在
+                if (!Directory.Exists(directoryPath))
+                {
+                    Directory.CreateDirectory(directoryPath);
+                }
+
+                // 生成文件名（只使用提供的名称）
+                string fileName = $"{name}.png";
+                string savePath = Path.Combine(directoryPath, fileName);
+
+                File.WriteAllBytes(savePath, bytes);
+
+                Debug.Log($"截图已保存至: {savePath}");
+
+                // 注意：不要在这里执行恢复/销毁（放到 finally 统一处理）
             }
-
-            // 2. 计算所有物体的合并包围盒 (Bounds)
-            Bounds combinedBounds = CalculateBounds(targets);
-
-            // 3. 设置摄像机位置和参数
-            SetupCamera(tempCamera, combinedBounds, snapshotLayer, zoomFactor,
-                backgroundColor ?? DefaultBackgroundColor, cameraDirection ?? DefaultCameraDirection);
-
-            // 4. 渲染并保存图片
-            Texture2D screenshot = RenderToTexture(tempCamera, width, height);
-            byte[] bytes = screenshot.EncodeToPNG();
-
-            // 根据枚举类型确定保存路径
-            string subFolder = saveType == SnapshotSaveType.TypeSelect ? "SelectImages" : "LevelImages";
-            string directoryPath = Path.Combine(Application.persistentDataPath, subFolder);
-
-            // 确保目录存在
-            if (!Directory.Exists(directoryPath))
-            {
-                Directory.CreateDirectory(directoryPath);
-            }
-
-            // 生成文件名（只使用提供的名称）
-            string fileName = $"{name}.png";
-            string savePath = Path.Combine(directoryPath, fileName);
-
-            File.WriteAllBytes(savePath, bytes);
-
-            Debug.Log($"截图已保存至: {savePath}");
-
-            // 5. 清理：恢复物体原本的Layer，销毁临时资源
-            foreach (var kvp in originalLayers)
-            {
-                kvp.Key.gameObject.layer = kvp.Value;
-            }
-            Object.Destroy(screenshot);
         }
         finally
         {
+            // 5. 尝试恢复物体原本的Layer（如果记录存在）
+            if (originalLayers != null && originalLayers.Count > 0)
+            {
+                foreach (var kvp in originalLayers)
+                {
+                    var t = kvp.Key;
+                    if (t == null)
+                    {
+                        Debug.LogWarning("ObjectSnapshot: 原始 Transform 在恢复前已被销毁或为 null。");
+                        continue;
+                    }
+
+                    GameObject go = null;
+                    try
+                    {
+                        go = t.gameObject;
+                    }
+                    catch
+                    {
+                        Debug.LogWarning("ObjectSnapshot: 无法获取 GameObject（Transform 名称: " + (t.name ?? "<unknown>") + "）。");
+                        continue;
+                    }
+
+                    if (go == null)
+                    {
+                        Debug.LogWarning("ObjectSnapshot: GameObject 为 null，无法恢复 layer（Transform 名称: " + (t.name ?? "<unknown>") + "）。");
+                        continue;
+                    }
+
+                    try
+                    {
+                        go.layer = kvp.Value;
+                    }
+                    catch (System.Exception ex)
+                    {
+                        Debug.LogWarning("ObjectSnapshot: 恢复 layer 失败: " + GetTransformPath(go.transform) + " , 异常: " + ex.Message);
+                    }
+                }
+            }
+    
+            // 销毁截图资源（如果存在）
+            if (screenshot != null)
+            {
+                try { Object.Destroy(screenshot); } catch { }
+                screenshot = null;
+            }
+    
             // 6. 销毁临时相机
             if (tempCamera != null)
             {
-                Object.DestroyImmediate(tempCamera.gameObject);
+                try { Object.DestroyImmediate(tempCamera.gameObject); } catch { }
             }
         }
     }
 
     // --- 辅助逻辑 ---
 
-    // 递归设置Layer，并记录原始Layer
-    private static void SetLayerRecursively(Transform trans, int newLayer, Dictionary<Transform, int> record)
+    // 递归设置Layer，并记录原始Layer（仅在尚未记录时写入，防止被后续调用覆盖）
+    private static void SetLayerRecursively(GameObject go, int newLayer, Dictionary<GameObject, int> record)
     {
-        record[trans] = trans.gameObject.layer;
-        trans.gameObject.layer = newLayer;
-        foreach (Transform child in trans)
+        if (go == null) return;
+        // 保护性处理：在遍历过程中对象可能被销毁，使用 try/catch 避免抛出
+        try
         {
-            SetLayerRecursively(child, newLayer, record);
+            if (!record.ContainsKey(go))
+            {
+                record[go] = go.layer;
+            }
+            go.layer = newLayer;
+        }
+        catch
+        {
+            // 如果在记录或设置 layer 时发生异常（对象可能已被销毁），直接返回，不继续递归该分支
+            return;
+        }
+
+        var tr = go.transform;
+        for (int i = 0; i < tr.childCount; i++)
+        {
+            var child = tr.GetChild(i);
+            if (child != null)
+            {
+                SetLayerRecursively(child.gameObject, newLayer, record);
+            }
         }
     }
 
@@ -202,6 +276,7 @@ public static class ObjectSnapshot
     // 辅助：从LayerMask获取Layer的Index
     private static int GetLayerIndexFromMask(LayerMask mask)
     {
+        if (mask.value == 0) return -1;
         int layer = 0;
         int maskVal = mask.value;
         while (maskVal > 0)
@@ -210,7 +285,22 @@ public static class ObjectSnapshot
             maskVal >>= 1;
             layer++;
         }
-        return 0;
+        return -1;
+    }
+
+    // 获取 Transform 的层级路径（用于调试日志）
+    private static string GetTransformPath(Transform t)
+    {
+        if (t == null) return "<null>";
+        var parts = new List<string>();
+        var cur = t;
+        while (cur != null)
+        {
+            parts.Add(cur.name ?? "<unnamed>");
+            cur = cur.parent;
+        }
+        parts.Reverse();
+        return string.Join("/", parts);
     }
 
     /// <summary>
