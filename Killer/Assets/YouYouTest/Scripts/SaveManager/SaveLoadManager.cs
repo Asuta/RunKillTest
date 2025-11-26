@@ -126,86 +126,86 @@ public class SaveLoadManager : MonoBehaviour
         }
     }
 
-    private void Update()
-    {
-        // 按S键保存场景对象（默认档位）
-        if (Input.GetKeyDown(KeyCode.S))
-        {
-            SaveSceneObjects();
-        }
+    // private void Update()
+    // {
+    //     // 按S键保存场景对象（默认档位）
+    //     if (Input.GetKeyDown(KeyCode.S))
+    //     {
+    //         SaveSceneObjects();
+    //     }
         
-        // 按L键加载场景对象（默认档位）
-        if (Input.GetKeyDown(KeyCode.L))
-        {
-            LoadSceneObjects();
-        }
+    //     // 按L键加载场景对象（默认档位）
+    //     if (Input.GetKeyDown(KeyCode.L))
+    //     {
+    //         LoadSceneObjects();
+    //     }
         
-        // 按D键调试Resources文件夹内容
-        if (Input.GetKeyDown(KeyCode.D))
-        {
-            DebugResourcesContent();
-        }
+    //     // 按D键调试Resources文件夹内容
+    //     if (Input.GetKeyDown(KeyCode.D))
+    //     {
+    //         DebugResourcesContent();
+    //     }
         
-        // 按Shift+S保存到档位1
-        if (Input.GetKeyDown(KeyCode.S) && Input.GetKey(KeyCode.LeftShift))
-        {
-            SaveSceneObjects("Slot1");
-        }
+    //     // 按Shift+S保存到档位1
+    //     if (Input.GetKeyDown(KeyCode.S) && Input.GetKey(KeyCode.LeftShift))
+    //     {
+    //         SaveSceneObjects("Slot1");
+    //     }
         
-        // 按Shift+L从档位1加载
-        if (Input.GetKeyDown(KeyCode.L) && Input.GetKey(KeyCode.LeftShift))
-        {
-            LoadSceneObjects("Slot1");
-        }
+    //     // 按Shift+L从档位1加载
+    //     if (Input.GetKeyDown(KeyCode.L) && Input.GetKey(KeyCode.LeftShift))
+    //     {
+    //         LoadSceneObjects("Slot1");
+    //     }
         
-        // 按Ctrl+S保存到档位2
-        if (Input.GetKeyDown(KeyCode.S) && Input.GetKey(KeyCode.LeftControl))
-        {
-            SaveSceneObjects("Slot2");
-        }
+    //     // 按Ctrl+S保存到档位2
+    //     if (Input.GetKeyDown(KeyCode.S) && Input.GetKey(KeyCode.LeftControl))
+    //     {
+    //         SaveSceneObjects("Slot2");
+    //     }
         
-        // 按Ctrl+L从档位2加载
-        if (Input.GetKeyDown(KeyCode.L) && Input.GetKey(KeyCode.LeftControl))
-        {
-            LoadSceneObjects("Slot2");
-        }
+    //     // 按Ctrl+L从档位2加载
+    //     if (Input.GetKeyDown(KeyCode.L) && Input.GetKey(KeyCode.LeftControl))
+    //     {
+    //         LoadSceneObjects("Slot2");
+    //     }
         
-        // 按Alt+S保存到档位3
-        if (Input.GetKeyDown(KeyCode.S) && Input.GetKey(KeyCode.LeftAlt))
-        {
-            SaveSceneObjects("Slot3");
-        }
+    //     // 按Alt+S保存到档位3
+    //     if (Input.GetKeyDown(KeyCode.S) && Input.GetKey(KeyCode.LeftAlt))
+    //     {
+    //         SaveSceneObjects("Slot3");
+    //     }
         
-        // 按Alt+L从档位3加载
-        if (Input.GetKeyDown(KeyCode.L) && Input.GetKey(KeyCode.LeftAlt))
-        {
-            LoadSceneObjects("Slot3");
-        }
+    //     // 按Alt+L从档位3加载
+    //     if (Input.GetKeyDown(KeyCode.L) && Input.GetKey(KeyCode.LeftAlt))
+    //     {
+    //         LoadSceneObjects("Slot3");
+    //     }
         
-        // 按I键显示所有存档档位信息
-        if (Input.GetKeyDown(KeyCode.I))
-        {
-            DebugAllSaveSlots();
-        }
+    //     // 按I键显示所有存档档位信息
+    //     if (Input.GetKeyDown(KeyCode.I))
+    //     {
+    //         DebugAllSaveSlots();
+    //     }
         
-        // 按Shift+D删除档位1
-        if (Input.GetKeyDown(KeyCode.D) && Input.GetKey(KeyCode.LeftShift))
-        {
-            DeleteSaveSlot("Slot1");
-        }
+    //     // 按Shift+D删除档位1
+    //     if (Input.GetKeyDown(KeyCode.D) && Input.GetKey(KeyCode.LeftShift))
+    //     {
+    //         DeleteSaveSlot("Slot1");
+    //     }
         
-        // 按Ctrl+D删除档位2
-        if (Input.GetKeyDown(KeyCode.D) && Input.GetKey(KeyCode.LeftControl))
-        {
-            DeleteSaveSlot("Slot2");
-        }
+    //     // 按Ctrl+D删除档位2
+    //     if (Input.GetKeyDown(KeyCode.D) && Input.GetKey(KeyCode.LeftControl))
+    //     {
+    //         DeleteSaveSlot("Slot2");
+    //     }
         
-        // 按Alt+D删除档位3
-        if (Input.GetKeyDown(KeyCode.D) && Input.GetKey(KeyCode.LeftAlt))
-        {
-            DeleteSaveSlot("Slot3");
-        }
-    }
+    //     // 按Alt+D删除档位3
+    //     if (Input.GetKeyDown(KeyCode.D) && Input.GetKey(KeyCode.LeftAlt))
+    //     {
+    //         DeleteSaveSlot("Slot3");
+    //     }
+    // }
     
     /// <summary>
     /// 根据档位名称生成文件名
@@ -1398,6 +1398,9 @@ public class SaveLoadManager : MonoBehaviour
             {
                 File.Delete(filePath);
                 
+                // 同时删除对应的图片文件
+                DeleteCorrespondingImage(fileName);
+                
                 if (enableDebugLog)
                 {
                     Debug.Log($"成功删除选中对象存档文件: {fileName}");
@@ -1418,6 +1421,46 @@ public class SaveLoadManager : MonoBehaviour
         {
             Debug.LogError($"删除选中对象存档文件 {fileName} 时出错: {e.Message}");
             return false;
+        }
+    }
+    
+    /// <summary>
+    /// 删除对应的图片文件
+    /// </summary>
+    /// <param name="jsonFileName">JSON文件名（可以包含或不包含.json扩展名）</param>
+    private void DeleteCorrespondingImage(string jsonFileName)
+    {
+        try
+        {
+            // 确保文件名不包含.json扩展名
+            if (jsonFileName.EndsWith(".json"))
+            {
+                jsonFileName = jsonFileName.Substring(0, jsonFileName.Length - 5);
+            }
+            
+            // 构建图片文件路径（保存在a文件夹中）
+            string imagePath = Path.Combine(Application.persistentDataPath, "a", jsonFileName + ".png");
+            
+            // 检查图片文件是否存在并删除
+            if (File.Exists(imagePath))
+            {
+                File.Delete(imagePath);
+                if (enableDebugLog)
+                {
+                    Debug.Log($"成功删除对应的图片文件: {jsonFileName}.png");
+                }
+            }
+            else
+            {
+                if (enableDebugLog)
+                {
+                    Debug.Log($"对应的图片文件不存在: {jsonFileName}.png");
+                }
+            }
+        }
+        catch (System.Exception e)
+        {
+            Debug.LogError($"删除对应图片文件时出错: {e.Message}");
         }
     }
     
