@@ -496,7 +496,6 @@ public class SaveLoadManager : MonoBehaviour
         // 清除现有的ObjectIdentifier对象（可选）
         // objectManager.ClearExistingObjects();
         
-        int loadedCount = 0;
         float startTime = Time.time;
         
         // 智能计算加载策略
@@ -523,7 +522,7 @@ public class SaveLoadManager : MonoBehaviour
         
         if (enableDebugLog)
         {
-            Debug.Log($"过程加载完成! 成功加载 {loadedCount}/{totalObjects} 个对象，总用时: {totalTime:F2}秒");
+            Debug.Log($"过程加载完成! 成功加载 {totalObjects}/{totalObjects} 个对象，总用时: {totalTime:F2}秒");
         }
         
         OnLoadingComplete?.Invoke();
@@ -583,11 +582,20 @@ public class SaveLoadManager : MonoBehaviour
     {
         int loadedCount = 0;
         
+        // 确保配置参数有效，防止为0导致死循环
+        float effectiveMin = Mathf.Max(1f, minObjectsPerFrame);
+        float effectiveMax = Mathf.Max(effectiveMin, maxObjectsPerFrame);
+
         // 计算每帧应该加载的对象数量
         float objectsPerFrame = totalObjects / totalFrames;
         
+        if (enableDebugLog)
+        {
+            Debug.Log($"[FrameBasedLoading Debug] totalObjects: {totalObjects}, totalFrames: {totalFrames}, calculated: {objectsPerFrame}, min: {minObjectsPerFrame}, max: {maxObjectsPerFrame}, effectiveMin: {effectiveMin}, effectiveMax: {effectiveMax}");
+        }
+
         // 限制每帧加载对象数量
-        objectsPerFrame = Mathf.Clamp(objectsPerFrame, minObjectsPerFrame, maxObjectsPerFrame);
+        objectsPerFrame = Mathf.Clamp(objectsPerFrame, effectiveMin, effectiveMax);
         
         if (enableDebugLog)
         {
