@@ -1212,7 +1212,7 @@ public class SaveLoadManager : MonoBehaviour
                         if (selectedObjectsList.Count > 0)
                         {
                             // 调用截图方法，使用JSON文件名作为图片名
-                            ObjectSnapshot.CaptureAndSave(selectedObjectsList, SnapshotSaveType.TypeA, fileNameWithoutExt);
+                            ObjectSnapshot.CaptureAndSave(selectedObjectsList, SnapshotSaveType.TypeSelect, fileNameWithoutExt);
                             Debug.Log($"已生成选中对象的截图: {fileNameWithoutExt}.png");
                         }
                     }
@@ -1438,8 +1438,8 @@ public class SaveLoadManager : MonoBehaviour
                 jsonFileName = jsonFileName.Substring(0, jsonFileName.Length - 5);
             }
             
-            // 构建图片文件路径（保存在a文件夹中）
-            string imagePath = Path.Combine(Application.persistentDataPath, "a", jsonFileName + ".png");
+            // 构建图片文件路径（保存在SelectImages文件夹中）
+            string imagePath = Path.Combine(Application.persistentDataPath, "SelectImages", jsonFileName + ".png");
             
             // 检查图片文件是否存在并删除
             if (File.Exists(imagePath))

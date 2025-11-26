@@ -6,7 +6,7 @@ using VInspector;
 public class GameSaveManager : MonoBehaviour
 {
     public List<GameObject> selectedObjects; // 假设这是你在运行时选中的物体 a, b, c
-    public SnapshotSaveType saveType = SnapshotSaveType.TypeA; // 默认保存到a文件夹
+    public SnapshotSaveType saveType = SnapshotSaveType.TypeSelect; // 默认保存到a文件夹
     public string snapshotName = "snapshot"; // 图片的名称
 
     [Button]

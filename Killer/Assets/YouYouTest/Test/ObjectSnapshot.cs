@@ -7,8 +7,8 @@ using UnityEngine;
 /// </summary>
 public enum SnapshotSaveType
 {
-    TypeA,
-    TypeB
+    TypeSelect,
+    TypeLevel
 }
 
 /// <summary>
@@ -73,7 +73,7 @@ public static class ObjectSnapshot
             byte[] bytes = screenshot.EncodeToPNG();
 
             // 根据枚举类型确定保存路径
-            string subFolder = saveType == SnapshotSaveType.TypeA ? "a" : "b";
+            string subFolder = saveType == SnapshotSaveType.TypeSelect ? "SelectImages" : "LevelImages";
             string directoryPath = Path.Combine(Application.persistentDataPath, subFolder);
 
             // 确保目录存在

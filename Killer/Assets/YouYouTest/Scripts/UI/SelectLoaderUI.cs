@@ -180,8 +180,8 @@ public class SelectLoaderUI : MonoBehaviour
     {
         try
         {
-            // 构建图片文件路径（保存在a文件夹中）
-            string imagePath = Path.Combine(Application.persistentDataPath, "a", fileNameWithoutExtension + ".png");
+            // 构建图片文件路径（保存在SelectImages文件夹中）
+            string imagePath = Path.Combine(Application.persistentDataPath, "SelectImages", fileNameWithoutExtension + ".png");
             
             // 检查文件是否存在
             if (File.Exists(imagePath))
@@ -224,7 +224,7 @@ public class SelectLoaderUI : MonoBehaviour
         try
         {
             // 获取图片文件夹路径
-            string imageFolderPath = Path.Combine(Application.persistentDataPath, "a");
+            string imageFolderPath = Path.Combine(Application.persistentDataPath, "SelectImages");
             
             // 如果文件夹不存在，直接返回
             if (!Directory.Exists(imageFolderPath))
