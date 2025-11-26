@@ -277,14 +277,23 @@ public class SaveLoadManager : MonoBehaviour
                 List<GameObject> levelObjects = new List<GameObject>();
                 foreach (var saveData in saveDataList)
                 {
-                    // 尝试在场景中找到对应的GameObject
-                    GameObject[] sceneObjects = Object.FindObjectsByType<GameObject>(FindObjectsInactive.Include, FindObjectsSortMode.None);
-                    foreach (var sceneObj in sceneObjects)
+                    // 直接使用Transform引用获取GameObject
+                    if (saveData.objectTransform != null && saveData.objectTransform.gameObject != null)
                     {
-                        if (sceneObj.name == saveData.objectName)
+                        levelObjects.Add(saveData.objectTransform.gameObject);
+                    }
+                    else
+                    {
+                        // 如果Transform引用为空，回退到名称+位置匹配（容错处理）
+                        GameObject[] sceneObjects = Object.FindObjectsByType<GameObject>(FindObjectsInactive.Include, FindObjectsSortMode.None);
+                        foreach (var sceneObj in sceneObjects)
                         {
-                            levelObjects.Add(sceneObj);
-                            break; // 找到匹配的对象后跳出内层循环
+                            if (sceneObj.name == saveData.objectName &&
+                                Vector3.Distance(sceneObj.transform.position, saveData.position) < 0.01f)
+                            {
+                                levelObjects.Add(sceneObj);
+                                break;
+                            }
                         }
                     }
                 }

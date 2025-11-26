@@ -15,6 +15,10 @@ public class ObjectSaveData
     
     // 新增字段：用于存储自定义组件数据
     public string customData;
+    
+    // 新增字段：用于直接引用Transform对象（仅在运行时使用，不会被序列化）
+    [System.NonSerialized]
+    public Transform objectTransform;
 }
 
 /// <summary>

@@ -91,7 +91,8 @@ public class ObjectSaveManager : MonoBehaviour
                     position = obj.transform.position,
                     rotation = obj.transform.rotation,
                     scale = obj.transform.localScale,
-                    objectName = obj.name
+                    objectName = obj.name,
+                    objectTransform = obj.transform // 直接保存Transform引用
                 };
                 
                 // 创建并合并自定义数据
