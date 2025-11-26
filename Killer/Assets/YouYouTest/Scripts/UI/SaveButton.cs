@@ -37,19 +37,25 @@ public class SaveButton : MonoBehaviour
         Debug.Log("保存按钮被点击了！");
         // 获取GameManager中的当前存档槽
         string currentSaveSlot = GameManager.Instance.nowLoadSaveSlot;
+        string savedSlotName = "";
         
         // 如果当前存档槽为空，使用默认值
         if (string.IsNullOrEmpty(currentSaveSlot))
         {
             Debug.LogWarning("当前存档槽为空，使用默认存档槽");
             SaveLoadManager.Instance.SaveSceneObjects();
+            savedSlotName = "Default"; // 默认存档槽名称
         }
         else
         {
             Debug.Log($"保存到存档槽: {currentSaveSlot}");
             // 调用SaveLoadManager单例的保存方法，传入当前存档槽
             SaveLoadManager.Instance.SaveSceneObjects(currentSaveSlot);
+            savedSlotName = currentSaveSlot;
         }
+        
+        // 触发保存完成事件，通知UI刷新
+        GlobalEvent.OnSaveComplete.Invoke(savedSlotName);
     }
     
     // // 实现IPointerDownHandler接口，在鼠标按下时立即触发

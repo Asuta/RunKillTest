@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.IO;
 using VInspector;
 
-public class SaveUI : MonoBehaviour
+public class SaveUI : AutoCleanupBehaviour
 {
     public List<GameObject> SaveEntrys;
     public GameObject entrySample;
@@ -18,6 +18,9 @@ public class SaveUI : MonoBehaviour
     // Start is called once before the first execution of Update after the MonoBehaviour is created
     void Start()
     {
+        // 注册全局事件监听器
+        RegisterEvent(GlobalEvent.OnSaveComplete, OnSaveComplete);
+        
         // 为addButton添加点击事件监听器
         if (addButton != null)
         {
@@ -55,6 +58,17 @@ public class SaveUI : MonoBehaviour
         {
             Debug.LogError("setDeleteButton未设置");
         }
+    }
+
+    /// <summary>
+    /// 保存完成事件处理
+    /// </summary>
+    /// <param name="slotName">保存的档位名称</param>
+    private void OnSaveComplete(string slotName)
+    {
+        Debug.Log($"收到保存完成事件，档位: {slotName}，刷新UI列表");
+        // 刷新存档列表显示
+        OnEnable();
     }
 
     /// <summary>

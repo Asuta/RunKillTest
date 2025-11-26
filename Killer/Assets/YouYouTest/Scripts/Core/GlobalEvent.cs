@@ -76,7 +76,10 @@ public static class GlobalEvent
     /// </summary>
     public static readonly UnityEvent<string> OnLoadSaveChange = new UnityEvent<string>();
 
-
+    /// <summary>
+    /// 存档保存事件 - 用于通知UI刷新存档列表
+    /// </summary>
+    public static readonly UnityEvent<string> OnSaveComplete = new UnityEvent<string>();
 
     /// <summary>
     /// 选择成功事件
