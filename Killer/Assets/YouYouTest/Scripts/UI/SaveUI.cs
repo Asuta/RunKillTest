@@ -306,10 +306,45 @@ public class SaveUI : MonoBehaviour
     private void OnDeleteButtonClicked(string slotName)
     {
         Debug.Log($"删除存档: {slotName}");
+        
+        // 删除对应的图片文件
+        DeleteSlotImage(slotName);
+        
+        // 删除存档数据
         SaveLoadManager.Instance.DeleteSaveSlot(slotName);
 
         // 删除后刷新UI
         OnEnable();
+    }
+
+    /// <summary>
+    /// 删除存档对应的图片文件
+    /// </summary>
+    /// <param name="slotName">档位名称</param>
+    private void DeleteSlotImage(string slotName)
+    {
+        try
+        {
+            // 构建图片文件路径
+            string imageFileName = $"{slotName}_SceneObjects.png";
+            string imagePath = Path.Combine(Application.persistentDataPath, "LevelImages", imageFileName);
+            
+            // 检查图片文件是否存在
+            if (File.Exists(imagePath))
+            {
+                // 删除图片文件
+                File.Delete(imagePath);
+                Debug.Log($"成功删除截图文件: {imageFileName}");
+            }
+            else
+            {
+                Debug.LogWarning($"截图文件不存在，无需删除: {imagePath}");
+            }
+        }
+        catch (System.Exception ex)
+        {
+            Debug.LogError($"删除截图文件时发生错误: {ex.Message}");
+        }
     }
 
     /// <summary>
