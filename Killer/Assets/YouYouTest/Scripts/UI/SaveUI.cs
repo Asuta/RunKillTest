@@ -1,5 +1,6 @@
 using UnityEngine;
 using System.Collections.Generic;
+using System.IO;
 using VInspector;
 
 public class SaveUI : MonoBehaviour
@@ -175,6 +176,9 @@ public class SaveUI : MonoBehaviour
             }
         }
 
+        // 查找Image组件并设置截图
+        SetupEntryImage(entry, slotInfo);
+
         // 查找Button组件并设置点击事件
         UnityEngine.UI.Button[] buttons = entry.GetComponentsInChildren<UnityEngine.UI.Button>(true);
         foreach (var button in buttons)
@@ -198,6 +202,76 @@ public class SaveUI : MonoBehaviour
                 // 设置删除按钮的初始状态
                 button.gameObject.SetActive(deleteButtonsActive);
             }
+        }
+    }
+
+    /// <summary>
+    /// 设置条目的截图图片
+    /// </summary>
+    /// <param name="entry">条目GameObject</param>
+    /// <param name="slotInfo">存档档位信息</param>
+    private void SetupEntryImage(GameObject entry, SaveSlotInfo slotInfo)
+    {
+        // 查找名为"Image"的子物体
+        Transform imageTransform = entry.transform.Find("Image");
+        if (imageTransform == null)
+        {
+            // 如果直接找不到，尝试在所有子物体中查找
+            Transform[] childTransforms = entry.GetComponentsInChildren<Transform>();
+            foreach (var child in childTransforms)
+            {
+                if (child.name == "Image")
+                {
+                    imageTransform = child;
+                    break;
+                }
+            }
+        }
+
+        if (imageTransform != null)
+        {
+            UnityEngine.UI.Image imageComponent = imageTransform.GetComponent<UnityEngine.UI.Image>();
+            if (imageComponent != null)
+            {
+                // 构建图片文件路径
+                string imageFileName = $"{slotInfo.slotName}_SceneObjects.png";
+                string imagePath = Path.Combine(Application.persistentDataPath, "LevelImages", imageFileName);
+                
+                // 检查图片文件是否存在
+                if (File.Exists(imagePath))
+                {
+                    // 读取图片文件
+                    byte[] fileData = File.ReadAllBytes(imagePath);
+                    Texture2D texture = new Texture2D(2, 2);
+                    
+                    if (texture.LoadImage(fileData))
+                    {
+                        // 创建Sprite并赋值给Image组件
+                        Sprite sprite = Sprite.Create(texture, new Rect(0, 0, texture.width, texture.height), new Vector2(0.5f, 0.5f));
+                        imageComponent.sprite = sprite;
+                        
+                        Debug.Log($"成功加载截图: {imageFileName}");
+                    }
+                    else
+                    {
+                        Debug.LogWarning($"无法加载图片数据: {imageFileName}");
+                    }
+                }
+                else
+                {
+                    Debug.LogWarning($"截图文件不存在: {imagePath}");
+                    // 可以设置一个默认图片或者保持空白
+                    imageComponent.sprite = null;
+                }
+            }
+            else
+            {
+                Debug.LogWarning("找到名为'Image'的对象，但没有Image组件");
+            }
+        }
+        else
+        {
+            Debug.LogWarning("在条目中未找到名为'Image'的子物体");
         }
     }
 
@@ -317,7 +391,6 @@ public class SaveUI : MonoBehaviour
     {
 
     }
-
 
     [Button("切换删除按钮的active状态")]
     public void ChangeActiveOfDeleteButton()
