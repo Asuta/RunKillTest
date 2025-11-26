@@ -269,6 +269,44 @@ public class SaveLoadManager : MonoBehaviour
         if (success && enableDebugLog)
         {
             Debug.Log($"成功保存 {saveDataList.Count} 个对象");
+            
+            // 保存JSON文件后，生成截图
+            try
+            {
+                // 获取所有可保存对象的GameObject列表
+                List<GameObject> levelObjects = new List<GameObject>();
+                foreach (var saveData in saveDataList)
+                {
+                    // 尝试在场景中找到对应的GameObject
+                    GameObject[] sceneObjects = Object.FindObjectsByType<GameObject>(FindObjectsInactive.Include, FindObjectsSortMode.None);
+                    foreach (var sceneObj in sceneObjects)
+                    {
+                        if (sceneObj.name == saveData.objectName)
+                        {
+                            levelObjects.Add(sceneObj);
+                            break; // 找到匹配的对象后跳出内层循环
+                        }
+                    }
+                }
+                
+                if (levelObjects.Count > 0)
+                {
+                    // 生成图片文件名（去掉扩展名）
+                    string imageFileName = Path.GetFileNameWithoutExtension(fileName);
+                    
+                    // 调用截图方法，使用档位名称作为图片名
+                    ObjectSnapshot.CaptureAndSave(levelObjects, SnapshotSaveType.TypeLevel, imageFileName);
+                    Debug.Log($"已生成level对象的截图: {imageFileName}.png");
+                }
+                else
+                {
+                    Debug.LogWarning("没有找到对应的场景对象，无法生成截图");
+                }
+            }
+            catch (System.Exception e)
+            {
+                Debug.LogError($"生成level截图时出错: {e.Message}");
+            }
         }
     }
     
