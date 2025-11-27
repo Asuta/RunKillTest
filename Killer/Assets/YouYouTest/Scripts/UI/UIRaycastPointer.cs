@@ -138,9 +138,13 @@ public class UIRaycastPointer : MonoBehaviour
             }
             else
             {
-                // 如果没有UI射线检测结果，使用屏幕中心作为回退
-                screenPosition = new Vector2(Screen.width / 2, Screen.height / 2);
-                Debug.Log("UIRaycastPointer: XR UI ray no hit, using fallback position: " + screenPosition);
+                // 如果没有UI射线检测结果，隐藏小红点并返回
+                // 之前这里回退到了屏幕中心，导致了类似Gaze的效果，现在移除这个回退
+                if (hitPointMarker != null)
+                {
+                    hitPointMarker.gameObject.SetActive(false);
+                }
+                return;
             }
         }
         else
