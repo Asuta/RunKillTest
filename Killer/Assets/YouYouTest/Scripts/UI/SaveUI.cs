@@ -2,6 +2,7 @@ using UnityEngine;
 using System.Collections.Generic;
 using System.IO;
 using VInspector;
+using TMPro;
 
 public class SaveUI : AutoCleanupBehaviour
 {
@@ -141,7 +142,20 @@ public class SaveUI : AutoCleanupBehaviour
             // 根据文本名称或内容来设置不同的信息
             if (text.name.ToLower().Contains("name") || text.name.ToLower().Contains("slot"))
             {
-                text.text = slotInfo.slotName;
+                // 检查这个Text组件是否属于InputField
+                TMPro.TMP_InputField inputField = text.GetComponentInParent<TMPro.TMP_InputField>();
+                if (inputField != null && inputField.textComponent == text)
+                {
+                    // 如果是InputField的文本组件，通过InputField来设置文本
+                    inputField.text = slotInfo.slotName;
+                    Debug.LogError("找到InputField啦，通过InputField设置文本: " + inputField.name);
+                }
+                else
+                {
+                    // 如果是普通的Text组件，直接设置
+                    text.text = slotInfo.slotName;
+                    Debug.LogError("找到普通Text啦，名字是: " + text.name);
+                }
             }
             else if (text.name.ToLower().Contains("time") || text.name.ToLower().Contains("date"))
             {
