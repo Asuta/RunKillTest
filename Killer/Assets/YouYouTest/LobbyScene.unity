@@ -3617,9 +3617,12 @@ MonoBehaviour:
   enableDebugLog: 1
   defaultSlotName: Default
   useProgressiveLoading: 1
-  progressiveLoadingDuration: 3
+  progressiveLoadingDuration: 0.5
   minObjectsPerFrame: 0
   maxObjectsPerFrame: 0
+  enableAdaptiveLoading: 1
+  targetFrameRate: 60
+  adaptiveAdjustmentInterval: 10
 --- !u!4 &286741078
 Transform:
   m_ObjectHideFlags: 0
@@ -35669,7 +35672,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 1804942381001082678, guid: 4742cee56a8b8ba468f0c3855dd17a14, type: 3}
       propertyPath: m_IsActive
-      value: 0
+      value: 1
       objectReference: {fileID: 0}
     - target: {fileID: 3509327686383710229, guid: 4742cee56a8b8ba468f0c3855dd17a14, type: 3}
       propertyPath: m_IsActive
@@ -38490,7 +38493,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 1
+  m_IsActive: 0
 --- !u!33 &6137549504747557012
 MeshFilter:
   m_ObjectHideFlags: 0
@@ -43374,6 +43377,9 @@ MonoBehaviour:
   selectUI: {fileID: 0}
   offsetYdistance: 0
   handOutlineController: {fileID: 0}
+  centerPositionSmoothSpeed: 10
+  centerRotationSmoothSpeed: 15
+  centerFreezeYaxis: 0
 --- !u!114 &9167095900856961748
 MonoBehaviour:
   m_ObjectHideFlags: 0
