@@ -148,6 +148,7 @@ public class SaveUI : AutoCleanupBehaviour
                 {
                     // 如果是InputField的文本组件，通过InputField来设置文本
                     inputField.text = slotInfo.LevelName;
+                    inputField.GetComponent<LevelNameInput>().levelJsonName = slotInfo.fileName;
                     Debug.LogError("找到InputField啦，通过InputField设置文本: " + inputField.name);
                 }
                 else

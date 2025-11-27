@@ -28,7 +28,9 @@ public class LevelNameInput : MonoBehaviour
 
     void OnInputEndEdit(string text)
     {
-        Debug.Log("hahaha");
+        Debug.Log("输入完成，新的关卡名称: " + text);
+        // 这里可以添加保存关卡名称的逻辑，例如更新保存数据
+        SaveLoadManager.Instance.UpdateLevelName(levelJsonName, text);
     }
 
     // Update is called once per frame

@@ -2939,6 +2939,7 @@ GameObject:
   - component: {fileID: 178507513}
   - component: {fileID: 178507512}
   - component: {fileID: 178507515}
+  - component: {fileID: 178507516}
   m_Layer: 5
   m_Name: InputField (TMP)
   m_TagString: Untagged
@@ -3121,6 +3122,20 @@ MonoBehaviour:
   createDistance: 0.17
   createScale: 0.0004
   targetKeyboard: {fileID: 0}
+--- !u!114 &178507516
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 178507510}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: ea4e0849bc3a34c499cf822b130132e6, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  inputField: {fileID: 0}
+  levelJsonName: 
 --- !u!1 &214039601
 GameObject:
   m_ObjectHideFlags: 0
