@@ -52,8 +52,6 @@ public class SaveLoadManager : MonoBehaviour
     [Header("过程加载设置")]
     [SerializeField] private bool useProgressiveLoading = true;
     [SerializeField] private float progressiveLoadingDuration = 3.0f; // 加载持续时间（秒）
-    [SerializeField] private float minObjectsPerFrame = 1; // 每帧最少加载对象数
-    [SerializeField] private float maxObjectsPerFrame = 50; // 每帧最多加载对象数
     
     // 管理器实例
     private FileSaveManager fileManager;
@@ -500,21 +498,8 @@ public class SaveLoadManager : MonoBehaviour
         
         float startTime = Time.time;
         
-        // 智能计算加载策略
-        float estimatedFrameRate = 60f; // 默认60fps
-        float totalFrames = progressiveLoadingDuration * estimatedFrameRate;
-        
-        // 如果对象数量很少，使用基于时间的加载策略
-        if (totalObjects <= totalFrames)
-        {
-            // 对象数量少于总帧数，使用基于时间的加载
-            yield return StartCoroutine(TimeBasedLoading(sceneData, totalObjects, startTime));
-        }
-        else
-        {
-            // 对象数量较多，使用基于帧的加载
-            yield return StartCoroutine(FrameBasedLoading(sceneData, totalObjects, startTime, totalFrames));
-        }
+        // 直接使用基于时间的加载策略
+        yield return StartCoroutine(TimeBasedLoading(sceneData, totalObjects, startTime));
         
         // 加载完成
         isLoading = false;
@@ -531,7 +516,7 @@ public class SaveLoadManager : MonoBehaviour
     }
     
     /// <summary>
-    /// 基于时间的加载策略（适用于对象数量较少的情况）
+    /// 基于时间的加载策略（根据时间进度计算应该加载的对象数量）
     /// </summary>
     private System.Collections.IEnumerator TimeBasedLoading(SceneSaveData sceneData, int totalObjects, float startTime)
     {
@@ -577,74 +562,6 @@ public class SaveLoadManager : MonoBehaviour
         }
     }
     
-    /// <summary>
-    /// 基于帧的加载策略（适用于对象数量较多的情况）
-    /// </summary>
-    private System.Collections.IEnumerator FrameBasedLoading(SceneSaveData sceneData, int totalObjects, float startTime, float totalFrames)
-    {
-        int loadedCount = 0;
-        
-        // 确保配置参数有效，防止为0导致死循环
-        float effectiveMin = Mathf.Max(1f, minObjectsPerFrame);
-        float effectiveMax = Mathf.Max(effectiveMin, maxObjectsPerFrame);
-
-        // 计算每帧应该加载的对象数量
-        float objectsPerFrame = totalObjects / totalFrames;
-        
-        if (enableDebugLog)
-        {
-            Debug.Log($"[FrameBasedLoading Debug] totalObjects: {totalObjects}, totalFrames: {totalFrames}, calculated: {objectsPerFrame}, min: {minObjectsPerFrame}, max: {maxObjectsPerFrame}, effectiveMin: {effectiveMin}, effectiveMax: {effectiveMax}");
-        }
-
-        // 限制每帧加载对象数量
-        objectsPerFrame = Mathf.Clamp(objectsPerFrame, effectiveMin, effectiveMax);
-        
-        if (enableDebugLog)
-        {
-            Debug.Log($"使用基于帧的加载策略，每帧加载对象数量: {objectsPerFrame:F2}");
-        }
-        
-        // 分帧加载对象
-        while (loadedCount < totalObjects)
-        {
-            // 计算这一帧应该加载的对象数量
-            int objectsToLoadThisFrame = Mathf.CeilToInt(objectsPerFrame);
-            objectsToLoadThisFrame = Mathf.Min(objectsToLoadThisFrame, totalObjects - loadedCount);
-            
-            // 加载这一帧的对象
-            for (int i = 0; i < objectsToLoadThisFrame && loadedCount < totalObjects; i++)
-            {
-                ObjectSaveData objectData = sceneData.objects[loadedCount];
-                if (objectManager.LoadSingleObject(objectData))
-                {
-                    loadedCount++;
-                }
-                else
-                {
-                    // 即使加载失败也要增加计数，避免死循环
-                    loadedCount++;
-                }
-            }
-            
-            // 计算进度
-            float progress = (float)loadedCount / totalObjects;
-            float elapsedTime = Time.time - startTime;
-            
-            // 触发进度事件
-            OnLoadingProgress?.Invoke(progress, loadedCount, totalObjects);
-            
-            if (enableDebugLog && loadedCount % 50 == 0) // 每50个对象输出一次日志
-            {
-                Debug.Log($"加载进度: {progress:P1} ({loadedCount}/{totalObjects}) - 已用时: {elapsedTime:F2}秒");
-            }
-            
-            // 如果还有对象未加载，等待下一帧
-            if (loadedCount < totalObjects)
-            {
-                yield return null;
-            }
-        }
-    }
     
     /// <summary>
     /// 停止当前加载
