@@ -253,6 +253,7 @@ public class SaveLoadManager : MonoBehaviour
         SceneSaveData sceneData = new SceneSaveData
         {
             saveTime = System.DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss"),
+            name = slotName ?? defaultSlotName, // 使用档位名称作为关卡名称
             objectCount = saveDataList.Count,
             objects = saveDataList
         };
@@ -340,6 +341,7 @@ public class SaveLoadManager : MonoBehaviour
         SceneSaveData sceneData = new SceneSaveData
         {
             saveTime = System.DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss"),
+            name = slotName, // 使用档位名称作为关卡名称
             objectCount = 0,
             objects = new List<ObjectSaveData>()
         };
@@ -716,8 +718,9 @@ public class SaveLoadManager : MonoBehaviour
                     // 获取文件信息
                     FileInfo fileInfo = new FileInfo(filePath);
                     
-                    // 尝试读取保存时间
+                    // 尝试读取保存时间和关卡名称
                     string saveTime = fileInfo.LastWriteTime.ToString("yyyy-MM-dd HH:mm:ss");
+                    string levelName = slotName; // 默认使用档位名称
                     int objectCount = 0;
                     
                     try
@@ -730,6 +733,8 @@ public class SaveLoadManager : MonoBehaviour
                             {
                                 saveTime = sceneData.saveTime;
                                 objectCount = sceneData.objectCount;
+                                // 如果JSON中有name字段，使用它；否则使用档位名称
+                                levelName = !string.IsNullOrEmpty(sceneData.name) ? sceneData.name : slotName;
                             }
                         }
                     }
@@ -746,6 +751,7 @@ public class SaveLoadManager : MonoBehaviour
                         slotName = slotName,
                         fileName = Path.GetFileName(filePath),
                         saveTime = saveTime,
+                        name = levelName, // 设置关卡名称
                         objectCount = objectCount,
                         fileSize = fileInfo.Length
                     });
@@ -844,6 +850,7 @@ public class SaveLoadManager : MonoBehaviour
             foreach (var slot in slots)
             {
                 Debug.Log($"档位名称: {slot.slotName}");
+                Debug.Log($"  关卡名称: {slot.name}");
                 Debug.Log($"  保存时间: {slot.saveTime}");
                 Debug.Log($"  对象数量: {slot.objectCount}");
                 Debug.Log($"  文件大小: {slot.fileSize} 字节");
@@ -1565,6 +1572,7 @@ public class SaveSlotInfo
     public string slotName;
     public string fileName;
     public string saveTime;
+    public string name; // 关卡名称（从JSON文件中读取）
     public int objectCount;
     public long fileSize;
 }

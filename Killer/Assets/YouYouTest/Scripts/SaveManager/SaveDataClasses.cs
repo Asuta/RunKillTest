@@ -28,6 +28,7 @@ public class ObjectSaveData
 public class SceneSaveData
 {
     public string saveTime;
+    public string name; // 场景/关卡名称
     public int objectCount;
     public List<ObjectSaveData> objects;
 }
