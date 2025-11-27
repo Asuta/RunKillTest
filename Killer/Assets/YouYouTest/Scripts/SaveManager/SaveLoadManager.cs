@@ -751,7 +751,7 @@ public class SaveLoadManager : MonoBehaviour
                         slotName = slotName,
                         fileName = Path.GetFileName(filePath),
                         saveTime = saveTime,
-                        name = levelName, // 设置关卡名称
+                        LevelName = levelName, // 设置关卡名称
                         objectCount = objectCount,
                         fileSize = fileInfo.Length
                     });
@@ -850,7 +850,7 @@ public class SaveLoadManager : MonoBehaviour
             foreach (var slot in slots)
             {
                 Debug.Log($"档位名称: {slot.slotName}");
-                Debug.Log($"  关卡名称: {slot.name}");
+                Debug.Log($"  关卡名称: {slot.LevelName}");
                 Debug.Log($"  保存时间: {slot.saveTime}");
                 Debug.Log($"  对象数量: {slot.objectCount}");
                 Debug.Log($"  文件大小: {slot.fileSize} 字节");
@@ -1561,6 +1561,85 @@ public class SaveLoadManager : MonoBehaviour
         // 重新序列化并保存
         saveData.customData = JsonUtility.ToJson(new SerializationHelper(customState));
     }
+    
+    /// <summary>
+    /// 根据JSON文件名修改关卡名称
+    /// </summary>
+    /// <param name="jsonFileName">JSON文件名（可以是档位名称或完整文件名）</param>
+    /// <param name="newName">新的关卡名称</param>
+    /// <returns>是否修改成功</returns>
+    public bool UpdateLevelName(string jsonFileName, string newName)
+    {
+        if (string.IsNullOrEmpty(jsonFileName))
+        {
+            Debug.LogError("JSON文件名不能为空");
+            return false;
+        }
+        
+        if (string.IsNullOrEmpty(newName))
+        {
+            Debug.LogError("新的关卡名称不能为空");
+            return false;
+        }
+        
+        try
+        {
+            // 确定文件路径
+            string fileName = jsonFileName;
+            
+            // 如果没有包含_SceneObjects.json后缀，假设是档位名称，生成完整文件名
+            if (!fileName.EndsWith("_SceneObjects.json"))
+            {
+                fileName = GenerateSaveFileName(fileName);
+            }
+            
+            string userFolderPath = fileManager.GetUserFolderPath();
+            string filePath = Path.Combine(userFolderPath, fileName);
+            
+            // 检查文件是否存在
+            if (!File.Exists(filePath))
+            {
+                Debug.LogError($"存档文件不存在: {filePath}");
+                return false;
+            }
+            
+            // 读取现有数据
+            string jsonData = File.ReadAllText(filePath);
+            if (string.IsNullOrEmpty(jsonData))
+            {
+                Debug.LogError("无法读取存档文件");
+                return false;
+            }
+            
+            // 反序列化JSON数据
+            SceneSaveData sceneData = JsonUtility.FromJson<SceneSaveData>(jsonData);
+            if (sceneData == null)
+            {
+                Debug.LogError("无法解析存档文件数据");
+                return false;
+            }
+            
+            // 更新名称字段
+            string oldName = sceneData.name;
+            sceneData.name = newName;
+            
+            // 重新序列化并保存
+            string updatedJsonData = JsonUtility.ToJson(sceneData, true);
+            File.WriteAllText(filePath, updatedJsonData);
+            
+            if (enableDebugLog)
+            {
+                Debug.Log($"成功更新关卡名称: '{oldName}' -> '{newName}' (文件: {fileName})");
+            }
+            
+            return true;
+        }
+        catch (System.Exception e)
+        {
+            Debug.LogError($"更新关卡名称时出错: {e.Message}");
+            return false;
+        }
+    }
 }
 
 /// <summary>
@@ -1572,7 +1651,7 @@ public class SaveSlotInfo
     public string slotName;
     public string fileName;
     public string saveTime;
-    public string name; // 关卡名称（从JSON文件中读取）
+    public string LevelName; // 关卡名称（从JSON文件中读取）
     public int objectCount;
     public long fileSize;
 }

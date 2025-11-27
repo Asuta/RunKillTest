@@ -156,6 +156,27 @@ public class ManyButtonTest : MonoBehaviour
         SceneManager.LoadScene("LobbyScene");
     }
 
+    [Button("update level name")]
+    void Button5(string jsonName = "slot One", string newName = "更新的关卡名称")
+    {
+        if (SaveLoadManager.Instance != null)
+        {
+            bool success = SaveLoadManager.Instance.UpdateLevelName(jsonName, newName);
+            if (success)
+            {
+                Debug.Log($"关卡名称更新成功: {jsonName} -> {newName}");
+            }
+            else
+            {
+                Debug.LogError("关卡名称更新失败");
+            }
+        }
+        else
+        {
+            Debug.LogError("SaveLoadManager 实例不存在，无法更新关卡名称");
+        }
+    }
+
     public void OnHoverEnter()
     {
         Debug.Log("鼠标进入");

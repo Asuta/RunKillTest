@@ -147,13 +147,13 @@ public class SaveUI : AutoCleanupBehaviour
                 if (inputField != null && inputField.textComponent == text)
                 {
                     // 如果是InputField的文本组件，通过InputField来设置文本
-                    inputField.text = slotInfo.slotName;
+                    inputField.text = slotInfo.LevelName;
                     Debug.LogError("找到InputField啦，通过InputField设置文本: " + inputField.name);
                 }
                 else
                 {
                     // 如果是普通的Text组件，直接设置
-                    text.text = slotInfo.slotName;
+                    text.text = slotInfo.LevelName;
                     Debug.LogError("找到普通Text啦，名字是: " + text.name);
                 }
             }
