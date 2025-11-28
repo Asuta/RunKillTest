@@ -12,35 +12,19 @@ public class SaveLoadManager : MonoBehaviour
 {
     // 单例模式实现
     private static SaveLoadManager _instance;
-    public static SaveLoadManager Instance
-    {
-        get
-        {
-            if (_instance == null)
-            {
-                _instance = FindObjectsByType<SaveLoadManager>(FindObjectsSortMode.None)[0];
-                if (_instance == null)
-                {
-                    GameObject go = new GameObject("SaveTestt_Singleton");
-                    _instance = go.AddComponent<SaveLoadManager>();
-                    DontDestroyOnLoad(go);
-                }
-            }
-            return _instance;
-        }
-    }
+    public static SaveLoadManager Instance => _instance;
+
     
     private void Awake()
     {
-        if (_instance == null)
+        if (_instance != null && _instance != this)
         {
-            _instance = this;
-            DontDestroyOnLoad(gameObject);
+            Destroy(gameObject); // 防止重复创建
+            return;
         }
-        else if (_instance != this)
-        {
-            Destroy(gameObject);
-        }
+        
+        _instance = this;
+        DontDestroyOnLoad(gameObject); // 保持跨场景存在
     }
 
     [Header("保存设置")]
