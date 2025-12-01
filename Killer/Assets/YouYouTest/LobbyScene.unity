@@ -35603,7 +35603,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 1804942381001082678, guid: 4742cee56a8b8ba468f0c3855dd17a14, type: 3}
       propertyPath: m_IsActive
-      value: 1
+      value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 3509327686383710229, guid: 4742cee56a8b8ba468f0c3855dd17a14, type: 3}
       propertyPath: m_IsActive
@@ -38424,7 +38424,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 0
+  m_IsActive: 1
 --- !u!33 &6137549504747557012
 MeshFilter:
   m_ObjectHideFlags: 0
@@ -43426,6 +43426,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: a5dd7789e0401734d9c12301a4533f40, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  bodyPosition: {fileID: 7135341510087488606}
   leftSphere: {fileID: 896481436}
   leftSphereTarget: {fileID: 3139601464857640960}
   leftDirection: {x: 0, y: 0, z: 0}
@@ -43438,6 +43439,12 @@ MonoBehaviour:
   finalVelocity: {x: 0, y: 0, z: 0}
   finalVelocityMultiplier: 33
   thisRb: {fileID: 8452711748080353600}
+  isOnGround: 0
+  groundCheckRadius: 0.56
+  groundCheckDistance: 0.61
+  groundLayerMask:
+    serializedVersion: 2
+    m_Bits: 4294967295
   linePosition: {fileID: 627479998}
   lerpSpeed: 5
 --- !u!1 &9206708421677744238

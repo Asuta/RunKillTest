@@ -1,7 +1,10 @@
+using System;
 using UnityEngine;
 
 public class NewVRMove : MonoBehaviour
 {
+    public Transform bodyPosition;
+
     public Transform leftSphere;
     public Transform leftSphereTarget;
 
@@ -21,6 +24,18 @@ public class NewVRMove : MonoBehaviour
     public float finalVelocityMultiplier;
 
     public Rigidbody thisRb;
+
+    public bool isOnGround;
+
+    [Header("地面检测参数")]
+    [Tooltip("球体检测的半径")]
+    public float groundCheckRadius = 0.2f;
+    
+    [Tooltip("球体检测的距离")]
+    public float groundCheckDistance = 0.3f;
+    
+    [Tooltip("指定要检测的地面层")]
+    public LayerMask groundLayerMask = -1; // -1表示检测所有层
 
 
 
@@ -50,6 +65,64 @@ public class NewVRMove : MonoBehaviour
 
     // LateUpdate is called after all Update functions have been called
     void LateUpdate()
+    {
+        GroundCheck();
+        MoveLoop();
+    }
+
+    private void GroundCheck()
+    {
+        // 从当前物体位置开始检测
+        Vector3 spherePosition = bodyPosition.position;
+        Vector3 direction = Vector3.down; // 向下检测
+        
+        // 创建球体投射的参数
+        RaycastHit hitInfo;
+        
+        // 执行球体投射，检测指定层的地面
+        bool hitGround = Physics.SphereCast(
+            spherePosition,
+            groundCheckRadius,
+            direction,
+            out hitInfo,
+            groundCheckDistance,
+            groundLayerMask
+        );
+        
+        // 更新地面状态
+        isOnGround = hitGround;
+        
+        // 可选：在Scene视图中可视化检测范围（仅在编辑器中可见）
+        #if UNITY_EDITOR
+        // 使用CapsuleWireframeDrawer绘制球体投射的可视化
+        // 将球体投射转换为胶囊体表示（避免 point1==point2 导致方向向量为零的问题）
+        Vector3 sphereCenter = spherePosition;
+        Vector3 castDirection = direction * groundCheckDistance;
+        Color gizmoColor = isOnGround ? Color.green : Color.red;
+        
+        // 构造非常短的胶囊（顶部/底部点），确保非零高度并与对象的 up 方向一致
+        float smallHalfHeight = Mathf.Max(0.001f, groundCheckRadius * 0.01f);
+        Vector3 point1 = sphereCenter - transform.up * smallHalfHeight;
+        Vector3 point2 = sphereCenter + transform.up * smallHalfHeight;
+        
+        CapsuleWireframeDrawer.DrawCapsuleCastGizmo(
+            point1,
+            point2,
+            groundCheckRadius,
+            castDirection,
+            gizmoColor
+        );
+        
+        // 显示检测到的层信息
+        if (hitGround)
+        {
+            Debug.Log("检测到地面: " + LayerMask.LayerToName(hitInfo.collider.gameObject.layer) + " 层");
+        }
+        #endif
+    }
+
+
+    private void MoveLoop()
     {
         // 读取当前grip状态（布尔值）
         bool leftGripPressed = InputActionsManager.Actions.XRILeftInteraction.Select.IsPressed();
@@ -144,7 +217,7 @@ public class NewVRMove : MonoBehaviour
         {
             activeDirection += rightDirection;
         }
-        
+
         finalVelocity = residualVelocity + activeDirection;
 
         if (linePosition != null)
@@ -152,10 +225,14 @@ public class NewVRMove : MonoBehaviour
             Debug.DrawLine(linePosition.position, linePosition.position + finalVelocity * 11f, Color.green, 0.1f);
         }
 
-        thisRb.linearVelocity = finalVelocity * finalVelocityMultiplier;
+        // thisRb.linearVelocity = finalVelocity * finalVelocityMultiplier;
+        Vector3 speed = finalVelocity * finalVelocityMultiplier;
+        thisRb.linearVelocity = new Vector3(speed.x, thisRb.linearVelocity.y, speed.z);
+
     }
 
     // 用于检测grip键状态变化
+
     private bool lastLeftGripPressed;
     private bool lastRightGripPressed;
 }
