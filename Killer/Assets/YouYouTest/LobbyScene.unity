@@ -38418,6 +38418,7 @@ GameObject:
   - component: {fileID: 4591060599380716581}
   - component: {fileID: 8287959641213339100}
   - component: {fileID: 9191337270833024015}
+  - component: {fileID: 9191337270833024016}
   m_Layer: 7
   m_Name: VRPlayer (1)
   m_TagString: Untagged
@@ -43447,6 +43448,21 @@ MonoBehaviour:
     m_Bits: 4294967295
   linePosition: {fileID: 627479998}
   lerpSpeed: 5
+--- !u!114 &9191337270833024016
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 6096394950407524156}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: c4cd1b271d7517f4787f51a18339cdf4, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  handT: {fileID: 7618138443849178585}
+  parentT: {fileID: 7201701550385485738}
+  startDraw: 0
 --- !u!1 &9206708421677744238
 GameObject:
   m_ObjectHideFlags: 0
