@@ -101,10 +101,17 @@ public class JumpControllerTest : MonoBehaviour
             // 计算线段的方向和长度
             Vector3 lineDirection = currentWorldPosition - startWorldPosition;
             
-            // 给刚体施加一个线性力（使用线段的向量作为力的方向和大小）
-            if (thisRb != null)
+            // 调用NewVRMove中的Jump方法
+            if (vRMove != null)
             {
-                // 可以根据需要调整力的倍数
+                // 计算跳跃力（反向并应用倍数）
+                Vector3 jumpForce = lineDirection * -forceMultiplier;
+                vRMove.Jump(jumpForce);
+                Debug.Log("手松开，调用NewVRMove.Jump，施加力: " + jumpForce);
+            }
+            else if (thisRb != null)
+            {
+                // 如果没有NewVRMove引用，回退到原来的方式
                 thisRb.AddForce(lineDirection * -forceMultiplier, ForceMode.Impulse);
                 Debug.Log("手松开，给刚体施加线性力: " + lineDirection * forceMultiplier);
             }

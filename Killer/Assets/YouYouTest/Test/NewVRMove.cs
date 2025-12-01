@@ -1,6 +1,84 @@
 using System;
 using UnityEngine;
 
+// 移动状态枚举
+public enum MovementState
+{
+    Grounded,
+    Jumping
+}
+
+// 状态基类
+public abstract class MovementStateBase
+{
+    protected NewVRMove controller;
+    
+    public MovementStateBase(NewVRMove controller)
+    {
+        this.controller = controller;
+    }
+    
+    public abstract void Enter();
+    public abstract void Update();
+    public abstract void Exit();
+}
+
+// 地面状态
+public class GroundedState : MovementStateBase
+{
+    public GroundedState(NewVRMove controller) : base(controller) { }
+    
+    public override void Enter()
+    {
+        Debug.Log("进入地面状态");
+    }
+    
+    public override void Update()
+    {
+        // 在地面状态下的移动逻辑
+        controller.GroundMovement();
+        
+        // 检查是否应该切换到跳跃状态
+        if (!controller.isOnGround)
+        {
+            controller.ChangeState(new JumpingState(controller));
+        }
+    }
+    
+    public override void Exit()
+    {
+        Debug.Log("离开地面状态");
+    }
+}
+
+// 跳跃状态
+public class JumpingState : MovementStateBase
+{
+    public JumpingState(NewVRMove controller) : base(controller) { }
+    
+    public override void Enter()
+    {
+        Debug.Log("进入跳跃状态");
+    }
+    
+    public override void Update()
+    {
+        // 在跳跃状态下的移动逻辑
+        controller.AirMovement();
+        
+        // 检查是否应该切换到地面状态
+        if (controller.isOnGround)
+        {
+            controller.ChangeState(new GroundedState(controller));
+        }
+    }
+    
+    public override void Exit()
+    {
+        Debug.Log("离开跳跃状态");
+    }
+}
+
 public class NewVRMove : MonoBehaviour
 {
     public Transform bodyPosition;
@@ -26,6 +104,10 @@ public class NewVRMove : MonoBehaviour
     public Rigidbody thisRb;
 
     public bool isOnGround;
+    
+    // 状态机相关
+    private MovementStateBase currentState;
+    public MovementState CurrentStateType { get; private set; }
 
     [Header("地面检测参数")]
     [Tooltip("球体检测的半径")]
@@ -55,19 +137,67 @@ public class NewVRMove : MonoBehaviour
         // 初始化grip状态
         lastLeftGripPressed = false;
         lastRightGripPressed = false;
+        
+        // 初始化状态机，默认进入地面状态
+        ChangeState(new GroundedState(this));
     }
 
     // Update is called once per frame
     void Update()
     {
-
+        // 更新当前状态
+        currentState?.Update();
     }
 
     // LateUpdate is called after all Update functions have been called
     void LateUpdate()
     {
         GroundCheck();
+    }
+    
+    // 状态切换方法
+    public void ChangeState(MovementStateBase newState)
+    {
+        currentState?.Exit();
+        currentState = newState;
+        currentState.Enter();
+        
+        // 更新状态类型
+        if (newState is GroundedState)
+            CurrentStateType = MovementState.Grounded;
+        else if (newState is JumpingState)
+            CurrentStateType = MovementState.Jumping;
+    }
+    
+    // 地面移动逻辑
+    public void GroundMovement()
+    {
         MoveLoop();
+    }
+    
+    // 空中移动逻辑
+    public void AirMovement()
+    {
+        // 在空中的移动逻辑，可能有不同的控制方式
+        AirMoveLoop();
+    }
+
+    public void Jump(Vector3 jumpForce)
+    {
+        // 只有在地面上时才能跳跃
+        if (CurrentStateType == MovementState.Grounded && thisRb != null)
+        {
+            // 施加跳跃力
+            thisRb.AddForce(jumpForce, ForceMode.Impulse);
+            Debug.Log("执行跳跃，施加力: " + jumpForce);
+            
+            // 立即切换到跳跃状态
+            ChangeState(new JumpingState(this));
+        }
+        else if (CurrentStateType != MovementState.Grounded)
+        {
+            Debug.Log("不在地面状态，无法跳跃");
+        }
     }
 
     private void GroundCheck()
@@ -229,6 +359,113 @@ public class NewVRMove : MonoBehaviour
         Vector3 speed = finalVelocity * finalVelocityMultiplier;
         thisRb.linearVelocity = new Vector3(speed.x, thisRb.linearVelocity.y, speed.z);
 
+    }
+    
+    // 空中移动循环
+    private void AirMoveLoop()
+    {
+        // 读取当前grip状态（布尔值）
+        bool leftGripPressed = InputActionsManager.Actions.XRILeftInteraction.Select.IsPressed();
+        bool rightGripPressed = InputActionsManager.Actions.XRIRightInteraction.Select.IsPressed();
+
+        // 1) 先基于当前sphere与target的"真实位置"计算方向向量（**必须在修改球体位置之前计算**）
+        if (leftSphere != null && leftSphereTarget != null)
+        {
+            Vector3 rawLeftDirection = leftSphere.position - leftSphereTarget.position;
+            float leftMagnitude = rawLeftDirection.magnitude; // 记录原始长度
+            Vector3 leftHorizontalDirection = new Vector3(rawLeftDirection.x, 0, rawLeftDirection.z).normalized; // 拍平并归一化得到方向
+            leftDirection = leftHorizontalDirection * leftMagnitude; // 用方向加上原始长度
+        }
+        else
+        {
+            leftDirection = Vector3.zero;
+        }
+
+        if (rightSphere != null && rightSphereTarget != null)
+        {
+            Vector3 rawRightDirection = rightSphere.position - rightSphereTarget.position;
+            float rightMagnitude = rawRightDirection.magnitude; // 记录原始长度
+            Vector3 rightHorizontalDirection = new Vector3(rawRightDirection.x, 0, rawRightDirection.z).normalized; // 拍平并归一化得到方向
+            rightDirection = rightHorizontalDirection * rightMagnitude; // 用方向加上原始长度
+        }
+        else
+        {
+            rightDirection = Vector3.zero;
+        }
+
+        // 2) 在把球体位置写回target之前，检测"松手瞬间"，把当时捕获到的方向累加到residualVelocity
+        if (lastLeftGripPressed && !leftGripPressed)
+        {
+            residualVelocity += leftDirection * 0.5f; // 空中控制力减弱
+            Debug.Log("空中左手松开，累加leftDirection到residualVelocity: " + leftDirection * 0.5f);
+        }
+
+        if (lastRightGripPressed && !rightGripPressed)
+        {
+            residualVelocity += rightDirection * 0.5f; // 空中控制力减弱
+            Debug.Log("空中右手松开，累加rightDirection到residualVelocity: " + rightDirection * 0.5f);
+        }
+
+        // 3) 更新grip历史状态（用于下一帧检测）
+        lastLeftGripPressed = leftGripPressed;
+        lastRightGripPressed = rightGripPressed;
+
+        // 4) 现在执行跟随逻辑（Lerp 或 直接设置）
+        if (leftGripPressed && leftSphere != null && leftSphereTarget != null)
+        {
+            leftSphere.position = Vector3.Lerp(leftSphere.position, leftSphereTarget.position, lerpSpeed * Time.deltaTime);
+            leftSphere.rotation = Quaternion.Slerp(leftSphere.rotation, leftSphereTarget.rotation, lerpSpeed * Time.deltaTime);
+        }
+        else if (leftSphere != null && leftSphereTarget != null)
+        {
+            // 松开时直接同步位置（这一步在计算并累加方向之后执行）
+            leftSphere.position = leftSphereTarget.position;
+            leftSphere.rotation = leftSphereTarget.rotation;
+        }
+
+        if (rightGripPressed && rightSphere != null && rightSphereTarget != null)
+        {
+            rightSphere.position = Vector3.Lerp(rightSphere.position, rightSphereTarget.position, lerpSpeed * Time.deltaTime);
+            rightSphere.rotation = Quaternion.Slerp(rightSphere.rotation, rightSphereTarget.rotation, lerpSpeed * Time.deltaTime);
+        }
+        else if (rightSphere != null && rightSphereTarget != null)
+        {
+            rightSphere.position = rightSphereTarget.position;
+            rightSphere.rotation = rightSphereTarget.rotation;
+        }
+
+        // 5) 每帧都让residualVelocity以speedDecay衰减（使用MoveTowards避免反向）
+        // 空中中的衰减速度可能不同
+        float currentSpeedDecay = speedDecay * 0.8f; // 空中衰减稍慢
+        residualVelocity = Vector3.MoveTowards(residualVelocity, Vector3.zero, currentSpeedDecay * Time.deltaTime);
+
+        // 日志与可视化（只显示residualVelocity）
+        if (linePosition != null)
+        {
+            Debug.DrawLine(linePosition.position, linePosition.position + residualVelocity * 11f, Color.blue, 0.1f); // 空中用蓝色
+        }
+
+        // 只有在对应grip键按住时才将方向向量加到最终速度中
+        Vector3 activeDirection = Vector3.zero;
+        if (leftGripPressed)
+        {
+            activeDirection += leftDirection * 0.3f; // 空中控制力减弱
+        }
+        if (rightGripPressed)
+        {
+            activeDirection += rightDirection * 0.3f; // 空中控制力减弱
+        }
+
+        finalVelocity = residualVelocity + activeDirection;
+
+        if (linePosition != null)
+        {
+            Debug.DrawLine(linePosition.position, linePosition.position + finalVelocity * 11f, Color.cyan, 0.1f); // 空中最终速度用青色
+        }
+
+        // 应用速度，只影响水平方向，保持垂直速度
+        Vector3 speed = finalVelocity * finalVelocityMultiplier;
+        thisRb.linearVelocity = new Vector3(speed.x, thisRb.linearVelocity.y, speed.z);
     }
 
     // 用于检测grip键状态变化
