@@ -128,14 +128,18 @@ public class NewVRMove : MonoBehaviour
     public Transform vrOrigin;
     public Transform cameraOffset;
     public Transform playerHead;
-    
+
     [Header("转向参数")]
     [Tooltip("单次转向角度（度）")]
     public float rotationAngle = 30f;
-    
+
     [Tooltip("转向检测阈值")]
     public float rotationThreshold = 0.8f;
-    
+
+    [Header("跳跃参数")]
+    // public float maxJumpForce = 5f;
+    public float maxJumpForceY = 10f;
+
     // 转向状态跟踪
     private bool wasRotatingLeft = false;
     private bool wasRotatingRight = false;
@@ -168,7 +172,7 @@ public class NewVRMove : MonoBehaviour
     {
         // 更新当前状态
         currentState?.Update();
-        
+
         // 处理转向逻辑
         HandleRotation();
     }
@@ -211,9 +215,17 @@ public class NewVRMove : MonoBehaviour
         // 允许在任何状态下跳跃（多段跳）
         if (thisRb != null)
         {
-            // 施加跳跃力
-            thisRb.AddForce(jumpForce, ForceMode.Impulse);
-            Debug.Log("执行跳跃，施加力: " + jumpForce);
+            // 获取当前速度，保持XZ轴速度不变
+            Vector3 currentVelocity = thisRb.linearVelocity;
+            
+            // 只取跳跃力的Y轴分量，并限制其最大值
+            float yForce = Mathf.Min(jumpForce.y, maxJumpForceY);
+            Vector3 yOnlyJumpForce = new Vector3(0, yForce, 0);
+            
+            // 施加只包含Y轴的跳跃力
+            thisRb.AddForce(yOnlyJumpForce, ForceMode.Impulse);
+            
+            Debug.Log("执行跳跃，施加Y轴力: " + yOnlyJumpForce + "，限制Y轴最大施力为: " + maxJumpForceY);
 
             // 如果当前不是跳跃状态，切换到跳跃状态
             if (CurrentStateType != MovementState.Jumping)
@@ -469,13 +481,13 @@ public class NewVRMove : MonoBehaviour
 
     private bool lastLeftGripPressed;
     private bool lastRightGripPressed;
-    
+
     // 处理转向逻辑
     private void HandleRotation()
     {
         // 读取右手柄摇杆输入
         Vector2 rightStickInput = InputActionsManager.Actions.XRIRightLocomotion.Move.ReadValue<Vector2>();
-        
+
         // 右旋转 - 摇杆推到最右边时才旋转一次
         if (rightStickInput.x > rotationThreshold && !wasRotatingRight)
         {
@@ -486,7 +498,7 @@ public class NewVRMove : MonoBehaviour
         {
             wasRotatingRight = false;
         }
-        
+
         // 左旋转 - 摇杆推到最左边时才旋转一次
         if (rightStickInput.x < -rotationThreshold && !wasRotatingLeft)
         {
@@ -498,7 +510,7 @@ public class NewVRMove : MonoBehaviour
             wasRotatingLeft = false;
         }
     }
-    
+
     // 旋转cameraOffset，以playerHead为中心
     private void RotateCameraOffset(float angle)
     {
@@ -507,25 +519,25 @@ public class NewVRMove : MonoBehaviour
             Debug.LogWarning("cameraOffset或playerHead未设置！");
             return;
         }
-        
+
         // 计算旋转中心（playerHead的位置）
         Vector3 rotationCenter = playerHead.position;
-        
+
         // 计算cameraOffset相对于旋转中心的位置
         Vector3 relativePosition = cameraOffset.position - rotationCenter;
-        
+
         // 创建旋转（绕Y轴）
         Quaternion rotation = Quaternion.Euler(0, angle, 0);
-        
+
         // 旋转相对位置
         Vector3 rotatedPosition = rotation * relativePosition;
-        
+
         // 应用新位置
         cameraOffset.position = rotationCenter + rotatedPosition;
-        
+
         // 旋转cameraOffset的朝向
         cameraOffset.rotation = rotation * cameraOffset.rotation;
-        
+
         Debug.Log($"转向: {angle}度，旋转中心: {rotationCenter}");
     }
 }
