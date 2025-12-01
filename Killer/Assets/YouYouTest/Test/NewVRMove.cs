@@ -124,6 +124,21 @@ public class NewVRMove : MonoBehaviour
 
     [Tooltip("指定要检测的地面层")]
     public LayerMask groundLayerMask = -1; // -1表示检测所有层
+    [Header("转向相关")]
+    public Transform vrOrigin;
+    public Transform cameraOffset;
+    public Transform playerHead;
+    
+    [Header("转向参数")]
+    [Tooltip("单次转向角度（度）")]
+    public float rotationAngle = 30f;
+    
+    [Tooltip("转向检测阈值")]
+    public float rotationThreshold = 0.8f;
+    
+    // 转向状态跟踪
+    private bool wasRotatingLeft = false;
+    private bool wasRotatingRight = false;
 
 
 
@@ -153,6 +168,9 @@ public class NewVRMove : MonoBehaviour
     {
         // 更新当前状态
         currentState?.Update();
+        
+        // 处理转向逻辑
+        HandleRotation();
     }
 
     // LateUpdate is called after all Update functions have been called
@@ -196,7 +214,7 @@ public class NewVRMove : MonoBehaviour
             // 施加跳跃力
             thisRb.AddForce(jumpForce, ForceMode.Impulse);
             Debug.Log("执行跳跃，施加力: " + jumpForce);
-            
+
             // 如果当前不是跳跃状态，切换到跳跃状态
             if (CurrentStateType != MovementState.Jumping)
             {
@@ -451,4 +469,63 @@ public class NewVRMove : MonoBehaviour
 
     private bool lastLeftGripPressed;
     private bool lastRightGripPressed;
+    
+    // 处理转向逻辑
+    private void HandleRotation()
+    {
+        // 读取右手柄摇杆输入
+        Vector2 rightStickInput = InputActionsManager.Actions.XRIRightLocomotion.Move.ReadValue<Vector2>();
+        
+        // 右旋转 - 摇杆推到最右边时才旋转一次
+        if (rightStickInput.x > rotationThreshold && !wasRotatingRight)
+        {
+            RotateCameraOffset(rotationAngle);
+            wasRotatingRight = true;
+        }
+        else if (rightStickInput.x <= rotationThreshold)
+        {
+            wasRotatingRight = false;
+        }
+        
+        // 左旋转 - 摇杆推到最左边时才旋转一次
+        if (rightStickInput.x < -rotationThreshold && !wasRotatingLeft)
+        {
+            RotateCameraOffset(-rotationAngle);
+            wasRotatingLeft = true;
+        }
+        else if (rightStickInput.x >= -rotationThreshold)
+        {
+            wasRotatingLeft = false;
+        }
+    }
+    
+    // 旋转cameraOffset，以playerHead为中心
+    private void RotateCameraOffset(float angle)
+    {
+        if (cameraOffset == null || playerHead == null)
+        {
+            Debug.LogWarning("cameraOffset或playerHead未设置！");
+            return;
+        }
+        
+        // 计算旋转中心（playerHead的位置）
+        Vector3 rotationCenter = playerHead.position;
+        
+        // 计算cameraOffset相对于旋转中心的位置
+        Vector3 relativePosition = cameraOffset.position - rotationCenter;
+        
+        // 创建旋转（绕Y轴）
+        Quaternion rotation = Quaternion.Euler(0, angle, 0);
+        
+        // 旋转相对位置
+        Vector3 rotatedPosition = rotation * relativePosition;
+        
+        // 应用新位置
+        cameraOffset.position = rotationCenter + rotatedPosition;
+        
+        // 旋转cameraOffset的朝向
+        cameraOffset.rotation = rotation * cameraOffset.rotation;
+        
+        Debug.Log($"转向: {angle}度，旋转中心: {rotationCenter}");
+    }
 }
