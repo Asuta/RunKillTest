@@ -43462,7 +43462,9 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   handT: {fileID: 7618138443849178585}
   parentT: {fileID: 7201701550385485738}
-  startDraw: 0
+  thisRb: {fileID: 8452711748080353600}
+  vRMove: {fileID: 9191337270833024015}
+  forceMultiplier: 20
 --- !u!1 &9206708421677744238
 GameObject:
   m_ObjectHideFlags: 0

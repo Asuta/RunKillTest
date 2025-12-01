@@ -11,6 +11,7 @@ public class JumpControllerTest : MonoBehaviour
     private Material lineMaterial;
     public Rigidbody thisRb;
     public NewVRMove vRMove;
+    public float forceMultiplier = 10f; // 力的倍数，用于调整施加的力的大小
     
     // Start is called once before the first execution of Update after the MonoBehaviour is created
     void Start()
@@ -75,6 +76,38 @@ public class JumpControllerTest : MonoBehaviour
             
             // 绘制线段
             Graphics.DrawMesh(lineMesh, Vector3.zero, Quaternion.identity, lineMaterial, 0);
+        }
+        
+        // 检测从绘制状态变为非绘制状态的瞬间（手松开）
+        if (!isDrawing && wasDrawing)
+        {
+            // 计算线段的向量（从起点到终点）
+            Vector3 startWorldPosition;
+            
+            // 根据保存的本地位置计算当前的世界位置
+            if (parentT != null)
+            {
+                startWorldPosition = parentT.TransformPoint(startLocalPosition);
+            }
+            else
+            {
+                // 如果没有指定父物体，直接使用保存的位置
+                startWorldPosition = startLocalPosition;
+            }
+            
+            // 获取当前的世界位置
+            Vector3 currentWorldPosition = handT.position;
+            
+            // 计算线段的方向和长度
+            Vector3 lineDirection = currentWorldPosition - startWorldPosition;
+            
+            // 给刚体施加一个线性力（使用线段的向量作为力的方向和大小）
+            if (thisRb != null)
+            {
+                // 可以根据需要调整力的倍数
+                thisRb.AddForce(lineDirection * -forceMultiplier, ForceMode.Impulse);
+                Debug.Log("手松开，给刚体施加线性力: " + lineDirection * forceMultiplier);
+            }
         }
         
         // 更新状态

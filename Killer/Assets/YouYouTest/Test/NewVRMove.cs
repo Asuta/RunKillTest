@@ -116,7 +116,7 @@ public class NewVRMove : MonoBehaviour
         // 显示检测到的层信息
         if (hitGround)
         {
-            Debug.Log("检测到地面: " + LayerMask.LayerToName(hitInfo.collider.gameObject.layer) + " 层");
+            // Debug.Log("检测到地面: " + LayerMask.LayerToName(hitInfo.collider.gameObject.layer) + " 层");
         }
         #endif
     }
@@ -200,7 +200,7 @@ public class NewVRMove : MonoBehaviour
         residualVelocity = Vector3.MoveTowards(residualVelocity, Vector3.zero, currentSpeedDecay * Time.deltaTime);
 
         // 日志与可视化（只显示residualVelocity）
-        Debug.Log("当前residualVelocity: " + residualVelocity);
+        // Debug.Log("当前residualVelocity: " + residualVelocity);
         if (linePosition != null)
         {
             Debug.DrawLine(linePosition.position, linePosition.position + residualVelocity * 11f, Color.red, 0.1f);
