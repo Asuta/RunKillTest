@@ -1,7 +1,7 @@
 using System;
 using UnityEngine;
 
-namespace YouYouTest.VRMove2
+namespace YouYouTest.VRMove3
 {
     // 移动状态枚举
     public enum MovementState
@@ -13,9 +13,9 @@ namespace YouYouTest.VRMove2
 // 状态基类
 public abstract class MovementStateBase
 {
-    protected NewVRMove2 controller;
+    protected NewVRMove3 controller;
 
-    public MovementStateBase(NewVRMove2 controller)
+    public MovementStateBase(NewVRMove3 controller)
     {
         this.controller = controller;
     }
@@ -28,7 +28,7 @@ public abstract class MovementStateBase
 // 地面状态
 public class GroundedState : MovementStateBase
 {
-    public GroundedState(NewVRMove2 controller) : base(controller) { }
+    public GroundedState(NewVRMove3 controller) : base(controller) { }
 
     public override void Enter()
     {
@@ -56,7 +56,7 @@ public class GroundedState : MovementStateBase
 // 空中状态
 public class AirborneState : MovementStateBase
 {
-    public AirborneState(NewVRMove2 controller) : base(controller) { }
+    public AirborneState(NewVRMove3 controller) : base(controller) { }
 
     public override void Enter()
     {
@@ -82,7 +82,7 @@ public class AirborneState : MovementStateBase
 }
 
 
-public class NewVRMove2 : MonoBehaviour
+public class NewVRMove3 : MonoBehaviour
 {
     public Transform bodyPosition;
 
@@ -410,7 +410,7 @@ public class NewVRMove2 : MonoBehaviour
 
     }
 
-    // 空中移动循环 - 纯物理模式
+    // 空中移动循环
     private void AirborneMoveLoop()
     {
         // 读取当前grip状态（布尔值）
@@ -466,19 +466,17 @@ public class NewVRMove2 : MonoBehaviour
             rightDirection = Vector3.zero;
         }
 
-        // 2) 在把球体位置写回target之前，检测"松手瞬间"，把当时捕获到的方向转换为力
+        // 2) 在把球体位置写回target之前，检测"松手瞬间"，把当时捕获到的方向累加到residualVelocity
         if (lastLeftGripPressed && !leftGripPressed)
         {
-            Vector3 force = leftDirection * finalVelocityMultiplier;
-            thisRb.AddForce(force, ForceMode.Impulse);
-            Debug.Log("左手松开（空中），施加脉冲力: " + force);
+            residualVelocity += leftDirection;
+            Debug.Log("左手松开（捕获前一帧位置），累加leftDirection到residualVelocity: " + leftDirection);
         }
 
         if (lastRightGripPressed && !rightGripPressed)
         {
-            Vector3 force = rightDirection * finalVelocityMultiplier;
-            thisRb.AddForce(force, ForceMode.Impulse);
-            Debug.Log("右手松开（空中），施加脉冲力: " + force);
+            residualVelocity += rightDirection;
+            Debug.Log("右手松开（捕获前一帧位置），累加rightDirection到residualVelocity: " + rightDirection);
         }
 
         // 3) 更新grip历史状态（用于下一帧检测）
@@ -509,48 +507,57 @@ public class NewVRMove2 : MonoBehaviour
             rightSphere.rotation = rightSphereTarget.rotation;
         }
 
-        // 5) 在空中状态下，不对速度进行任何直接控制，让物理系统完全接管
-        // 不设置 linearVelocity，不累加速度，不进行衰减
+        // 5) 在空中状态下，不对residualVelocity进行衰减，让物理系统正常工作
+        // 不调用 Vector3.MoveTowards 来衰减速度
 
-        // 6) 可选：在按住grip时持续施加较小的力进行微调（如果需要的话）
-        Vector3 continuousForce = Vector3.zero;
-        bool is3DMovementMode = (leftGripPressed && leftTriggerPressed) || (rightGripPressed && rightTriggerPressed);
-        
+        // 日志与可视化（只显示residualVelocity）
+        if (linePosition != null)
+        {
+            Debug.DrawLine(linePosition.position, linePosition.position + residualVelocity * 11f, Color.red, 0.1f);
+        }
+
+        // 只有在对应grip键按住时才将方向向量加到最终速度中
+        Vector3 activeDirection = Vector3.zero;
         if (leftGripPressed)
         {
-            continuousForce += leftDirection * 0.1f; // 较小的持续力
+            activeDirection += leftDirection;
         }
         if (rightGripPressed)
         {
-            continuousForce += rightDirection * 0.1f; // 较小的持续力
+            activeDirection += rightDirection;
         }
 
-        if (continuousForce != Vector3.zero)
-        {
-            if (is3DMovementMode)
-            {
-                // 3D模式下施加完整的力
-                thisRb.AddForce(continuousForce * finalVelocityMultiplier, ForceMode.Force);
-            }
-            else
-            {
-                // 普通模式下只施加水平力
-                Vector3 horizontalForce = new Vector3(continuousForce.x, 0, continuousForce.z) * finalVelocityMultiplier;
-                thisRb.AddForce(horizontalForce, ForceMode.Force);
-            }
-        }
+        finalVelocity = residualVelocity + activeDirection;
 
-        // 可视化当前速度（物理系统控制的真实速度）
+        // 检查是否有任何手同时按住了grip和trigger（3D移动模式）
+        bool is3DMovementMode = (leftGripPressed && leftTriggerPressed) || (rightGripPressed && rightTriggerPressed);
+        
+        // 根据移动模式选择不同的颜色进行可视化
+        Color velocityColor = is3DMovementMode ? Color.cyan : Color.green; // 3D模式用青色，普通模式用绿色
+        
         if (linePosition != null)
         {
-            Color velocityColor = is3DMovementMode ? Color.cyan : Color.blue; // 空中3D模式用青色，普通模式用蓝色
-            Debug.DrawLine(linePosition.position, linePosition.position + thisRb.linearVelocity * 11f, velocityColor, 0.1f);
+            Debug.DrawLine(linePosition.position, linePosition.position + finalVelocity * 11f, velocityColor, 0.1f);
         }
 
-        // 调试信息
-        if (Time.frameCount % 60 == 0) // 每60帧打印一次，避免日志过多
+        // 计算最终速度
+        Vector3 speed = finalVelocity * finalVelocityMultiplier;
+        
+        if (is3DMovementMode)
         {
-            Debug.Log("空中状态 - 当前物理速度: " + thisRb.linearVelocity + " | 3D模式: " + is3DMovementMode);
+            // 在3D移动模式下，完全应用计算出的速度（包括Y轴）
+            thisRb.linearVelocity = speed;
+            
+            // 调试信息
+            if (Time.frameCount % 30 == 0) // 每30帧打印一次，避免日志过多
+            {
+                Debug.Log("空中3D移动模式激活 - 应用完整速度: " + speed);
+            }
+        }
+        else
+        {
+            // 在普通模式下，只应用XZ轴的速度，保持原有的Y轴速度
+            thisRb.linearVelocity = new Vector3(speed.x, thisRb.linearVelocity.y, speed.z);
         }
     }
 

@@ -38419,6 +38419,7 @@ GameObject:
   - component: {fileID: 8287959641213339100}
   - component: {fileID: 9191337270833024015}
   - component: {fileID: 9191337270833024016}
+  - component: {fileID: 9191337270833024017}
   m_Layer: 7
   m_Name: VRPlayer (1)
   m_TagString: Untagged
@@ -43422,7 +43423,7 @@ MonoBehaviour:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 6096394950407524156}
-  m_Enabled: 1
+  m_Enabled: 0
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: a5dd7789e0401734d9c12301a4533f40, type: 3}
   m_Name: 
@@ -43462,7 +43463,7 @@ MonoBehaviour:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 6096394950407524156}
-  m_Enabled: 1
+  m_Enabled: 0
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: c4cd1b271d7517f4787f51a18339cdf4, type: 3}
   m_Name: 
@@ -43472,6 +43473,44 @@ MonoBehaviour:
   thisRb: {fileID: 8452711748080353600}
   vRMove: {fileID: 9191337270833024015}
   forceMultiplier: 20
+--- !u!114 &9191337270833024017
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 6096394950407524156}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 5c92e659a262fb544b8be47f61385c5b, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  bodyPosition: {fileID: 7135341510087488606}
+  leftSphere: {fileID: 896481436}
+  leftSphereTarget: {fileID: 3139601464857640960}
+  leftDirection: {x: 0, y: 0, z: 0}
+  rightSphere: {fileID: 536810978}
+  rightSphereTarget: {fileID: 7618138443849178585}
+  rightDirection: {x: 0, y: 0, z: 0}
+  residualVelocity: {x: 0, y: 0, z: 0}
+  speedDecay: 0.4
+  speedDecayAdd: 0.8
+  finalVelocity: {x: 0, y: 0, z: 0}
+  finalVelocityMultiplier: 33
+  thisRb: {fileID: 8452711748080353600}
+  isOnGround: 0
+  groundCheckRadius: 0.56
+  groundCheckDistance: 0.61
+  groundLayerMask:
+    serializedVersion: 2
+    m_Bits: 64
+  vrOrigin: {fileID: 1254862926181544764}
+  cameraOffset: {fileID: 7201701550385485738}
+  playerHead: {fileID: 4730210459708056266}
+  rotationAngle: 30
+  rotationThreshold: 0.5
+  linePosition: {fileID: 627479998}
+  lerpSpeed: 5
 --- !u!1 &9206708421677744238
 GameObject:
   m_ObjectHideFlags: 0
