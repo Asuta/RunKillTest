@@ -217,14 +217,28 @@ public class NewVRMove2 : MonoBehaviour
         // 读取当前grip状态（布尔值）
         bool leftGripPressed = InputActionsManager.Actions.XRILeftInteraction.Select.IsPressed();
         bool rightGripPressed = InputActionsManager.Actions.XRIRightInteraction.Select.IsPressed();
+        
+        // 读取当前trigger状态（布尔值）
+        bool leftTriggerPressed = InputActionsManager.Actions.XRILeftInteraction.Activate.IsPressed();
+        bool rightTriggerPressed = InputActionsManager.Actions.XRIRightInteraction.Activate.IsPressed();
 
         // 1) 先基于当前sphere与target的"真实位置"计算方向向量（**必须在修改球体位置之前计算**）
         if (leftSphere != null && leftSphereTarget != null)
         {
             Vector3 rawLeftDirection = leftSphere.position - leftSphereTarget.position;
             float leftMagnitude = rawLeftDirection.magnitude; // 记录原始长度
-            Vector3 leftHorizontalDirection = new Vector3(rawLeftDirection.x, 0, rawLeftDirection.z).normalized; // 拍平并归一化得到方向
-            leftDirection = leftHorizontalDirection * leftMagnitude; // 用方向加上原始长度
+            
+            // 如果同时按住grip和trigger，保留完整的3D方向（包括Y轴）
+            if (leftGripPressed && leftTriggerPressed)
+            {
+                leftDirection = rawLeftDirection.normalized * leftMagnitude; // 保留完整的3D方向
+            }
+            else
+            {
+                // 否则只使用水平方向的移动
+                Vector3 leftHorizontalDirection = new Vector3(rawLeftDirection.x, 0, rawLeftDirection.z).normalized; // 拍平并归一化得到方向
+                leftDirection = leftHorizontalDirection * leftMagnitude; // 用方向加上原始长度
+            }
         }
         else
         {
@@ -235,8 +249,18 @@ public class NewVRMove2 : MonoBehaviour
         {
             Vector3 rawRightDirection = rightSphere.position - rightSphereTarget.position;
             float rightMagnitude = rawRightDirection.magnitude; // 记录原始长度
-            Vector3 rightHorizontalDirection = new Vector3(rawRightDirection.x, 0, rawRightDirection.z).normalized; // 拍平并归一化得到方向
-            rightDirection = rightHorizontalDirection * rightMagnitude; // 用方向加上原始长度
+            
+            // 如果同时按住grip和trigger，保留完整的3D方向（包括Y轴）
+            if (rightGripPressed && rightTriggerPressed)
+            {
+                rightDirection = rawRightDirection.normalized * rightMagnitude; // 保留完整的3D方向
+            }
+            else
+            {
+                // 否则只使用水平方向的移动
+                Vector3 rightHorizontalDirection = new Vector3(rawRightDirection.x, 0, rawRightDirection.z).normalized; // 拍平并归一化得到方向
+                rightDirection = rightHorizontalDirection * rightMagnitude; // 用方向加上原始长度
+            }
         }
         else
         {
@@ -310,14 +334,36 @@ public class NewVRMove2 : MonoBehaviour
 
         finalVelocity = residualVelocity + activeDirection;
 
+        // 检查是否有任何手同时按住了grip和trigger（3D移动模式）
+        bool is3DMovementMode = (leftGripPressed && leftTriggerPressed) || (rightGripPressed && rightTriggerPressed);
+        
+        // 根据移动模式选择不同的颜色进行可视化
+        Color velocityColor = is3DMovementMode ? Color.cyan : Color.green; // 3D模式用青色，普通模式用绿色
+        
         if (linePosition != null)
         {
-            Debug.DrawLine(linePosition.position, linePosition.position + finalVelocity * 11f, Color.green, 0.1f);
+            Debug.DrawLine(linePosition.position, linePosition.position + finalVelocity * 11f, velocityColor, 0.1f);
         }
 
-        // thisRb.linearVelocity = finalVelocity * finalVelocityMultiplier;
+        // 计算最终速度
         Vector3 speed = finalVelocity * finalVelocityMultiplier;
-        thisRb.linearVelocity = new Vector3(speed.x, thisRb.linearVelocity.y, speed.z);
+        
+        if (is3DMovementMode)
+        {
+            // 在3D移动模式下，完全应用计算出的速度（包括Y轴）
+            thisRb.linearVelocity = speed;
+            
+            // 调试信息
+            if (Time.frameCount % 30 == 0) // 每30帧打印一次，避免日志过多
+            {
+                Debug.Log("3D移动模式激活 - 应用完整速度: " + speed);
+            }
+        }
+        else
+        {
+            // 在普通模式下，只应用XZ轴的速度，保持原有的Y轴速度
+            thisRb.linearVelocity = new Vector3(speed.x, thisRb.linearVelocity.y, speed.z);
+        }
 
     }
 
