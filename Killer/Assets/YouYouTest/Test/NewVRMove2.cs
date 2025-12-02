@@ -265,6 +265,10 @@ public class NewVRMove2 : MonoBehaviour
         bool leftTriggerPressed = InputActionsManager.Actions.XRILeftInteraction.Activate.IsPressed();
         bool rightTriggerPressed = InputActionsManager.Actions.XRIRightInteraction.Activate.IsPressed();
 
+        // 更新Trigger松开时间
+        if (lastLeftTriggerPressed && !leftTriggerPressed) lastLeftTriggerReleaseTime = Time.time;
+        if (lastRightTriggerPressed && !rightTriggerPressed) lastRightTriggerReleaseTime = Time.time;
+
         // 1) 先基于当前sphere与target的"真实位置"计算方向向量（**必须在修改球体位置之前计算**）
         if (leftSphere != null && leftSphereTarget != null)
         {
@@ -310,22 +314,48 @@ public class NewVRMove2 : MonoBehaviour
             rightDirection = Vector3.zero;
         }
 
-        // 2) 在把球体位置写回target之前，检测"松手瞬间"，把当时捕获到的方向累加到residualVelocity
-        if (lastLeftGripPressed && !leftGripPressed)
+        // 2) 更新grip历史状态（用于下一帧检测）
+        bool leftJustReleased = lastLeftGripPressed && !leftGripPressed;
+        bool rightJustReleased = lastRightGripPressed && !rightGripPressed;
+        
+        // 3) 检查是否处于3D移动模式（扳机键和侧卧键同时按下）
+        bool leftIs3DMode = leftGripPressed && leftTriggerPressed;
+        bool rightIs3DMode = rightGripPressed && rightTriggerPressed;
+        bool isIn3DMode = leftIs3DMode || rightIs3DMode;
+        
+        // 检查上一帧是否处于3D移动模式
+        bool leftWas3DMode = lastLeftGripPressed && lastLeftTriggerPressed;
+        bool rightWas3DMode = lastRightGripPressed && lastRightTriggerPressed;
+
+        // 检查是否刚刚退出3D模式（容差判断）
+        bool leftRecently3D = leftWas3DMode || (Time.time - lastLeftTriggerReleaseTime < 0.25f);
+        bool rightRecently3D = rightWas3DMode || (Time.time - lastRightTriggerReleaseTime < 0.25f);
+        
+        // 在把球体位置写回target之前，检测"松手瞬间"
+        // 但在3D移动模式下，松手时不累加速度到residualVelocity
+        if (leftJustReleased && !rightGripPressed && !leftRecently3D)
         {
             residualVelocity += leftDirection;
             Debug.Log("左手松开（捕获前一帧位置），累加leftDirection到residualVelocity: " + leftDirection);
         }
 
-        if (lastRightGripPressed && !rightGripPressed)
+        if (rightJustReleased && !leftGripPressed && !rightRecently3D)
         {
             residualVelocity += rightDirection;
             Debug.Log("右手松开（捕获前一帧位置），累加rightDirection到residualVelocity: " + rightDirection);
         }
+        
+        // 在3D模式下松手时，保持当前速度不变，不进行累加
+        if ((leftJustReleased && leftRecently3D) || (rightJustReleased && rightRecently3D))
+        {
+            Debug.Log("3D模式下松手（含容差），保持当前速度不变，不累加到residualVelocity");
+        }
 
-        // 3) 更新grip历史状态（用于下一帧检测）
+        // 4) 更新grip和trigger历史状态（用于下一帧检测）
         lastLeftGripPressed = leftGripPressed;
         lastRightGripPressed = rightGripPressed;
+        lastLeftTriggerPressed = leftTriggerPressed;
+        lastRightTriggerPressed = rightTriggerPressed;
 
         // 4) 现在执行跟随逻辑（Lerp 或 直接设置）
         if (leftGripPressed && leftSphere != null && leftSphereTarget != null)
@@ -365,12 +395,13 @@ public class NewVRMove2 : MonoBehaviour
 
 
         // 只有在对应grip键按住时才将方向向量加到最终速度中
+        // 在3D移动模式下，松手瞬间不应用当前方向，避免速度激增
         Vector3 activeDirection = Vector3.zero;
-        if (leftGripPressed)
+        if (leftGripPressed && !(leftJustReleased && leftWas3DMode))
         {
             activeDirection += leftDirection;
         }
-        if (rightGripPressed)
+        if (rightGripPressed && !(rightJustReleased && rightWas3DMode))
         {
             activeDirection += rightDirection;
         }
@@ -421,6 +452,10 @@ public class NewVRMove2 : MonoBehaviour
         bool leftTriggerPressed = InputActionsManager.Actions.XRILeftInteraction.Activate.IsPressed();
         bool rightTriggerPressed = InputActionsManager.Actions.XRIRightInteraction.Activate.IsPressed();
 
+        // 更新Trigger松开时间
+        if (lastLeftTriggerPressed && !leftTriggerPressed) lastLeftTriggerReleaseTime = Time.time;
+        if (lastRightTriggerPressed && !rightTriggerPressed) lastRightTriggerReleaseTime = Time.time;
+
         // 1) 先基于当前sphere与target的"真实位置"计算方向向量（**必须在修改球体位置之前计算**）
         if (leftSphere != null && leftSphereTarget != null)
         {
@@ -467,23 +502,50 @@ public class NewVRMove2 : MonoBehaviour
         }
 
         // 2) 在把球体位置写回target之前，检测"松手瞬间"，把当时捕获到的方向转换为力
+        
+        // 检查上一帧是否处于3D移动模式
+        bool leftWas3DMode = lastLeftGripPressed && lastLeftTriggerPressed;
+        bool rightWas3DMode = lastRightGripPressed && lastRightTriggerPressed;
+
+        // 检查是否刚刚退出3D模式（容差判断）
+        bool leftRecently3D = leftWas3DMode || (Time.time - lastLeftTriggerReleaseTime < 0.25f);
+        bool rightRecently3D = rightWas3DMode || (Time.time - lastRightTriggerReleaseTime < 0.25f);
+
         if (lastLeftGripPressed && !leftGripPressed)
         {
-            Vector3 force = leftDirection * finalVelocityMultiplier;
-            thisRb.AddForce(force, ForceMode.Impulse);
-            Debug.Log("左手松开（空中），施加脉冲力: " + force);
+            // 如果不是3D模式，才施加脉冲力
+            if (!leftRecently3D)
+            {
+                Vector3 force = leftDirection * finalVelocityMultiplier;
+                thisRb.AddForce(force, ForceMode.Impulse);
+                Debug.Log("左手松开（空中），施加脉冲力: " + force);
+            }
+            else
+            {
+                Debug.Log("左手松开（空中 3D模式/刚刚退出），不施加脉冲力，保持当前速度");
+            }
         }
 
         if (lastRightGripPressed && !rightGripPressed)
         {
-            Vector3 force = rightDirection * finalVelocityMultiplier;
-            thisRb.AddForce(force, ForceMode.Impulse);
-            Debug.Log("右手松开（空中），施加脉冲力: " + force);
+            // 如果不是3D模式，才施加脉冲力
+            if (!rightRecently3D)
+            {
+                Vector3 force = rightDirection * finalVelocityMultiplier;
+                thisRb.AddForce(force, ForceMode.Impulse);
+                Debug.Log("右手松开（空中），施加脉冲力: " + force);
+            }
+            else
+            {
+                Debug.Log("右手松开（空中 3D模式/刚刚退出），不施加脉冲力，保持当前速度");
+            }
         }
 
-        // 3) 更新grip历史状态（用于下一帧检测）
+        // 3) 更新grip和trigger历史状态（用于下一帧检测）
         lastLeftGripPressed = leftGripPressed;
         lastRightGripPressed = rightGripPressed;
+        lastLeftTriggerPressed = leftTriggerPressed;
+        lastRightTriggerPressed = rightTriggerPressed;
 
         // 4) 现在执行跟随逻辑（Lerp 或 直接设置）
         if (leftGripPressed && leftSphere != null && leftSphereTarget != null)
@@ -558,6 +620,12 @@ public class NewVRMove2 : MonoBehaviour
 
     private bool lastLeftGripPressed;
     private bool lastRightGripPressed;
+    private bool lastLeftTriggerPressed;
+    private bool lastRightTriggerPressed;
+
+    // 记录Trigger松开的时间，用于处理"同时松开"的容差
+    private float lastLeftTriggerReleaseTime = -100f;
+    private float lastRightTriggerReleaseTime = -100f;
 
     // 处理转向逻辑
     private void HandleRotation()
