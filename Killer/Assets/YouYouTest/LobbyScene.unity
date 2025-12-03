@@ -43501,7 +43501,8 @@ MonoBehaviour:
   speedDecayAdd: 0.8
   finalVelocity: {x: 0, y: 0, z: 0}
   finalVelocityMultiplier: 33
-  maxJumpForceY: 0
+  maxJumpForceY: 8
+  multiJumpForceY: 0.1
   maxTranslationSpeed: 1
   thisRb: {fileID: 8452711748080353600}
   isOnGround: 0

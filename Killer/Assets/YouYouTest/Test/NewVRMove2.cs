@@ -104,6 +104,7 @@ namespace YouYouTest.VRMove2
         public Vector3 finalVelocity;
         public float finalVelocityMultiplier;
         public float maxJumpForceY;
+        public float multiJumpForceY;
         
         [Header("速度限制")]
         [Tooltip("平移移动的最大速度")]
@@ -464,12 +465,13 @@ namespace YouYouTest.VRMove2
 
             if (is3DMovementMode)
             {
+                speed = new Vector3(speed.x, speed.y * multiJumpForceY, speed.z);
                 // 在3D移动模式下，完全应用计算出的速度（包括Y轴）
                 speed = new Vector3(speed.x, Mathf.Clamp(speed.y, -maxJumpForceY, maxJumpForceY), speed.z);
                 thisRb.linearVelocity = speed;
-                DebugGraph.MultiLog("Related Variables", DebugGraph.DefaultRed, speed.x, "speed.x");
-                DebugGraph.MultiLog("Related Variables", DebugGraph.DefaultGreen, speed.y, "speed.y");
-                DebugGraph.MultiLog("Related Variables", DebugGraph.DefaultBlue, speed.z, "speed.z");
+                // DebugGraph.MultiLog("Related Variables", DebugGraph.DefaultRed, speed.x, "speed.x");
+                // DebugGraph.MultiLog("Related Variables", DebugGraph.DefaultGreen, speed.y, "speed.y");
+                // DebugGraph.MultiLog("Related Variables", DebugGraph.DefaultBlue, speed.z, "speed.z");
                 DebugGraph.Log("Speed Magnitude", speed.magnitude);
 
                 // 调试信息
