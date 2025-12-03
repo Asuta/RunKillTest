@@ -104,6 +104,10 @@ namespace YouYouTest.VRMove2
         public Vector3 finalVelocity;
         public float finalVelocityMultiplier;
         public float maxJumpForceY;
+        
+        [Header("速度限制")]
+        [Tooltip("平移移动的最大速度")]
+        public float maxTranslationSpeed = 10f;
 
         public Rigidbody thisRb;
 
@@ -338,12 +342,30 @@ namespace YouYouTest.VRMove2
             if (leftJustReleased && !rightGripPressed && !leftRecently3D)
             {
                 residualVelocity += leftDirection;
+                
+                // 限制累加后的residualVelocity的水平分量
+                Vector3 horizontalResidual = new Vector3(residualVelocity.x, 0, residualVelocity.z);
+                if (horizontalResidual.magnitude > maxTranslationSpeed)
+                {
+                    horizontalResidual = horizontalResidual.normalized * maxTranslationSpeed;
+                    residualVelocity = new Vector3(horizontalResidual.x, residualVelocity.y, horizontalResidual.z);
+                }
+                
                 Debug.Log("左手松开（捕获前一帧位置），累加leftDirection到residualVelocity: " + leftDirection);
             }
 
             if (rightJustReleased && !leftGripPressed && !rightRecently3D)
             {
                 residualVelocity += rightDirection;
+                
+                // 限制累加后的residualVelocity的水平分量
+                Vector3 horizontalResidual = new Vector3(residualVelocity.x, 0, residualVelocity.z);
+                if (horizontalResidual.magnitude > maxTranslationSpeed)
+                {
+                    horizontalResidual = horizontalResidual.normalized * maxTranslationSpeed;
+                    residualVelocity = new Vector3(horizontalResidual.x, residualVelocity.y, horizontalResidual.z);
+                }
+                
                 Debug.Log("右手松开（捕获前一帧位置），累加rightDirection到residualVelocity: " + rightDirection);
             }
 
@@ -387,6 +409,14 @@ namespace YouYouTest.VRMove2
             // 当任意grip键按住时，使用增加的衰减速度
             float currentSpeedDecay = (leftGripPressed || rightGripPressed) ? speedDecay + speedDecayAdd : speedDecay;
             residualVelocity = Vector3.MoveTowards(residualVelocity, Vector3.zero, currentSpeedDecay * Time.deltaTime);
+            
+            // 限制residualVelocity的水平分量，确保回落速度也不超过最大值
+            Vector3 horizontalResidualVelocity = new Vector3(residualVelocity.x, 0, residualVelocity.z);
+            if (horizontalResidualVelocity.magnitude > maxTranslationSpeed)
+            {
+                horizontalResidualVelocity = horizontalResidualVelocity.normalized * maxTranslationSpeed;
+                residualVelocity = new Vector3(horizontalResidualVelocity.x, residualVelocity.y, horizontalResidualVelocity.z);
+            }
 
             // 日志与可视化（只显示residualVelocity）
             // Debug.Log("当前residualVelocity: " + residualVelocity);
@@ -409,6 +439,14 @@ namespace YouYouTest.VRMove2
             }
 
             finalVelocity = residualVelocity + activeDirection;
+
+            // 限制finalVelocity的水平分量，确保累加的速度不超过最大值
+            Vector3 horizontalFinalVelocity = new Vector3(finalVelocity.x, 0, finalVelocity.z);
+            if (horizontalFinalVelocity.magnitude > maxTranslationSpeed)
+            {
+                horizontalFinalVelocity = horizontalFinalVelocity.normalized * maxTranslationSpeed;
+                finalVelocity = new Vector3(horizontalFinalVelocity.x, finalVelocity.y, horizontalFinalVelocity.z);
+            }
 
             // 检查是否有任何手同时按住了grip和trigger（3D移动模式）
             bool is3DMovementMode = (leftGripPressed && leftTriggerPressed) || (rightGripPressed && rightTriggerPressed);
