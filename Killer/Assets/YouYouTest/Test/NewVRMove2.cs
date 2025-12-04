@@ -61,12 +61,23 @@ namespace YouYouTest.VRMove2
         public override void Enter()
         {
             Debug.Log("进入空中状态");
+            
+            // 当进入跳跃状态时，将bodyPosition的Y轴scale设置为0.4
+            if (controller.bodyPosition != null)
+            {
+                Vector3 currentScale = controller.bodyPosition.localScale;
+                controller.bodyPosition.localScale = new Vector3(currentScale.x, 0.4f, currentScale.z);
+                Debug.Log("跳跃状态：将bodyPosition的Y轴scale设置为0.4");
+            }
         }
 
         public override void Update()
         {
             // 在空中状态下的移动逻辑
             controller.AirborneMovement();
+            
+            // 从headPosition向下发射射线检测Building层
+            controller.CheckBuildingBelow();
 
             // 检查是否回到地面，如果是则切换到地面状态
             if (controller.isOnGround)
@@ -85,6 +96,7 @@ namespace YouYouTest.VRMove2
     public class NewVRMove2 : MonoBehaviour
     {
         public Transform bodyPosition;
+        public Transform headPosition;
 
         public Transform leftSphere;
         public Transform leftSphereTarget;
@@ -127,6 +139,9 @@ namespace YouYouTest.VRMove2
 
         [Tooltip("指定要检测的地面层")]
         public LayerMask groundLayerMask = -1; // -1表示检测所有层
+        
+        [Tooltip("指定要检测的建筑层")]
+        public LayerMask buildingLayerMask;
         [Header("转向相关")]
         public Transform vrOrigin;
         public Transform cameraOffset;
@@ -731,6 +746,36 @@ namespace YouYouTest.VRMove2
             cameraOffset.rotation = rotation * cameraOffset.rotation;
 
             Debug.Log($"转向: {angle}度，旋转中心: {rotationCenter}");
+        }
+        
+        // 检测下方建筑物的射线检测
+        public void CheckBuildingBelow()
+        {
+            if (headPosition == null)
+            {
+                Debug.LogWarning("headPosition未设置！");
+                return;
+            }
+            
+            // 从headPosition位置向下发射射线
+            Vector3 rayOrigin = headPosition.position;
+            Vector3 rayDirection = Vector3.down;
+            float rayDistance = 3f;
+            
+            RaycastHit hitInfo;
+            bool hitBuilding = Physics.Raycast(rayOrigin, rayDirection, out hitInfo, rayDistance, buildingLayerMask);
+            
+            // 根据检测结果选择颜色
+            Color lineColor = hitBuilding ? Color.green : Color.red;
+            
+            // 绘制调试线
+            Debug.DrawLine(rayOrigin, rayOrigin + rayDirection * rayDistance, lineColor);
+            
+            // 可选：输出调试信息
+            if (hitBuilding)
+            {
+                Debug.Log($"检测到建筑物: {hitInfo.collider.gameObject.name}");
+            }
         }
     }
 }
