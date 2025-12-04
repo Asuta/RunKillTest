@@ -25422,6 +25422,7 @@ MonoBehaviour:
   finalVelocityMultiplier: 33
   maxJumpForceY: 8
   multiJumpForceY: 999
+  addGravityForceY: 0
   maxTranslationSpeed: 1
   thisRb: {fileID: 1525856513}
   isOnGround: 0
@@ -50828,7 +50829,7 @@ Rigidbody:
   m_ImplicitCom: 1
   m_ImplicitTensor: 1
   m_UseGravity: 1
-  m_IsKinematic: 1
+  m_IsKinematic: 0
   m_Interpolate: 1
   m_Constraints: 112
   m_CollisionDetection: 0
@@ -52785,8 +52786,9 @@ MonoBehaviour:
   speedDecayAdd: 0.8
   finalVelocity: {x: 0, y: 0, z: 0}
   finalVelocityMultiplier: 33
-  maxJumpForceY: 8
-  multiJumpForceY: 0.8
+  maxJumpForceY: 9.9
+  multiJumpForceY: 1.1
+  addGravityForceY: 8
   maxTranslationSpeed: 1
   thisRb: {fileID: 8452711748080353600}
   isOnGround: 0

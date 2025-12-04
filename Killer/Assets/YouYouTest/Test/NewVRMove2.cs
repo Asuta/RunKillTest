@@ -39,7 +39,7 @@ namespace YouYouTest.VRMove2
         {
             // 在地面状态下的移动逻辑
             controller.GroundMovement();
-            
+
             // 检查并恢复bodyPosition的Y轴scale到1
             controller.RestoreBodyScale();
 
@@ -64,7 +64,7 @@ namespace YouYouTest.VRMove2
         public override void Enter()
         {
             Debug.Log("进入空中状态");
-            
+
             // 当进入跳跃状态时，将bodyPosition的Y轴scale设置为0.4
             if (controller.bodyPosition != null)
             {
@@ -78,7 +78,7 @@ namespace YouYouTest.VRMove2
         {
             // 在空中状态下的移动逻辑
             controller.AirborneMovement();
-            
+
             // 从headPosition向下发射射线检测Building层
             controller.CheckBuildingBelow();
 
@@ -120,7 +120,8 @@ namespace YouYouTest.VRMove2
         public float finalVelocityMultiplier;
         public float maxJumpForceY;
         public float multiJumpForceY;
-        
+        public float addGravityForceY;
+
         [Header("速度限制")]
         [Tooltip("平移移动的最大速度")]
         public float maxTranslationSpeed = 10f;
@@ -142,7 +143,7 @@ namespace YouYouTest.VRMove2
 
         [Tooltip("指定要检测的地面层")]
         public LayerMask groundLayerMask = -1; // -1表示检测所有层
-        
+
         [Tooltip("指定要检测的建筑层")]
         public LayerMask buildingLayerMask;
         [Header("转向相关")]
@@ -200,6 +201,14 @@ namespace YouYouTest.VRMove2
         {
             GroundCheck();
             DebugGraph.Log("final speeeeed", thisRb.linearVelocity.magnitude);
+        }
+
+        /// <summary>
+        /// This function is called every fixed framerate frame, if the MonoBehaviour is enabled.
+        /// </summary>
+        void FixedUpdate()
+        {
+            thisRb.AddForce(Vector3.down * addGravityForceY, ForceMode.Acceleration);            
         }
 
         // 状态切换方法
@@ -364,7 +373,7 @@ namespace YouYouTest.VRMove2
             if (leftJustReleased && !rightGripPressed && !leftRecently3D)
             {
                 residualVelocity += leftDirection;
-                
+
                 // 限制累加后的residualVelocity的水平分量
                 Vector3 horizontalResidual = new Vector3(residualVelocity.x, 0, residualVelocity.z);
                 if (horizontalResidual.magnitude > maxTranslationSpeed)
@@ -372,14 +381,14 @@ namespace YouYouTest.VRMove2
                     horizontalResidual = horizontalResidual.normalized * maxTranslationSpeed;
                     residualVelocity = new Vector3(horizontalResidual.x, residualVelocity.y, horizontalResidual.z);
                 }
-                
+
                 Debug.Log("左手松开（捕获前一帧位置），累加leftDirection到residualVelocity: " + leftDirection);
             }
 
             if (rightJustReleased && !leftGripPressed && !rightRecently3D)
             {
                 residualVelocity += rightDirection;
-                
+
                 // 限制累加后的residualVelocity的水平分量
                 Vector3 horizontalResidual = new Vector3(residualVelocity.x, 0, residualVelocity.z);
                 if (horizontalResidual.magnitude > maxTranslationSpeed)
@@ -387,7 +396,7 @@ namespace YouYouTest.VRMove2
                     horizontalResidual = horizontalResidual.normalized * maxTranslationSpeed;
                     residualVelocity = new Vector3(horizontalResidual.x, residualVelocity.y, horizontalResidual.z);
                 }
-                
+
                 Debug.Log("右手松开（捕获前一帧位置），累加rightDirection到residualVelocity: " + rightDirection);
             }
 
@@ -431,7 +440,7 @@ namespace YouYouTest.VRMove2
             // 当任意grip键按住时，使用增加的衰减速度
             float currentSpeedDecay = (leftGripPressed || rightGripPressed) ? speedDecay + speedDecayAdd : speedDecay;
             residualVelocity = Vector3.MoveTowards(residualVelocity, Vector3.zero, currentSpeedDecay * Time.deltaTime);
-            
+
             // 限制residualVelocity的水平分量，确保回落速度也不超过最大值
             Vector3 horizontalResidualVelocity = new Vector3(residualVelocity.x, 0, residualVelocity.z);
             if (horizontalResidualVelocity.magnitude > maxTranslationSpeed)
@@ -753,7 +762,7 @@ namespace YouYouTest.VRMove2
 
             Debug.Log($"转向: {angle}度，旋转中心: {rotationCenter}");
         }
-        
+
         // 检测下方建筑物的射线检测
         public void CheckBuildingBelow()
         {
@@ -762,35 +771,35 @@ namespace YouYouTest.VRMove2
                 Debug.LogWarning("headPosition未设置！");
                 return;
             }
-            
+
             // 从headPosition位置向下发射射线
             Vector3 rayOrigin = headPosition.position;
             Vector3 rayDirection = Vector3.down;
             float rayDistance = 2f;
-            
+
             RaycastHit hitInfo;
             bool hitBuilding = Physics.Raycast(rayOrigin, rayDirection, out hitInfo, rayDistance, buildingLayerMask);
-            
+
             // 根据检测结果选择颜色
             Color lineColor = hitBuilding ? Color.green : Color.red;
-            
+
             // 绘制调试线
             Debug.DrawLine(rayOrigin, rayOrigin + rayDirection * rayDistance, lineColor);
-            
+
             // 如果检测到建筑物，获取距离并应用到bodyPosition的Y轴scale
             if (hitBuilding)
             {
                 float distance = hitInfo.distance;
-                
+
                 if (bodyPosition != null)
                 {
                     Vector3 currentScale = bodyPosition.localScale;
-                    bodyPosition.localScale = new Vector3(currentScale.x, distance/2, currentScale.z);
+                    bodyPosition.localScale = new Vector3(currentScale.x, distance / 2, currentScale.z);
                     Debug.Log($"检测到建筑物: {hitInfo.collider.gameObject.name}, 距离: {distance}, 设置bodyPosition Y轴scale为: {distance}");
                 }
             }
         }
-        
+
         // 恢复bodyPosition的Y轴scale到1
         public void RestoreBodyScale()
         {
@@ -799,15 +808,15 @@ namespace YouYouTest.VRMove2
                 Debug.LogWarning("bodyPosition未设置！");
                 return;
             }
-            
+
             Vector3 currentScale = bodyPosition.localScale;
-            
+
             // 如果Y轴scale不是1，就渐渐变回1
             if (Mathf.Abs(currentScale.y - 1f) > 0.001f)
             {
                 float newY = Mathf.Lerp(currentScale.y, 1f, Time.deltaTime * 2f); // 使用Lerp平滑过渡
                 bodyPosition.localScale = new Vector3(currentScale.x, newY, currentScale.z);
-                
+
                 // 可选：输出调试信息
                 if (Time.frameCount % 30 == 0) // 每30帧打印一次，避免日志过多
                 {
