@@ -39,6 +39,9 @@ namespace YouYouTest.VRMove2
         {
             // 在地面状态下的移动逻辑
             controller.GroundMovement();
+            
+            // 检查并恢复bodyPosition的Y轴scale到1
+            controller.RestoreBodyScale();
 
             // 检查是否离开地面，如果是则切换到空中状态
             if (!controller.isOnGround)
@@ -234,13 +237,16 @@ namespace YouYouTest.VRMove2
             // 创建球体投射的参数
             RaycastHit hitInfo;
 
+            // 动态计算检测距离：使用bodyPosition的Y轴scale的一半
+            float dynamicGroundCheckDistance = bodyPosition.localScale.y * 0.5f;
+
             // 执行球体投射，检测指定层的地面
             bool hitGround = Physics.SphereCast(
                 spherePosition,
                 groundCheckRadius,
                 direction,
                 out hitInfo,
-                groundCheckDistance,
+                dynamicGroundCheckDistance,
                 groundLayerMask
             );
 
@@ -252,7 +258,7 @@ namespace YouYouTest.VRMove2
             // 使用CapsuleWireframeDrawer绘制球体投射的可视化
             // 将球体投射转换为胶囊体表示（避免 point1==point2 导致方向向量为零的问题）
             Vector3 sphereCenter = spherePosition;
-            Vector3 castDirection = direction * groundCheckDistance;
+            Vector3 castDirection = direction * dynamicGroundCheckDistance;
             Color gizmoColor = isOnGround ? Color.green : Color.red;
 
             // 构造非常短的胶囊（顶部/底部点），确保非零高度并与对象的 up 方向一致
@@ -760,7 +766,7 @@ namespace YouYouTest.VRMove2
             // 从headPosition位置向下发射射线
             Vector3 rayOrigin = headPosition.position;
             Vector3 rayDirection = Vector3.down;
-            float rayDistance = 3f;
+            float rayDistance = 2f;
             
             RaycastHit hitInfo;
             bool hitBuilding = Physics.Raycast(rayOrigin, rayDirection, out hitInfo, rayDistance, buildingLayerMask);
@@ -771,10 +777,42 @@ namespace YouYouTest.VRMove2
             // 绘制调试线
             Debug.DrawLine(rayOrigin, rayOrigin + rayDirection * rayDistance, lineColor);
             
-            // 可选：输出调试信息
+            // 如果检测到建筑物，获取距离并应用到bodyPosition的Y轴scale
             if (hitBuilding)
             {
-                Debug.Log($"检测到建筑物: {hitInfo.collider.gameObject.name}");
+                float distance = hitInfo.distance;
+                
+                if (bodyPosition != null)
+                {
+                    Vector3 currentScale = bodyPosition.localScale;
+                    bodyPosition.localScale = new Vector3(currentScale.x, distance/2, currentScale.z);
+                    Debug.Log($"检测到建筑物: {hitInfo.collider.gameObject.name}, 距离: {distance}, 设置bodyPosition Y轴scale为: {distance}");
+                }
+            }
+        }
+        
+        // 恢复bodyPosition的Y轴scale到1
+        public void RestoreBodyScale()
+        {
+            if (bodyPosition == null)
+            {
+                Debug.LogWarning("bodyPosition未设置！");
+                return;
+            }
+            
+            Vector3 currentScale = bodyPosition.localScale;
+            
+            // 如果Y轴scale不是1，就渐渐变回1
+            if (Mathf.Abs(currentScale.y - 1f) > 0.001f)
+            {
+                float newY = Mathf.Lerp(currentScale.y, 1f, Time.deltaTime * 2f); // 使用Lerp平滑过渡
+                bodyPosition.localScale = new Vector3(currentScale.x, newY, currentScale.z);
+                
+                // 可选：输出调试信息
+                if (Time.frameCount % 30 == 0) // 每30帧打印一次，避免日志过多
+                {
+                    Debug.Log($"恢复bodyPosition Y轴scale: {currentScale.y} -> {newY}");
+                }
             }
         }
     }
