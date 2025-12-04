@@ -1,6 +1,6 @@
 using UnityEngine;
 
-public class VRBody : MonoBehaviour
+public class VRBody2 : MonoBehaviour
 {
     public bool isFollowing = false;
     public Transform Target;
@@ -20,6 +20,7 @@ public class VRBody : MonoBehaviour
     {
         if (isFollowing)
         {
+            offset.y = -transform.localScale.y;
             var targetPosition = Target.position + offset;
             transform.position = targetPosition;
         }
