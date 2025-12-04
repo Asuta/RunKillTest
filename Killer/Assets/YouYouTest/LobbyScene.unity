@@ -25632,6 +25632,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   bodyPosition: {fileID: 410994414}
   headPosition: {fileID: 0}
+  vrBody: {fileID: 0}
   leftSphere: {fileID: 713129042}
   leftSphereTarget: {fileID: 204575470}
   leftDirection: {x: 0, y: 0, z: 0}
@@ -53544,6 +53545,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   bodyPosition: {fileID: 7135341510087488606}
   headPosition: {fileID: 4730210459708056266}
+  vrBody: {fileID: 9122627891292610819}
   leftSphere: {fileID: 896481436}
   leftSphereTarget: {fileID: 3139601464857640960}
   leftDirection: {x: 0, y: 0, z: 0}

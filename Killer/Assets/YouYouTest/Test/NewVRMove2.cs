@@ -105,6 +105,12 @@ namespace YouYouTest.VRMove2
         {
             Debug.Log("进入贴墙滑行状态");
 
+            // 停止body跟随玩家相机
+            if (controller.vrBody != null)
+            {
+                controller.vrBody.StopFollow();
+            }
+
             // 禁用刚体重力
             if (controller.thisRb != null)
             {
@@ -131,6 +137,12 @@ namespace YouYouTest.VRMove2
         {
             Debug.Log("离开贴墙滑行状态");
 
+            // 恢复body跟随玩家相机
+            if (controller.vrBody != null)
+            {
+                controller.vrBody.StartFollow();
+            }
+
             // 重新启用刚体重力
             if (controller.thisRb != null)
             {
@@ -147,6 +159,7 @@ namespace YouYouTest.VRMove2
     {
         public Transform bodyPosition;
         public Transform headPosition;
+        public VRBody2 vrBody; // VRBody2引用，用于控制body跟随
 
         public Transform leftSphere;
         public Transform leftSphereTarget;
