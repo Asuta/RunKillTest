@@ -7,7 +7,8 @@ namespace YouYouTest.VRMove2
     public enum MovementState
     {
         Grounded,
-        Airborne
+        Airborne,
+        WallSliding
     }
 
     // 状态基类
@@ -95,6 +96,52 @@ namespace YouYouTest.VRMove2
         }
     }
 
+    // 贴墙滑行状态
+    public class WallSlidingState : MovementStateBase
+    {
+        public WallSlidingState(NewVRMove2 controller) : base(controller) { }
+
+        public override void Enter()
+        {
+            Debug.Log("进入贴墙滑行状态");
+
+            // 禁用刚体重力
+            if (controller.thisRb != null)
+            {
+                controller.thisRb.useGravity = false;
+            }
+
+            // 触发进入贴墙滑行事件
+            controller.InvokeOnEnterWallSliding(controller.wallNormal);
+        }
+
+        public override void Update()
+        {
+            // 更新贴墙计时器
+            controller.wallSlideTimer += Time.deltaTime;
+
+            // 持续检测是否还贴在墙上
+            controller.CheckWallAttachment();
+
+            // 贴墙滑行时的移动逻辑
+            controller.WallSlidingMovement();
+        }
+
+        public override void Exit()
+        {
+            Debug.Log("离开贴墙滑行状态");
+
+            // 重新启用刚体重力
+            if (controller.thisRb != null)
+            {
+                controller.thisRb.useGravity = true;
+            }
+
+            // 触发退出贴墙滑行事件
+            controller.InvokeOnExitWallSliding(controller.wallNormal);
+        }
+    }
+
 
     public class NewVRMove2 : MonoBehaviour
     {
@@ -146,6 +193,35 @@ namespace YouYouTest.VRMove2
 
         [Tooltip("指定要检测的建筑层")]
         public LayerMask buildingLayerMask;
+
+        [Header("贴墙滑行设置")]
+        [Tooltip("贴墙滑行速度倍率")]
+        public float wallSlideSpeedMultiplier = 1.2f;
+        [Tooltip("墙体检测射线距离")]
+        public float wallCheckRayDistance = 6f;
+        [Tooltip("是否启用贴墙滑行日志")]
+        public bool needWallSlideLog = false;
+
+        // 贴墙滑行相关私有变量
+        [HideInInspector] public Vector3 wallNormal; // 存储墙面法线
+        [HideInInspector] public float wallSlideTimer = 0f; // 贴墙计时器
+        [HideInInspector] public Vector3 wallSlideDirection; // 存储贴墙滑行方向（投影向量）
+
+        // 贴墙滑行事件
+        public event Action<Vector3> OnEnterWallSliding;
+        public event Action<Vector3> OnExitWallSliding;
+
+        // 事件触发辅助方法（用于在状态类中调用）
+        public void InvokeOnEnterWallSliding(Vector3 normal)
+        {
+            OnEnterWallSliding?.Invoke(normal);
+        }
+
+        public void InvokeOnExitWallSliding(Vector3 normal)
+        {
+            OnExitWallSliding?.Invoke(normal);
+        }
+
         [Header("转向相关")]
         public Transform vrOrigin;
         public Transform cameraOffset;
@@ -223,6 +299,8 @@ namespace YouYouTest.VRMove2
                 CurrentStateType = MovementState.Grounded;
             else if (newState is AirborneState)
                 CurrentStateType = MovementState.Airborne;
+            else if (newState is WallSlidingState)
+                CurrentStateType = MovementState.WallSliding;
         }
 
         // 地面移动逻辑
@@ -824,5 +902,177 @@ namespace YouYouTest.VRMove2
                 }
             }
         }
+
+        #region 贴墙滑行相关方法
+
+        /// <summary>
+        /// 贴墙滑行时的移动逻辑
+        /// </summary>
+        public void WallSlidingMovement()
+        {
+            if (thisRb == null)
+                return;
+
+            // 贴墙滑行状态：按照投影向量方向自动滑行，Y轴速度为0
+            float actualMoveSpeed = finalVelocityMultiplier * wallSlideSpeedMultiplier;
+
+            Vector3 wallSlideVelocity = new Vector3(
+                wallSlideDirection.x * actualMoveSpeed,
+                0,
+                wallSlideDirection.z * actualMoveSpeed
+            );
+            thisRb.linearVelocity = wallSlideVelocity;
+        }
+
+        /// <summary>
+        /// 检测是否还贴在墙上
+        /// </summary>
+        public void CheckWallAttachment()
+        {
+            if (bodyPosition == null)
+                return;
+
+            // 从body位置向墙面法线的反方向发射射线
+            Vector3 rayDirection = -wallNormal;
+            Ray ray = new Ray(bodyPosition.position, rayDirection);
+
+            // 绘制黄色射线
+            Color rayColor = Color.yellow;
+
+            // 使用RaycastAll检测所有碰撞，然后过滤出Wall tag的物体
+            RaycastHit[] hits = Physics.RaycastAll(ray, wallCheckRayDistance);
+            bool stillAttached = false;
+
+            foreach (RaycastHit hitInfo in hits)
+            {
+                if (hitInfo.collider.CompareTag("Wall"))
+                {
+                    stillAttached = true;
+                    break;
+                }
+            }
+
+            if (!stillAttached)
+            {
+                if (needWallSlideLog)
+                    Debug.Log("贴墙滑行时未检测到墙体，退出贴墙状态");
+
+                // 如果射线没有检测到墙体，退出贴墙状态
+                ExitWallSliding();
+            }
+
+            // 在Scene视图中绘制射线
+            Debug.DrawRay(bodyPosition.position, rayDirection * wallCheckRayDistance, rayColor, 0.1f);
+        }
+
+        /// <summary>
+        /// 进入贴墙滑行状态
+        /// </summary>
+        public void EnterWallSliding(Vector3 normal)
+        {
+            wallNormal = normal;
+            wallSlideTimer = 0f;
+
+            if (needWallSlideLog)
+                Debug.Log("进入贴墙滑行状态");
+
+            ChangeState(new WallSlidingState(this));
+        }
+
+        /// <summary>
+        /// 退出贴墙滑行状态
+        /// </summary>
+        public void ExitWallSliding()
+        {
+            if (CurrentStateType == MovementState.WallSliding)
+            {
+                if (needWallSlideLog)
+                    Debug.Log("退出贴墙滑行状态");
+
+                // 根据当前是否在地面来决定下一个状态
+                if (isOnGround)
+                    ChangeState(new GroundedState(this));
+                else
+                    ChangeState(new AirborneState(this));
+            }
+        }
+
+        #endregion
+
+        #region 碰撞检测
+
+        void OnCollisionEnter(Collision collision)
+        {
+            // 检测碰撞物体是否为Wall
+            if (collision.gameObject.CompareTag("Wall"))
+            {
+                if (needWallSlideLog)
+                    Debug.Log("检测到墙体碰撞");
+
+                // 获取第一个接触点的法线
+                if (collision.contactCount > 0)
+                {
+                    ContactPoint contact = collision.GetContact(0);
+                    Vector3 normal = contact.normal;
+
+                    if (needWallSlideLog)
+                        Debug.Log($"碰撞点法线: {normal}");
+
+                    // 从碰撞点绘制法线（红色）
+                    Debug.DrawRay(contact.point, normal * 2f, Color.red, 2f);
+
+                    // 计算速度在法线平面上的投影向量
+                    if (thisRb != null)
+                    {
+                        Vector3 velocity = thisRb.linearVelocity;
+                        Vector3 projection = Vector3.ProjectOnPlane(velocity, normal);
+
+                        // Y轴归零，变成水平向量
+                        Vector3 horizontalProjection = new Vector3(projection.x, 0, projection.z);
+
+                        // 长度重置为1
+                        if (horizontalProjection != Vector3.zero)
+                        {
+                            horizontalProjection = horizontalProjection.normalized;
+                        }
+
+                        if (needWallSlideLog)
+                            Debug.Log($"速度在法线平面上的投影向量 (Y轴归零, 长度1): {horizontalProjection}");
+
+                        // 从碰撞点绘制投影向量（绿色）
+                        Debug.DrawRay(contact.point, horizontalProjection, Color.green, 2f);
+
+                        // 检查投影向量是否为垂直方向（没有水平分量）且不在地面上
+                        if (horizontalProjection != Vector3.zero && !isOnGround)
+                        {
+                            // 保存投影向量用于贴墙滑行
+                            wallSlideDirection = horizontalProjection;
+
+                            // 进入贴墙滑行状态
+                            EnterWallSliding(normal);
+                        }
+                        else
+                        {
+                            if (needWallSlideLog)
+                                Debug.Log("投影向量为垂直方向或在地面上，不进入滑行状态");
+                        }
+                    }
+                }
+            }
+        }
+
+        void OnCollisionExit(Collision collision)
+        {
+            // 离开墙体时退出贴墙滑行状态
+            if (collision.gameObject.CompareTag("Wall") && CurrentStateType == MovementState.WallSliding)
+            {
+                if (needWallSlideLog)
+                    Debug.Log("离开墙体，退出贴墙滑行状态");
+
+                ExitWallSliding();
+            }
+        }
+
+        #endregion
     }
 }
