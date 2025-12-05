@@ -289,7 +289,6 @@ namespace YouYouTest.VRMove2
         void LateUpdate()
         {
             GroundCheck();
-            DebugGraph.Log("final speeeeed", thisRb.linearVelocity.magnitude);
         }
 
         /// <summary>
@@ -297,7 +296,9 @@ namespace YouYouTest.VRMove2
         /// </summary>
         void FixedUpdate()
         {
-            thisRb.AddForce(Vector3.down * addGravityForceY, ForceMode.Acceleration);            
+            thisRb.AddForce(Vector3.down * addGravityForceY, ForceMode.Acceleration);
+            DebugGraph.Log("final speeeeed", thisRb.linearVelocity.magnitude);
+
         }
 
         // 状态切换方法
@@ -593,7 +594,7 @@ namespace YouYouTest.VRMove2
                 // DebugGraph.MultiLog("Related Variables", DebugGraph.DefaultRed, speed.x, "speed.x");
                 // DebugGraph.MultiLog("Related Variables", DebugGraph.DefaultGreen, speed.y, "speed.y");
                 // DebugGraph.MultiLog("Related Variables", DebugGraph.DefaultBlue, speed.z, "speed.z");
-                DebugGraph.Log("Speed Magnitude", speed.magnitude);
+                DebugGraph.Log("Y Speed Magnitude", speed.magnitude);
 
                 // 调试信息
                 if (Time.frameCount % 30 == 0) // 每30帧打印一次，避免日志过多
@@ -1001,6 +1002,9 @@ namespace YouYouTest.VRMove2
             {
                 if (needWallSlideLog)
                     Debug.Log("退出贴墙滑行状态");
+
+                // 清除residualVelocity，让速度就是当前离开墙面时的实际速度
+                residualVelocity = Vector3.zero;
 
                 // 根据当前是否在地面来决定下一个状态
                 if (isOnGround)

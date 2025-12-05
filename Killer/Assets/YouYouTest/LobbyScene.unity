@@ -53558,11 +53558,11 @@ MonoBehaviour:
   finalVelocity: {x: 0, y: 0, z: 0}
   finalVelocityMultiplier: 33
   maxJumpForceY: 9.9
-  multiJumpForceY: 1.1
+  multiJumpForceY: 0.8
   addGravityForceY: 8
-  maxTranslationSpeed: 1
+  maxTranslationSpeed: 0.5
   thisRb: {fileID: 8452711748080353600}
-  isOnGround: 0
+  isOnGround: 1
   groundCheckRadius: 0.56
   groundCheckDistance: 0.61
   groundLayerMask:
@@ -53574,9 +53574,9 @@ MonoBehaviour:
   wallSlideSpeedMultiplier: 0.3
   wallCheckRayDistance: 6
   needWallSlideLog: 0
-  wallNormal: {x: 0, y: 0, z: 0}
-  wallSlideTimer: 0
-  wallSlideDirection: {x: 0, y: 0, z: 0}
+  wallNormal: {x: 0, y: 0, z: 1}
+  wallSlideTimer: 1.1405269
+  wallSlideDirection: {x: -1, y: 0, z: 0}
   vrOrigin: {fileID: 1254862926181544764}
   cameraOffset: {fileID: 7201701550385485738}
   playerHead: {fileID: 4730210459708056266}
