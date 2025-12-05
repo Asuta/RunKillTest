@@ -25662,9 +25662,16 @@ MonoBehaviour:
   wallSlideSpeedMultiplier: 1.2
   wallCheckRayDistance: 6
   needWallSlideLog: 0
+  dashSpeed: 15
+  dashDuration: 0.3
+  dashCooldown: 1
+  handMoveSpeedThreshold: 1
   wallNormal: {x: 0, y: 0, z: 0}
   wallSlideTimer: 0
   wallSlideDirection: {x: 0, y: 0, z: 0}
+  dashTimer: 0
+  dashCooldownTimer: 0
+  dashDirection: {x: 0, y: 0, z: 0}
   vrOrigin: {fileID: 1525856515}
   cameraOffset: {fileID: 1363863700}
   playerHead: {fileID: 1197981388}
@@ -53576,9 +53583,16 @@ MonoBehaviour:
   wallSlideSpeedMultiplier: 0.5
   wallCheckRayDistance: 6
   needWallSlideLog: 0
+  dashSpeed: 46
+  dashDuration: 0.3
+  dashCooldown: 1
+  handMoveSpeedThreshold: 5
   wallNormal: {x: 0, y: 0, z: 1}
   wallSlideTimer: 1.1405269
   wallSlideDirection: {x: -1, y: 0, z: 0}
+  dashTimer: -0.0045825653
+  dashCooldownTimer: -0.019034449
+  dashDirection: {x: 0.6459312, y: 0, z: 0.76339567}
   vrOrigin: {fileID: 1254862926181544764}
   cameraOffset: {fileID: 7201701550385485738}
   playerHead: {fileID: 4730210459708056266}

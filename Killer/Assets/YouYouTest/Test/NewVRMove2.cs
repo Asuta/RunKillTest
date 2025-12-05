@@ -475,7 +475,7 @@ namespace YouYouTest.VRMove2
 
             // 执行球体投射，检测指定层的地面
             bool hitGround = Physics.SphereCast(
-                spherePosition,
+                spherePosition+Vector3.up*15f, // 抬高起点，避免穿透地面
                 groundCheckRadius,
                 direction,
                 out hitInfo,
@@ -490,7 +490,7 @@ namespace YouYouTest.VRMove2
 #if UNITY_EDITOR
             // 使用CapsuleWireframeDrawer绘制球体投射的可视化
             // 将球体投射转换为胶囊体表示（避免 point1==point2 导致方向向量为零的问题）
-            Vector3 sphereCenter = spherePosition;
+            Vector3 sphereCenter = spherePosition + Vector3.up * 15f; // 与球体投射起始点保持一致
             Vector3 castDirection = direction * actualGroundCheckDistance;
             Color gizmoColor = isOnGround ? Color.green : Color.red;
 
