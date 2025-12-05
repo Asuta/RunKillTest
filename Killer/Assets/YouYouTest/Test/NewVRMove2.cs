@@ -3,6 +3,8 @@ using UnityEngine;
 
 namespace YouYouTest.VRMove2
 {
+    #region 状态定义
+
     // 移动状态枚举
     public enum MovementState
     {
@@ -25,6 +27,10 @@ namespace YouYouTest.VRMove2
         public abstract void Update();
         public abstract void Exit();
     }
+
+    #endregion
+
+    #region 具体状态实现
 
     // 地面状态
     public class GroundedState : MovementStateBase
@@ -154,6 +160,7 @@ namespace YouYouTest.VRMove2
         }
     }
 
+    #endregion
 
     public class NewVRMove2 : MonoBehaviour
     {
@@ -264,6 +271,24 @@ namespace YouYouTest.VRMove2
 
         [Tooltip("Lerp跟随速度，值越大跟随越快")]
         public float lerpSpeed = 5f;
+
+
+        #region 私有变量
+
+        // 用于检测grip键状态变化
+        private bool lastLeftGripPressed;
+        private bool lastRightGripPressed;
+        private bool lastLeftTriggerPressed;
+        private bool lastRightTriggerPressed;
+
+        // 记录Trigger松开的时间，用于处理"同时松开"的容差
+        private float lastLeftTriggerReleaseTime = -100f;
+        private float lastRightTriggerReleaseTime = -100f;
+
+        #endregion
+
+        #region Unity生命周期方法
+
         // Start is called once before the first execution of Update after the MonoBehaviour is created
         void Start()
         {
@@ -298,8 +323,11 @@ namespace YouYouTest.VRMove2
         {
             thisRb.AddForce(Vector3.down * addGravityForceY, ForceMode.Acceleration);
             DebugGraph.Log("final speeeeed", thisRb.linearVelocity.magnitude);
-
         }
+
+        #endregion
+
+        #region 状态机管理
 
         // 状态切换方法
         public void ChangeState(MovementStateBase newState)
@@ -328,6 +356,10 @@ namespace YouYouTest.VRMove2
         {
             AirborneMoveLoop();
         }
+
+        #endregion
+
+        #region 地面检测
 
         private void GroundCheck()
         {
@@ -383,6 +415,9 @@ namespace YouYouTest.VRMove2
 #endif
         }
 
+        #endregion
+
+        #region 地面移动逻辑
 
         private void MoveLoop()
         {
@@ -610,6 +645,10 @@ namespace YouYouTest.VRMove2
 
         }
 
+        #endregion
+
+        #region 空中移动逻辑
+
         // 空中移动循环 - 纯物理模式
         private void AirborneMoveLoop()
         {
@@ -785,16 +824,9 @@ namespace YouYouTest.VRMove2
             }
         }
 
-        // 用于检测grip键状态变化
+        #endregion
 
-        private bool lastLeftGripPressed;
-        private bool lastRightGripPressed;
-        private bool lastLeftTriggerPressed;
-        private bool lastRightTriggerPressed;
-
-        // 记录Trigger松开的时间，用于处理"同时松开"的容差
-        private float lastLeftTriggerReleaseTime = -100f;
-        private float lastRightTriggerReleaseTime = -100f;
+        #region 转向控制
 
         // 处理转向逻辑
         private void HandleRotation()
@@ -854,6 +886,10 @@ namespace YouYouTest.VRMove2
 
             Debug.Log($"转向: {angle}度，旋转中心: {rotationCenter}");
         }
+
+        #endregion
+
+        #region 建筑物检测
 
         // 检测下方建筑物的射线检测
         public void CheckBuildingBelow()
@@ -916,6 +952,8 @@ namespace YouYouTest.VRMove2
                 }
             }
         }
+
+        #endregion
 
         #region 贴墙滑行相关方法
 
