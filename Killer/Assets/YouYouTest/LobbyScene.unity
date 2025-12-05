@@ -25652,6 +25652,7 @@ MonoBehaviour:
   isOnGround: 0
   groundCheckRadius: 0.56
   groundCheckDistance: 0.61
+  useDynamicGroundCheckDistance: 0
   groundLayerMask:
     serializedVersion: 2
     m_Bits: 64
@@ -40345,7 +40346,7 @@ Transform:
   m_GameObject: {fileID: 6096394950407524156}
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0.99987894, z: 0, w: 0.015559106}
-  m_LocalPosition: {x: -37.54218, y: 1.0260438, z: -3.2610893}
+  m_LocalPosition: {x: -45.47, y: 4.52, z: -20.04}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children:
@@ -53565,6 +53566,7 @@ MonoBehaviour:
   isOnGround: 1
   groundCheckRadius: 0.56
   groundCheckDistance: 0.61
+  useDynamicGroundCheckDistance: 0
   groundLayerMask:
     serializedVersion: 2
     m_Bits: 64

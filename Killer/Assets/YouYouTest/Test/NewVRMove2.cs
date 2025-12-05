@@ -10,7 +10,8 @@ namespace YouYouTest.VRMove2
     {
         Grounded,
         Airborne,
-        WallSliding
+        WallSliding,
+        Dashing
     }
 
     // 状态基类
@@ -162,6 +163,49 @@ namespace YouYouTest.VRMove2
 
     #endregion
 
+    // 冲刺状态
+    public class DashingState : MovementStateBase
+    {
+        public DashingState(NewVRMove2 controller) : base(controller) { }
+
+        public override void Enter()
+        {
+            Debug.Log("进入冲刺状态");
+            
+            // 禁用刚体重力
+            if (controller.thisRb != null)
+            {
+                controller.thisRb.useGravity = false;
+            }
+        }
+
+        public override void Update()
+        {
+            // 更新冲刺计时器
+            controller.dashTimer -= Time.deltaTime;
+            
+            // 处理冲刺移动
+            controller.DashMovement();
+            
+            // 检查冲刺是否结束
+            if (controller.dashTimer <= 0f)
+            {
+                controller.EndDash();
+            }
+        }
+
+        public override void Exit()
+        {
+            Debug.Log("离开冲刺状态");
+            
+            // 重新启用刚体重力
+            if (controller.thisRb != null)
+            {
+                controller.thisRb.useGravity = true;
+            }
+        }
+    }
+
     public class NewVRMove2 : MonoBehaviour
     {
         public Transform bodyPosition;
@@ -225,10 +269,23 @@ namespace YouYouTest.VRMove2
         [Tooltip("是否启用贴墙滑行日志")]
         public bool needWallSlideLog = false;
 
+        [Header("冲刺设置")]
+        [Tooltip("冲刺速度")]
+        public float dashSpeed = 15f;
+        [Tooltip("冲刺持续时间")]
+        public float dashDuration = 0.3f;
+        [Tooltip("冲刺冷却时间")]
+        public float dashCooldown = 1f;
+
         // 贴墙滑行相关私有变量
         [HideInInspector] public Vector3 wallNormal; // 存储墙面法线
         [HideInInspector] public float wallSlideTimer = 0f; // 贴墙计时器
         [HideInInspector] public Vector3 wallSlideDirection; // 存储贴墙滑行方向（投影向量）
+
+        // 冲刺相关私有变量
+        [HideInInspector] public float dashTimer = 0f; // 冲刺计时器
+        [HideInInspector] public float dashCooldownTimer = 0f; // 冲刺冷却计时器
+        [HideInInspector] public Vector3 dashDirection; // 冲刺方向
 
         // 贴墙滑行事件
         public event Action<Vector3> OnEnterWallSliding;
@@ -311,6 +368,9 @@ namespace YouYouTest.VRMove2
 
             // 处理转向逻辑
             HandleRotation();
+            
+            // 处理冲刺逻辑
+            HandleDash();
         }
 
         // LateUpdate is called after all Update functions have been called
@@ -324,7 +384,11 @@ namespace YouYouTest.VRMove2
         /// </summary>
         void FixedUpdate()
         {
-            thisRb.AddForce(Vector3.down * addGravityForceY, ForceMode.Acceleration);
+            // 应用额外重力（冲刺状态和贴墙滑行状态下不应用重力）
+            if (thisRb != null && CurrentStateType != MovementState.Dashing && CurrentStateType != MovementState.WallSliding)
+            {
+                thisRb.AddForce(Vector3.down * addGravityForceY, ForceMode.Acceleration);
+            }
             DebugGraph.Log("final speeeeed", thisRb.linearVelocity.magnitude);
         }
 
@@ -346,6 +410,8 @@ namespace YouYouTest.VRMove2
                 CurrentStateType = MovementState.Airborne;
             else if (newState is WallSlidingState)
                 CurrentStateType = MovementState.WallSliding;
+            else if (newState is DashingState)
+                CurrentStateType = MovementState.Dashing;
         }
 
         // 地面移动逻辑
@@ -1138,6 +1204,109 @@ namespace YouYouTest.VRMove2
                     Debug.Log("离开墙体，退出贴墙滑行状态");
 
                 ExitWallSliding();
+            }
+        }
+
+        #endregion
+
+        #region 冲刺相关方法
+
+        // 处理冲刺逻辑
+        private void HandleDash()
+        {
+            // 更新冷却计时器
+            if (dashCooldownTimer > 0f)
+            {
+                dashCooldownTimer -= Time.deltaTime;
+            }
+
+            // 检测冲刺输入（使用左手柄的PrimaryButton，通常是A键）
+            if (InputActionsManager.Actions.XRILeftInteraction.Activate.WasPressedThisFrame() && CanDash())
+            {
+                StartDash();
+            }
+        }
+
+        // 检查是否可以冲刺
+        private bool CanDash()
+        {
+            return dashCooldownTimer <= 0f &&
+                   CurrentStateType != MovementState.Dashing &&
+                   CurrentStateType != MovementState.WallSliding;
+        }
+
+        // 开始冲刺
+        private void StartDash()
+        {
+            ChangeState(new DashingState(this));
+            dashTimer = dashDuration;
+            dashCooldownTimer = dashCooldown;
+
+            // 计算冲刺方向
+            Vector3 moveDirection = Vector3.zero;
+            
+            // 获取当前移动方向（基于手柄输入）
+            Vector2 leftStickInput = InputActionsManager.Actions.XRILeftLocomotion.Move.ReadValue<Vector2>();
+            if (leftStickInput.magnitude > 0.1f)
+            {
+                // 将摇杆输入转换为世界空间方向
+                Vector3 forward = playerHead.forward;
+                Vector3 right = playerHead.right;
+                
+                // 只使用水平方向
+                forward.y = 0;
+                right.y = 0;
+                forward.Normalize();
+                right.Normalize();
+                
+                moveDirection = forward * leftStickInput.y + right * leftStickInput.x;
+            }
+            
+            // 如果当前没有移动方向，则使用玩家朝向作为冲刺方向
+            if (moveDirection != Vector3.zero)
+            {
+                dashDirection = moveDirection.normalized;
+            }
+            else
+            {
+                // 使用playerHead的前方作为默认冲刺方向（只使用水平方向）
+                Vector3 forward = playerHead.forward;
+                forward.y = 0;
+                dashDirection = forward.normalized;
+            }
+            
+            Debug.Log("开始冲刺，方向: " + dashDirection);
+        }
+
+        // 结束冲刺
+        public void EndDash()
+        {
+            // 冲刺结束时恢复速度
+            if (thisRb != null)
+            {
+                // 保持当前的水平速度，但降低到正常移动速度
+                Vector3 currentVelocity = thisRb.linearVelocity;
+                Vector3 horizontalVelocity = new Vector3(currentVelocity.x, 0, currentVelocity.z).normalized * finalVelocityMultiplier;
+                thisRb.linearVelocity = new Vector3(horizontalVelocity.x, currentVelocity.y, horizontalVelocity.z);
+            }
+
+            // 根据当前是否在地面来决定下一个状态
+            if (isOnGround)
+                ChangeState(new GroundedState(this));
+            else
+                ChangeState(new AirborneState(this));
+                
+            Debug.Log("结束冲刺");
+        }
+
+        // 处理冲刺移动
+        public void DashMovement()
+        {
+            if (thisRb != null)
+            {
+                // 应用冲刺速度，只控制x和z轴，保持y轴速度不变
+                Vector3 dashVelocity = new Vector3(dashDirection.x * dashSpeed, thisRb.linearVelocity.y, dashDirection.z * dashSpeed);
+                thisRb.linearVelocity = dashVelocity;
             }
         }
 
