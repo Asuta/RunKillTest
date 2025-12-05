@@ -53571,7 +53571,7 @@ MonoBehaviour:
   buildingLayerMask:
     serializedVersion: 2
     m_Bits: 64
-  wallSlideSpeedMultiplier: 0.3
+  wallSlideSpeedMultiplier: 0.5
   wallCheckRayDistance: 6
   needWallSlideLog: 0
   wallNormal: {x: 0, y: 0, z: 1}
