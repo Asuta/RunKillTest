@@ -1379,11 +1379,11 @@ namespace YouYouTest.VRMove2
             // 检测右手柄移动
             if (rightSphereTarget != null)
             {
-                // 检测右手柄扳机键是否被按下
-                bool rightTriggerPressed = InputActionsManager.Actions.XRIRightInteraction.Activate.IsPressed();
+                // 检测右手柄A键是否被按下
+                bool rightButtonPressed = InputActionsManager.Actions.XRIRightInteraction.PrimaryButton.IsPressed();
 
-                // 如果扳机键没有被按下，则不进行冲刺检测
-                if (!rightTriggerPressed)
+                // 如果A键没有被按下，则不进行冲刺检测
+                if (!rightButtonPressed)
                 {
                     // 更新上一帧的位置（重置位置跟踪）
                     previousRightHandLocalPosition = rightSphereTarget.localPosition;
@@ -1400,7 +1400,7 @@ namespace YouYouTest.VRMove2
                     // 检查速度是否超过阈值
                     if (speed > handMoveSpeedThreshold)
                     {
-                        Debug.Log("右手移动速度超过阈值且扳机键被按下，触发冲刺");
+                        Debug.Log("右手移动速度超过阈值且A键被按下，触发冲刺");
                         TriggerDash();
                     }
 
@@ -1412,11 +1412,11 @@ namespace YouYouTest.VRMove2
             // 检测左手柄移动
             if (leftSphereTarget != null)
             {
-                // 检测左手柄扳机键是否被按下
-                bool leftTriggerPressed = InputActionsManager.Actions.XRILeftInteraction.Activate.IsPressed();
+                // 检测左手柄A键是否被按下
+                bool leftButtonPressed = InputActionsManager.Actions.XRILeftInteraction.PrimaryButton.IsPressed();
 
-                // 如果扳机键没有被按下，则不进行冲刺检测
-                if (!leftTriggerPressed)
+                // 如果A键没有被按下，则不进行冲刺检测
+                if (!leftButtonPressed)
                 {
                     // 更新上一帧的位置（重置位置跟踪）
                     previousLeftHandLocalPosition = leftSphereTarget.localPosition;
@@ -1433,7 +1433,7 @@ namespace YouYouTest.VRMove2
                     // 检查速度是否超过阈值
                     if (speed > handMoveSpeedThreshold)
                     {
-                        Debug.Log("左手移动速度超过阈值且扳机键被按下，触发冲刺");
+                        Debug.Log("左手移动速度超过阈值且A键被按下，触发冲刺");
                         TriggerDash();
                     }
 
