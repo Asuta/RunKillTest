@@ -277,6 +277,10 @@ namespace YouYouTest.VRMove2
         [Tooltip("冲刺冷却时间")]
         public float dashCooldown = 1f;
 
+        [Header("手部移动冲刺设置")]
+        [Tooltip("手部移动速度阈值")]
+        public float handMoveSpeedThreshold = 1f;
+
         // 贴墙滑行相关私有变量
         [HideInInspector] public Vector3 wallNormal; // 存储墙面法线
         [HideInInspector] public float wallSlideTimer = 0f; // 贴墙计时器
@@ -286,6 +290,10 @@ namespace YouYouTest.VRMove2
         [HideInInspector] public float dashTimer = 0f; // 冲刺计时器
         [HideInInspector] public float dashCooldownTimer = 0f; // 冲刺冷却计时器
         [HideInInspector] public Vector3 dashDirection; // 冲刺方向
+
+        // 手部移动检测相关私有变量
+        private Vector3 previousRightHandLocalPosition;
+        private Vector3 previousLeftHandLocalPosition;
 
         // 贴墙滑行事件
         public event Action<Vector3> OnEnterWallSliding;
@@ -356,6 +364,16 @@ namespace YouYouTest.VRMove2
             lastLeftGripPressed = false;
             lastRightGripPressed = false;
 
+            // 初始化手部位置
+            if (rightSphereTarget != null)
+            {
+                previousRightHandLocalPosition = rightSphereTarget.localPosition;
+            }
+            if (leftSphereTarget != null)
+            {
+                previousLeftHandLocalPosition = leftSphereTarget.localPosition;
+            }
+
             // 初始化状态机，默认进入地面状态
             ChangeState(new GroundedState(this));
         }
@@ -371,6 +389,9 @@ namespace YouYouTest.VRMove2
             
             // 处理冲刺逻辑
             HandleDash();
+            
+            // 检测手部移动并触发冲刺
+            HandleHandMoveDash();
         }
 
         // LateUpdate is called after all Update functions have been called
@@ -1238,41 +1259,55 @@ namespace YouYouTest.VRMove2
         // 开始冲刺
         private void StartDash()
         {
+            StartDash(Vector3.zero);
+        }
+
+        // 开始冲刺（带自定义方向）
+        private void StartDash(Vector3 customDirection)
+        {
             ChangeState(new DashingState(this));
             dashTimer = dashDuration;
             dashCooldownTimer = dashCooldown;
 
-            // 计算冲刺方向
-            Vector3 moveDirection = Vector3.zero;
-            
-            // 获取当前移动方向（基于手柄输入）
-            Vector2 leftStickInput = InputActionsManager.Actions.XRILeftLocomotion.Move.ReadValue<Vector2>();
-            if (leftStickInput.magnitude > 0.1f)
+            // 如果提供了自定义方向，使用自定义方向
+            if (customDirection != Vector3.zero)
             {
-                // 将摇杆输入转换为世界空间方向
-                Vector3 forward = playerHead.forward;
-                Vector3 right = playerHead.right;
-                
-                // 只使用水平方向
-                forward.y = 0;
-                right.y = 0;
-                forward.Normalize();
-                right.Normalize();
-                
-                moveDirection = forward * leftStickInput.y + right * leftStickInput.x;
-            }
-            
-            // 如果当前没有移动方向，则使用玩家朝向作为冲刺方向
-            if (moveDirection != Vector3.zero)
-            {
-                dashDirection = moveDirection.normalized;
+                dashDirection = customDirection.normalized;
             }
             else
             {
-                // 使用playerHead的前方作为默认冲刺方向（只使用水平方向）
-                Vector3 forward = playerHead.forward;
-                forward.y = 0;
-                dashDirection = forward.normalized;
+                // 计算冲刺方向
+                Vector3 moveDirection = Vector3.zero;
+                
+                // 获取当前移动方向（基于手柄输入）
+                Vector2 leftStickInput = InputActionsManager.Actions.XRILeftLocomotion.Move.ReadValue<Vector2>();
+                if (leftStickInput.magnitude > 0.1f)
+                {
+                    // 将摇杆输入转换为世界空间方向
+                    Vector3 forward = playerHead.forward;
+                    Vector3 right = playerHead.right;
+                    
+                    // 只使用水平方向
+                    forward.y = 0;
+                    right.y = 0;
+                    forward.Normalize();
+                    right.Normalize();
+                    
+                    moveDirection = forward * leftStickInput.y + right * leftStickInput.x;
+                }
+                
+                // 如果当前没有移动方向，则使用玩家朝向作为冲刺方向
+                if (moveDirection != Vector3.zero)
+                {
+                    dashDirection = moveDirection.normalized;
+                }
+                else
+                {
+                    // 使用playerHead的前方作为默认冲刺方向（只使用水平方向）
+                    Vector3 forward = playerHead.forward;
+                    forward.y = 0;
+                    dashDirection = forward.normalized;
+                }
             }
             
             Debug.Log("开始冲刺，方向: " + dashDirection);
@@ -1310,6 +1345,103 @@ namespace YouYouTest.VRMove2
             }
         }
 
+        /// <summary>
+        /// 外部调用触发冲刺
+        /// </summary>
+        public void TriggerDash()
+        {
+            if (CanDash())
+            {
+                StartDash();
+            }
+        }
+
+        /// <summary>
+        /// 外部调用触发冲刺，可指定方向
+        /// </summary>
+        /// <param name="direction">冲刺方向</param>
+        public void TriggerDash(Vector3 direction)
+        {
+            if (CanDash())
+            {
+                StartDash(direction);
+            }
+        }
+
+        #endregion
+
+        #region 手部移动冲刺方法
+        /// <summary>
+        /// 检测手部移动并触发冲刺
+        /// </summary>
+        void HandleHandMoveDash()
+        {
+            // 检测右手柄移动
+            if (rightSphereTarget != null)
+            {
+                // 检测右手柄扳机键是否被按下
+                bool rightTriggerPressed = InputActionsManager.Actions.XRIRightInteraction.Activate.IsPressed();
+
+                // 如果扳机键没有被按下，则不进行冲刺检测
+                if (!rightTriggerPressed)
+                {
+                    // 更新上一帧的位置（重置位置跟踪）
+                    previousRightHandLocalPosition = rightSphereTarget.localPosition;
+                }
+                else
+                {
+                    // 计算当前帧的本地位置
+                    Vector3 currentLocalPosition = rightSphereTarget.localPosition;
+
+                    // 计算移动速度（每帧移动的距离）
+                    float moveDistance = Vector3.Distance(currentLocalPosition, previousRightHandLocalPosition);
+                    float speed = moveDistance / Time.deltaTime;
+
+                    // 检查速度是否超过阈值
+                    if (speed > handMoveSpeedThreshold)
+                    {
+                        Debug.Log("右手移动速度超过阈值且扳机键被按下，触发冲刺");
+                        TriggerDash();
+                    }
+
+                    // 更新上一帧的位置
+                    previousRightHandLocalPosition = currentLocalPosition;
+                }
+            }
+
+            // 检测左手柄移动
+            if (leftSphereTarget != null)
+            {
+                // 检测左手柄扳机键是否被按下
+                bool leftTriggerPressed = InputActionsManager.Actions.XRILeftInteraction.Activate.IsPressed();
+
+                // 如果扳机键没有被按下，则不进行冲刺检测
+                if (!leftTriggerPressed)
+                {
+                    // 更新上一帧的位置（重置位置跟踪）
+                    previousLeftHandLocalPosition = leftSphereTarget.localPosition;
+                }
+                else
+                {
+                    // 计算当前帧的本地位置
+                    Vector3 currentLocalPosition = leftSphereTarget.localPosition;
+
+                    // 计算移动速度（每帧移动的距离）
+                    float moveDistance = Vector3.Distance(currentLocalPosition, previousLeftHandLocalPosition);
+                    float speed = moveDistance / Time.deltaTime;
+
+                    // 检查速度是否超过阈值
+                    if (speed > handMoveSpeedThreshold)
+                    {
+                        Debug.Log("左手移动速度超过阈值且扳机键被按下，触发冲刺");
+                        TriggerDash();
+                    }
+
+                    // 更新上一帧的位置
+                    previousLeftHandLocalPosition = currentLocalPosition;
+                }
+            }
+        }
         #endregion
     }
 }
