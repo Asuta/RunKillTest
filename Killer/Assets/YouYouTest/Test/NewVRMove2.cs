@@ -208,6 +208,9 @@ namespace YouYouTest.VRMove2
         [Tooltip("球体检测的距离")]
         public float groundCheckDistance = 0.3f;
 
+        [Tooltip("是否使用动态地面检测距离（基于bodyPosition的Y轴scale）")]
+        public bool useDynamicGroundCheckDistance = false;
+
         [Tooltip("指定要检测的地面层")]
         public LayerMask groundLayerMask = -1; // -1表示检测所有层
 
@@ -370,8 +373,18 @@ namespace YouYouTest.VRMove2
             // 创建球体投射的参数
             RaycastHit hitInfo;
 
-            // 动态计算检测距离：使用bodyPosition的Y轴scale的一半
-            float dynamicGroundCheckDistance = bodyPosition.localScale.y * 0.5f;
+            // 根据设置决定使用固定距离还是动态距离
+            float actualGroundCheckDistance;
+            if (useDynamicGroundCheckDistance)
+            {
+                // 动态计算检测距离：使用bodyPosition的Y轴scale的一半
+                actualGroundCheckDistance = bodyPosition.localScale.y * 0.5f;
+            }
+            else
+            {
+                // 使用固定的检测距离
+                actualGroundCheckDistance = groundCheckDistance;
+            }
 
             // 执行球体投射，检测指定层的地面
             bool hitGround = Physics.SphereCast(
@@ -379,7 +392,7 @@ namespace YouYouTest.VRMove2
                 groundCheckRadius,
                 direction,
                 out hitInfo,
-                dynamicGroundCheckDistance,
+                actualGroundCheckDistance,
                 groundLayerMask
             );
 
@@ -391,7 +404,7 @@ namespace YouYouTest.VRMove2
             // 使用CapsuleWireframeDrawer绘制球体投射的可视化
             // 将球体投射转换为胶囊体表示（避免 point1==point2 导致方向向量为零的问题）
             Vector3 sphereCenter = spherePosition;
-            Vector3 castDirection = direction * dynamicGroundCheckDistance;
+            Vector3 castDirection = direction * actualGroundCheckDistance;
             Color gizmoColor = isOnGround ? Color.green : Color.red;
 
             // 构造非常短的胶囊（顶部/底部点），确保非零高度并与对象的 up 方向一致
