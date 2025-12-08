@@ -11,7 +11,8 @@ namespace YouYouTest.VRMove2
         Grounded,
         Airborne,
         WallSliding,
-        Dashing
+        Dashing,
+        HookDashing
     }
 
     // 状态基类
@@ -206,7 +207,50 @@ namespace YouYouTest.VRMove2
         }
     }
 
-    public class NewVRMove2 : MonoBehaviour
+    // Hook冲刺状态
+    public class HookDashingState : MovementStateBase
+    {
+        public HookDashingState(NewVRMove2 controller) : base(controller) { }
+
+        public override void Enter()
+        {
+            Debug.Log("进入Hook冲刺状态");
+            
+            // 禁用刚体重力
+            if (controller.thisRb != null)
+            {
+                controller.thisRb.useGravity = false;
+            }
+        }
+
+        public override void Update()
+        {
+            // 更新Hook冲刺计时器
+            controller.hookDashTimer -= Time.deltaTime;
+            
+            // 处理Hook冲刺移动
+            controller.HookDashMovement();
+            
+            // 检查Hook冲刺是否结束（计时器耗尽）
+            if (controller.hookDashTimer <= 0f)
+            {
+                controller.EndHookDash();
+            }
+        }
+
+        public override void Exit()
+        {
+            Debug.Log("离开Hook冲刺状态");
+            
+            // 重新启用刚体重力
+            if (controller.thisRb != null)
+            {
+                controller.thisRb.useGravity = true;
+            }
+        }
+    }
+
+    public class NewVRMove2 : MonoBehaviour, IPlayerHeadProvider, IDashProvider, IHookDashProvider, IMoveSpeedProvider, IWallSlidingProvider, IBounceCubeProvider
     {
         public Transform bodyPosition;
         public Transform headPosition;
@@ -281,6 +325,18 @@ namespace YouYouTest.VRMove2
         [Tooltip("手部移动速度阈值")]
         public float handMoveSpeedThreshold = 1f;
 
+        [Header("Hook冲刺设置")]
+        [Tooltip("Hook冲刺速度")]
+        public float hookDashSpeed = 15f;
+        [Tooltip("Hook冲刺持续时间")]
+        public float hookDashDuration = 0.3f;
+
+        [Header("移动速度设置")]
+        [Tooltip("额外移动速度")]
+        public float AddMoveSpeed = 0f;
+        [Tooltip("额外移动速度倍率")]
+        public float AddMoveSpeedMultiplier = 1f;
+
         // 贴墙滑行相关私有变量
         [HideInInspector] public Vector3 wallNormal; // 存储墙面法线
         [HideInInspector] public float wallSlideTimer = 0f; // 贴墙计时器
@@ -294,6 +350,11 @@ namespace YouYouTest.VRMove2
         // 手部移动检测相关私有变量
         private Vector3 previousRightHandLocalPosition;
         private Vector3 previousLeftHandLocalPosition;
+
+        // Hook冲刺相关私有变量
+        [HideInInspector] public Transform hookTarget; // 目标hook的Transform
+        [HideInInspector] public float hookDashTimer = 0f; // hook冲刺计时器
+        [HideInInspector] public Vector3 hookDashDirection; // hook冲刺方向
 
         // 贴墙滑行事件
         public event Action<Vector3> OnEnterWallSliding;
@@ -390,6 +451,9 @@ namespace YouYouTest.VRMove2
             // 处理冲刺逻辑
             HandleDash();
             
+            // 处理Hook冲刺逻辑
+            HandleHookDash();
+            
             // 检测手部移动并触发冲刺
             HandleHandMoveDash();
         }
@@ -405,8 +469,8 @@ namespace YouYouTest.VRMove2
         /// </summary>
         void FixedUpdate()
         {
-            // 应用额外重力（冲刺状态和贴墙滑行状态下不应用重力）
-            if (thisRb != null && CurrentStateType != MovementState.Dashing && CurrentStateType != MovementState.WallSliding)
+            // 应用额外重力（冲刺状态、贴墙滑行状态和Hook冲刺状态下不应用重力）
+            if (thisRb != null && CurrentStateType != MovementState.Dashing && CurrentStateType != MovementState.WallSliding && CurrentStateType != MovementState.HookDashing)
             {
                 thisRb.AddForce(Vector3.down * addGravityForceY, ForceMode.Acceleration);
             }
@@ -433,6 +497,8 @@ namespace YouYouTest.VRMove2
                 CurrentStateType = MovementState.WallSliding;
             else if (newState is DashingState)
                 CurrentStateType = MovementState.Dashing;
+            else if (newState is HookDashingState)
+                CurrentStateType = MovementState.HookDashing;
         }
 
         // 地面移动逻辑
@@ -1228,11 +1294,11 @@ namespace YouYouTest.VRMove2
                 dashCooldownTimer -= Time.deltaTime;
             }
 
-            // 检测冲刺输入（使用左手柄的PrimaryButton，通常是A键）
-            if (InputActionsManager.Actions.XRILeftInteraction.Activate.WasPressedThisFrame() && CanDash())
-            {
-                StartDash();
-            }
+            // // 检测冲刺输入（使用左手柄的PrimaryButton，通常是A键）
+            // if (InputActionsManager.Actions.XRILeftInteraction.Activate.WasPressedThisFrame() && CanDash())
+            // {
+            //     StartDash();
+            // }
         }
 
         // 检查是否可以冲刺
@@ -1357,6 +1423,113 @@ namespace YouYouTest.VRMove2
 
         #endregion
 
+        #region Hook冲刺相关方法
+
+        /// <summary>
+        /// 处理Hook冲刺输入
+        /// </summary>
+        private void HandleHookDash()
+        {
+            // 检测hook冲刺输入（使用左摇杆的按下事件）
+            bool hookDashInput = InputActionsManager.Actions.XRILeftInteraction.ScaleToggle.IsPressed();
+
+            if (hookDashInput && CanHookDash())
+            {
+                StartHookDash();
+            }
+        }
+
+        /// <summary>
+        /// 检查是否可以进行Hook冲刺
+        /// </summary>
+        private bool CanHookDash()
+        {
+            // 检查GameManager中是否有ClosestAngleHook，并且当前不在hook冲刺状态
+            return GameManager.Instance != null &&
+                   GameManager.Instance.ClosestAngleHook != null &&
+                   CurrentStateType != MovementState.HookDashing;
+        }
+
+        /// <summary>
+        /// 开始Hook冲刺
+        /// </summary>
+        private void StartHookDash()
+        {
+            hookDashTimer = hookDashDuration;
+            hookTarget = GameManager.Instance.ClosestAngleHook;
+
+            // 计算冲向hook的方向
+            if (hookTarget != null)
+            {
+                hookDashDirection = (hookTarget.position - transform.position).normalized;
+            }
+
+            ChangeState(new HookDashingState(this));
+            Debug.Log("开始Hook冲刺，目标: " + hookTarget.name);
+        }
+
+        /// <summary>
+        /// 结束Hook冲刺
+        /// </summary>
+        public void EndHookDash()
+        {
+            // 到达hook位置后进入浮空状态，并保留一定速度
+            if (thisRb != null)
+            {
+                thisRb.linearVelocity = thisRb.linearVelocity.normalized * 10f;
+            }
+
+            // 根据当前是否在地面来决定下一个状态
+            if (isOnGround)
+                ChangeState(new GroundedState(this));
+            else
+                ChangeState(new AirborneState(this));
+
+            Debug.Log("结束Hook冲刺");
+        }
+
+        /// <summary>
+        /// 处理Hook冲刺移动
+        /// </summary>
+        public void HookDashMovement()
+        {
+            if (thisRb != null && hookTarget != null)
+            {
+                Debug.Log("Hook冲刺中");
+
+                // 计算到目标的距离
+                float distanceToHook = Vector3.Distance(transform.position, hookTarget.position);
+                float step = hookDashSpeed * Time.deltaTime;
+
+                // 如果本次步进会到达或超过目标位置，则直接移动到目标并结束hook冲刺，避免穿透或跳过
+                if (distanceToHook <= step)
+                {
+                    // 精确移动到目标位置
+                    thisRb.MovePosition(hookTarget.position);
+                    EndHookDash();
+                }
+                else
+                {
+                    // 以冲刺速度冲向hook目标位置（使用立体的实际方向，包含Y轴分量）
+                    Vector3 hookDashVelocity = hookDashDirection * hookDashSpeed;
+                    thisRb.linearVelocity = hookDashVelocity;
+                }
+            }
+        }
+
+        /// <summary>
+        /// 外部调用触发Hook冲刺
+        /// </summary>
+        public void TriggerHookDash()
+        {
+            if (CanHookDash())
+            {
+                StartHookDash();
+            }
+        }
+
+        #endregion
+
         #region 手部移动冲刺方法
         /// <summary>
         /// 检测手部移动并触发冲刺
@@ -1429,6 +1602,81 @@ namespace YouYouTest.VRMove2
                 }
             }
         }
+        #endregion
+
+        #region 接口实现
+
+        /// <summary>
+        /// IPlayerHeadProvider 接口实现
+        /// 获取玩家头部Transform
+        /// </summary>
+        /// <returns>头部Transform</returns>
+        public Transform GetPlayerHead()
+        {
+            return playerHead;
+        }
+
+        /// <summary>
+        /// IHookDashProvider 接口实现
+        /// 外部调用处理hook冲刺
+        /// </summary>
+        public void OutHandleHookDash()
+        {
+            // 检测hook冲刺输入
+            if (CanHookDash())
+            {
+                StartHookDash();
+            }
+
+            // 更新hook冲刺计时器
+            if (CurrentStateType == MovementState.HookDashing)
+            {
+                hookDashTimer -= Time.deltaTime;
+                if (hookDashTimer <= 0f)
+                {
+                    EndHookDash();
+                }
+            }
+        }
+
+        /// <summary>
+        /// IMoveSpeedProvider 接口实现
+        /// 设置额外的移动速度加成
+        /// </summary>
+        /// <param name="additionalSpeed">要添加的额外速度</param>
+        public void SetAdditionalMoveSpeed(float additionalSpeed)
+        {
+            AddMoveSpeed = additionalSpeed * AddMoveSpeedMultiplier;
+        }
+
+        /// <summary>
+        /// IMoveSpeedProvider 接口实现
+        /// 获取当前的实际移动速度（基础速度 + 额外速度）
+        /// </summary>
+        /// <returns>实际移动速度</returns>
+        public float GetActualMoveSpeed()
+        {
+            return finalVelocityMultiplier + AddMoveSpeed;
+        }
+
+        /// <summary>
+        /// IBounceCubeProvider 接口实现
+        /// 处理弹跳方块碰撞
+        /// </summary>
+        /// <param name="normal">弹跳方向</param>
+        public void OutHandleBounceCube(Vector3 normal)
+        {
+            Debug.Log("触发弹跳方块，法线：" + normal);
+            if (thisRb != null)
+            {
+                thisRb.linearVelocity = normal;
+            }
+        }
+
+        // IWallSlidingProvider 接口的事件已在类的前面声明:
+        // public event Action<Vector3> OnEnterWallSliding;
+        // public event Action<Vector3> OnExitWallSliding;
+
         #endregion
     }
 }
