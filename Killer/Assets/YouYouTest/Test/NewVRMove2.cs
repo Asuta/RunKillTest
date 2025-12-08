@@ -137,6 +137,9 @@ namespace YouYouTest.VRMove2
             // 持续检测是否还贴在墙上
             controller.CheckWallAttachment();
 
+            // 检测贴墙状态下的拖拽跳跃
+            controller.WallSlidingJumpCheck();
+
             // 贴墙滑行时的移动逻辑
             controller.WallSlidingMovement();
         }
@@ -1111,6 +1114,64 @@ namespace YouYouTest.VRMove2
         #region 贴墙滑行相关方法
 
         /// <summary>
+        /// 贴墙滑行时的跳跃检测（拖拽跳跃）
+        /// </summary>
+        public void WallSlidingJumpCheck()
+        {
+            // 读取当前grip状态（布尔值）
+            bool leftGripPressed = InputActionsManager.Actions.XRILeftInteraction.Select.IsPressed();
+            bool rightGripPressed = InputActionsManager.Actions.XRIRightInteraction.Select.IsPressed();
+
+            // 读取当前trigger状态（布尔值）
+            bool leftTriggerPressed = InputActionsManager.Actions.XRILeftInteraction.Activate.IsPressed();
+            bool rightTriggerPressed = InputActionsManager.Actions.XRIRightInteraction.Activate.IsPressed();
+
+            // 检查是否处于3D移动模式（扳机键和侧卧键同时按下）- 用于贴墙跳跃
+            bool leftIs3DMode = leftGripPressed && leftTriggerPressed;
+            bool rightIs3DMode = rightGripPressed && rightTriggerPressed;
+            bool isIn3DMode = leftIs3DMode || rightIs3DMode;
+
+            // 如果处于3D模式，计算跳跃方向并执行贴墙跳跃
+            if (isIn3DMode)
+            {
+                // 计算方向向量
+                Vector3 jumpDirection = Vector3.zero;
+
+                if (leftIs3DMode && leftSphere != null && leftSphereTarget != null)
+                {
+                    Vector3 rawLeftDirection = leftSphere.position - leftSphereTarget.position;
+                    jumpDirection += rawLeftDirection;
+                }
+
+                if (rightIs3DMode && rightSphere != null && rightSphereTarget != null)
+                {
+                    Vector3 rawRightDirection = rightSphere.position - rightSphereTarget.position;
+                    jumpDirection += rawRightDirection;
+                }
+
+                // 如果有有效的跳跃方向，执行贴墙跳跃
+                if (jumpDirection.magnitude > 0.1f)
+                {
+                    // 计算跳跃速度
+                    Vector3 jumpVelocity = jumpDirection * finalVelocityMultiplier;
+                    jumpVelocity = new Vector3(jumpVelocity.x, jumpVelocity.y * multiJumpForceY, jumpVelocity.z);
+                    jumpVelocity = new Vector3(jumpVelocity.x, Mathf.Clamp(jumpVelocity.y, -maxJumpForceY, maxJumpForceY), jumpVelocity.z);
+
+                    // 应用跳跃速度
+                    if (thisRb != null)
+                    {
+                        thisRb.linearVelocity = jumpVelocity;
+                    }
+
+                    Debug.Log("贴墙跳跃触发，方向: " + jumpDirection + "，速度: " + jumpVelocity);
+
+                    // 退出贴墙滑行状态
+                    ExitWallSliding();
+                }
+            }
+        }
+
+        /// <summary>
         /// 贴墙滑行时的移动逻辑
         /// </summary>
         public void WallSlidingMovement()
@@ -1305,8 +1366,7 @@ namespace YouYouTest.VRMove2
         private bool CanDash()
         {
             return dashCooldownTimer <= 0f &&
-                   CurrentStateType != MovementState.Dashing &&
-                   CurrentStateType != MovementState.WallSliding;
+                   CurrentStateType != MovementState.Dashing;
         }
 
         // 开始冲刺
@@ -1445,6 +1505,7 @@ namespace YouYouTest.VRMove2
         private bool CanHookDash()
         {
             // 检查GameManager中是否有ClosestAngleHook，并且当前不在hook冲刺状态
+            // 允许在贴墙滑行状态下进行hook冲刺
             return GameManager.Instance != null &&
                    GameManager.Instance.ClosestAngleHook != null &&
                    CurrentStateType != MovementState.HookDashing;
