@@ -850,44 +850,16 @@ namespace YouYouTest.VRMove2
                 rightDirection = Vector3.zero;
             }
 
-            // 2) 在把球体位置写回target之前，检测"松手瞬间"，把当时捕获到的方向转换为力
-
-            // 检查上一帧是否处于3D移动模式
-            bool leftWas3DMode = lastLeftGripPressed && lastLeftTriggerPressed;
-            bool rightWas3DMode = lastRightGripPressed && lastRightTriggerPressed;
-
-            // 检查是否刚刚退出3D模式（容差判断）
-            bool leftRecently3D = leftWas3DMode || (Time.time - lastLeftTriggerReleaseTime < 0.25f);
-            bool rightRecently3D = rightWas3DMode || (Time.time - lastRightTriggerReleaseTime < 0.25f);
-
+            // 2) 在空中状态下，不检测"松手瞬间"，不施加任何脉冲力
+            // 完全取消在空中时的拖拽影响，包括松手时的速度累积
             if (lastLeftGripPressed && !leftGripPressed)
             {
-                // 如果不是3D模式，才施加脉冲力
-                if (!leftRecently3D)
-                {
-                    Vector3 force = leftDirection * finalVelocityMultiplier;
-                    thisRb.AddForce(force, ForceMode.Impulse);
-                    Debug.Log("左手松开（空中），施加脉冲力: " + force);
-                }
-                else
-                {
-                    Debug.Log("左手松开（空中 3D模式/刚刚退出），不施加脉冲力，保持当前速度");
-                }
+                Debug.Log("左手松开（空中），不施加脉冲力，拖拽球影响已取消");
             }
 
             if (lastRightGripPressed && !rightGripPressed)
             {
-                // 如果不是3D模式，才施加脉冲力
-                if (!rightRecently3D)
-                {
-                    Vector3 force = rightDirection * finalVelocityMultiplier;
-                    thisRb.AddForce(force, ForceMode.Impulse);
-                    Debug.Log("右手松开（空中），施加脉冲力: " + force);
-                }
-                else
-                {
-                    Debug.Log("右手松开（空中 3D模式/刚刚退出），不施加脉冲力，保持当前速度");
-                }
+                Debug.Log("右手松开（空中），不施加脉冲力，拖拽球影响已取消");
             }
 
             // 3) 更新grip和trigger历史状态（用于下一帧检测）
@@ -922,46 +894,20 @@ namespace YouYouTest.VRMove2
 
             // 5) 在空中状态下，不对速度进行任何直接控制，让物理系统完全接管
             // 不设置 linearVelocity，不累加速度，不进行衰减
-
-            // 6) 可选：在按住grip时持续施加较小的力进行微调（如果需要的话）
-            Vector3 continuousForce = Vector3.zero;
-            bool is3DMovementMode = (leftGripPressed && leftTriggerPressed) || (rightGripPressed && rightTriggerPressed);
-
-            if (leftGripPressed)
-            {
-                continuousForce += leftDirection * 0.1f; // 较小的持续力
-            }
-            if (rightGripPressed)
-            {
-                continuousForce += rightDirection * 0.1f; // 较小的持续力
-            }
-
-            if (continuousForce != Vector3.zero)
-            {
-                if (is3DMovementMode)
-                {
-                    // 3D模式下施加完整的力
-                    thisRb.AddForce(continuousForce * finalVelocityMultiplier, ForceMode.Force);
-                }
-                else
-                {
-                    // 普通模式下只施加水平力
-                    Vector3 horizontalForce = new Vector3(continuousForce.x, 0, continuousForce.z) * finalVelocityMultiplier;
-                    thisRb.AddForce(horizontalForce, ForceMode.Force);
-                }
-            }
+            // 完全取消在空中时的拖拽影响，包括持续施加的微调力
 
             // 可视化当前速度（物理系统控制的真实速度）
             if (linePosition != null)
             {
-                Color velocityColor = is3DMovementMode ? Color.cyan : Color.blue; // 空中3D模式用青色，普通模式用蓝色
+                // 在空中状态下，始终使用蓝色表示纯物理模式
+                Color velocityColor = Color.blue;
                 Debug.DrawLine(linePosition.position, linePosition.position + thisRb.linearVelocity * 11f, velocityColor, 0.1f);
             }
 
             // 调试信息
             if (Time.frameCount % 60 == 0) // 每60帧打印一次，避免日志过多
             {
-                Debug.Log("空中状态 - 当前物理速度: " + thisRb.linearVelocity + " | 3D模式: " + is3DMovementMode);
+                Debug.Log("空中状态 - 当前物理速度: " + thisRb.linearVelocity + " | 拖拽球影响已取消");
             }
         }
 
