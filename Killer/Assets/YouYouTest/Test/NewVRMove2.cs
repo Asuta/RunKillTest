@@ -1101,11 +1101,11 @@ namespace YouYouTest.VRMove2
                 float newY = Mathf.Lerp(currentScale.y, 1f, Time.deltaTime * 2f); // 使用Lerp平滑过渡
                 bodyPosition.localScale = new Vector3(currentScale.x, newY, currentScale.z);
 
-                // 可选：输出调试信息
-                if (Time.frameCount % 30 == 0) // 每30帧打印一次，避免日志过多
-                {
-                    Debug.Log($"恢复bodyPosition Y轴scale: {currentScale.y} -> {newY}");
-                }
+                // // 可选：输出调试信息
+                // if (Time.frameCount % 30 == 0) // 每30帧打印一次，避免日志过多
+                // {
+                //     Debug.Log($"恢复bodyPosition Y轴scale: {currentScale.y} -> {newY}");
+                // }
             }
         }
 
