@@ -522,6 +522,30 @@ namespace YouYouTest.VRMove2
 
         private void MoveLoop()
         {
+            // 检查是否在空中，如果在空中则取消拖拽球的影响
+            if (!isOnGround)
+            {
+                // 如果在空中，立即同步球体位置到目标位置，取消拖拽效果
+                if (leftSphere != null && leftSphereTarget != null)
+                {
+                    leftSphere.position = leftSphereTarget.position;
+                    leftSphere.rotation = leftSphereTarget.rotation;
+                }
+                if (rightSphere != null && rightSphereTarget != null)
+                {
+                    rightSphere.position = rightSphereTarget.position;
+                    rightSphere.rotation = rightSphereTarget.rotation;
+                }
+                
+                // 清除方向向量和残差速度
+                leftDirection = Vector3.zero;
+                rightDirection = Vector3.zero;
+                residualVelocity = Vector3.zero;
+                
+                Debug.Log("检测到空中状态，取消拖拽球的影响");
+                return; // 直接返回，不执行后续的拖拽逻辑
+            }
+            
             // 读取当前grip状态（布尔值）
             bool leftGripPressed = InputActionsManager.Actions.XRILeftInteraction.Select.IsPressed();
             bool rightGripPressed = InputActionsManager.Actions.XRIRightInteraction.Select.IsPressed();
@@ -753,6 +777,22 @@ namespace YouYouTest.VRMove2
         // 空中移动循环 - 纯物理模式
         private void AirborneMoveLoop()
         {
+            // 在空中状态下，立即同步球体位置到目标位置，取消拖拽效果
+            if (leftSphere != null && leftSphereTarget != null)
+            {
+                leftSphere.position = leftSphereTarget.position;
+                leftSphere.rotation = leftSphereTarget.rotation;
+            }
+            if (rightSphere != null && rightSphereTarget != null)
+            {
+                rightSphere.position = rightSphereTarget.position;
+                rightSphere.rotation = rightSphereTarget.rotation;
+            }
+            
+            // 清除方向向量，确保不会继续应用拖拽效果
+            leftDirection = Vector3.zero;
+            rightDirection = Vector3.zero;
+            
             // 读取当前grip状态（布尔值）
             bool leftGripPressed = InputActionsManager.Actions.XRILeftInteraction.Select.IsPressed();
             bool rightGripPressed = InputActionsManager.Actions.XRIRightInteraction.Select.IsPressed();
