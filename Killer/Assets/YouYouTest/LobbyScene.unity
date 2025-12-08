@@ -53557,8 +53557,8 @@ MonoBehaviour:
   dashDuration: 0.3
   dashCooldown: 1
   handMoveSpeedThreshold: 5
-  hookDashSpeed: 15
-  hookDashDuration: 0.3
+  hookDashSpeed: 70
+  hookDashDuration: 0.15
   AddMoveSpeed: 0
   AddMoveSpeedMultiplier: 1
   wallNormal: {x: 0, y: 0, z: 1}
