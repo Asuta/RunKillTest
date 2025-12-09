@@ -1547,13 +1547,12 @@ namespace YouYouTest.VRMove2
         // 结束冲刺
         public void EndDash()
         {
-            // 冲刺结束时恢复速度
+            // 冲刺结束时将速度变为当前速度的50%
             if (thisRb != null)
             {
-                // 保持当前的水平速度，但降低到正常移动速度
+                // 获取当前速度并减少到50%
                 Vector3 currentVelocity = thisRb.linearVelocity;
-                Vector3 horizontalVelocity = new Vector3(currentVelocity.x, 0, currentVelocity.z).normalized * finalVelocityMultiplier;
-                thisRb.linearVelocity = new Vector3(horizontalVelocity.x, currentVelocity.y, horizontalVelocity.z);
+                thisRb.linearVelocity = currentVelocity * 0.43f;
             }
 
             // 根据当前是否在地面来决定下一个状态
