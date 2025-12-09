@@ -1226,7 +1226,7 @@ namespace YouYouTest.VRMove2
                 else
                 {
                     // 添加一个向上的分量，使跳跃有一定的向上力度
-                    jumpDirection = new Vector3(jumpDirection.x, 0.5f, jumpDirection.z).normalized;
+                    jumpDirection = new Vector3(jumpDirection.x, 1f, jumpDirection.z).normalized;
                 }
 
                 // 使用固定速度计算跳跃速度

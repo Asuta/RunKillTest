@@ -32575,8 +32575,12 @@ PrefabInstance:
       value: 
       objectReference: {fileID: 627479998}
     - target: {fileID: 1843294423254720934, guid: 623706c30620a894f8c5b47692a475c8, type: 3}
+      propertyPath: wallJumpSpeed
+      value: 10
+      objectReference: {fileID: 0}
+    - target: {fileID: 1843294423254720934, guid: 623706c30620a894f8c5b47692a475c8, type: 3}
       propertyPath: wallJumpHandSpeedThreshold
-      value: 5
+      value: 3
       objectReference: {fileID: 0}
     - target: {fileID: 2877938794215709338, guid: 623706c30620a894f8c5b47692a475c8, type: 3}
       propertyPath: m_Name
