@@ -123,7 +123,20 @@ namespace YouYouTest.VRMove2
             if (controller.thisRb != null)
             {
                 controller.thisRb.useGravity = false;
+                
+                // ★★★ 关键修改：立即重置速度为贴墙滑行速度，防止原来的高速度导致被挤出墙面 ★★★
+                float actualMoveSpeed = controller.finalVelocityMultiplier * controller.wallSlideSpeedMultiplier;
+                Vector3 wallSlideVelocity = new Vector3(
+                    controller.wallSlideDirection.x * actualMoveSpeed,
+                    0, // Y轴速度强制为0
+                    controller.wallSlideDirection.z * actualMoveSpeed
+                );
+                controller.thisRb.linearVelocity = wallSlideVelocity;
+                Debug.Log($"<color=green>[WallSlidingState.Enter] 重置速度为贴墙滑行速度: {wallSlideVelocity}</color>");
             }
+            
+            // 启动贴墙保护计时器
+            controller.StartWallSlideProtection();
 
             // 触发进入贴墙滑行事件
             controller.InvokeOnEnterWallSliding(controller.wallNormal);
@@ -131,16 +144,38 @@ namespace YouYouTest.VRMove2
 
         public override void Update()
         {
+            Debug.Log($"<color=lime>[WallSlidingState.Update] 帧更新 - 计时器: {controller.wallSlideTimer:F2}秒</color>");
+            
             // 更新贴墙计时器
             controller.wallSlideTimer += Time.deltaTime;
+            
+            // 更新贴墙保护计时器
+            controller.UpdateWallSlideProtection();
 
             // 持续检测是否还贴在墙上
+            Debug.Log("<color=lime>[WallSlidingState.Update] 准备执行CheckWallAttachment</color>");
             controller.CheckWallAttachment();
+            
+            // 检查状态是否仍然是贴墙状态（CheckWallAttachment可能已经切换了状态）
+            if (controller.CurrentStateType != MovementState.WallSliding)
+            {
+                Debug.LogWarning("<color=lime>[WallSlidingState.Update] CheckWallAttachment后状态变了，中止Update</color>");
+                return;
+            }
 
             // 检测贴墙状态下的拖拽跳跃
+            Debug.Log("<color=lime>[WallSlidingState.Update] 执行WallSlidingJumpCheck</color>");
             controller.WallSlidingJumpCheck();
+            
+            // 再次检查状态
+            if (controller.CurrentStateType != MovementState.WallSliding)
+            {
+                Debug.LogWarning("<color=lime>[WallSlidingState.Update] WallSlidingJumpCheck后状态变了，中止Update</color>");
+                return;
+            }
 
             // 贴墙滑行时的移动逻辑
+            Debug.Log("<color=lime>[WallSlidingState.Update] 执行WallSlidingMovement</color>");
             controller.WallSlidingMovement();
         }
 
@@ -349,6 +384,8 @@ namespace YouYouTest.VRMove2
         [HideInInspector] public float wallSlideTimer = 0f; // 贴墙计时器
         [HideInInspector] public Vector3 wallSlideDirection; // 存储贴墙滑行方向（投影向量）
         private bool wallJumpProtection = false; // 贴墙跳跃保护标志，防止跳跃速度被覆盖
+        private float wallSlideProtectionTimer = 0f; // 贴墙保护计时器，防止刚进入就被挤出
+        private const float WALL_SLIDE_PROTECTION_DURATION = 0.15f; // 贴墙保护时间（秒）
 
         // 冲刺相关私有变量
         [HideInInspector] public float dashTimer = 0f; // 冲刺计时器
@@ -492,21 +529,36 @@ namespace YouYouTest.VRMove2
         // 状态切换方法
         public void ChangeState(MovementStateBase newState)
         {
+            // 获取调用堆栈信息
+            System.Diagnostics.StackTrace stackTrace = new System.Diagnostics.StackTrace(1, true);
+            string callerMethod = stackTrace.GetFrame(0)?.GetMethod()?.Name ?? "Unknown";
+            
+            // 记录旧状态
+            MovementState oldState = CurrentStateType;
+            
+            // 确定新状态类型
+            MovementState newStateType = MovementState.Grounded;
+            if (newState is GroundedState)
+                newStateType = MovementState.Grounded;
+            else if (newState is AirborneState)
+                newStateType = MovementState.Airborne;
+            else if (newState is WallSlidingState)
+                newStateType = MovementState.WallSliding;
+            else if (newState is DashingState)
+                newStateType = MovementState.Dashing;
+            else if (newState is HookDashingState)
+                newStateType = MovementState.HookDashing;
+            
+            Debug.LogWarning($"<color=yellow>[ChangeState] ★★★ 状态切换 ★★★</color>");
+            Debug.LogWarning($"<color=yellow>[ChangeState] {oldState} → {newStateType}</color>");
+            Debug.LogWarning($"<color=yellow>[ChangeState] 调用来源: {callerMethod}</color>");
+            Debug.LogWarning($"<color=yellow>[ChangeState] 是否在地面: {isOnGround}</color>");
+            Debug.LogWarning($"<color=yellow>[ChangeState] 当前速度: {thisRb?.linearVelocity}</color>");
+            
             currentState?.Exit();
             currentState = newState;
+            CurrentStateType = newStateType;
             currentState.Enter();
-
-            // 更新状态类型
-            if (newState is GroundedState)
-                CurrentStateType = MovementState.Grounded;
-            else if (newState is AirborneState)
-                CurrentStateType = MovementState.Airborne;
-            else if (newState is WallSlidingState)
-                CurrentStateType = MovementState.WallSliding;
-            else if (newState is DashingState)
-                CurrentStateType = MovementState.Dashing;
-            else if (newState is HookDashingState)
-                CurrentStateType = MovementState.HookDashing;
         }
 
         // 地面移动逻辑
@@ -557,6 +609,19 @@ namespace YouYouTest.VRMove2
                 actualGroundCheckDistance,
                 groundLayerMask
             );
+            
+            // 如果当前在贴墙状态，记录地面检测结果
+            if (CurrentStateType == MovementState.WallSliding)
+            {
+                if (hitGround != isOnGround)
+                {
+                    Debug.LogWarning($"<color=yellow>[GroundCheck] 贴墙状态下地面状态变化: {isOnGround} → {hitGround}</color>");
+                    if (hitGround)
+                    {
+                        Debug.LogWarning($"<color=yellow>[GroundCheck] 检测到地面: {hitInfo.collider.gameObject.name}, 层: {LayerMask.LayerToName(hitInfo.collider.gameObject.layer)}</color>");
+                    }
+                }
+            }
 
             // 更新地面状态
             isOnGround = hitGround;
@@ -830,7 +895,7 @@ namespace YouYouTest.VRMove2
                 // DebugGraph.MultiLog("Related Variables", DebugGraph.DefaultBlue, speed.z, "speed.z");
                 DebugGraph.Log("跳跃", speed.magnitude);
                 DebugGraph.Write("普通跳跃");
-                Debug.LogError("跳跃速度" + speed);
+                // Debug.LogError("跳跃速度" + speed);
 
                 // 调试信息
                 if (Time.frameCount % 30 == 0) // 每30帧打印一次，避免日志过多
@@ -1257,11 +1322,18 @@ namespace YouYouTest.VRMove2
         public void CheckWallAttachment()
         {
             if (bodyPosition == null)
+            {
+                Debug.LogError("<color=red>[CheckWallAttachment] bodyPosition为空！</color>");
                 return;
+            }
+
+            Debug.Log($"<color=cyan>[CheckWallAttachment] 开始检测墙体附着，法线: {wallNormal}</color>");
 
             // 从body位置向墙面法线的反方向发射射线
             Vector3 rayDirection = -wallNormal;
             Ray ray = new Ray(bodyPosition.position, rayDirection);
+
+            Debug.Log($"<color=cyan>[CheckWallAttachment] 射线起点: {bodyPosition.position}, 方向: {rayDirection}, 距离: {wallCheckRayDistance}</color>");
 
             // 绘制黄色射线
             Color rayColor = Color.yellow;
@@ -1270,22 +1342,40 @@ namespace YouYouTest.VRMove2
             RaycastHit[] hits = Physics.RaycastAll(ray, wallCheckRayDistance);
             bool stillAttached = false;
 
+            Debug.Log($"<color=cyan>[CheckWallAttachment] 检测到 {hits.Length} 个碰撞体</color>");
+
             foreach (RaycastHit hitInfo in hits)
             {
+                Debug.Log($"<color=cyan>[CheckWallAttachment] 碰撞体: {hitInfo.collider.gameObject.name}, Tag: {hitInfo.collider.tag}, 距离: {hitInfo.distance}</color>");
+                
                 if (hitInfo.collider.CompareTag("Wall"))
                 {
                     stillAttached = true;
+                    Debug.Log($"<color=green>[CheckWallAttachment] ✓ 找到墙体: {hitInfo.collider.gameObject.name}</color>");
                     break;
                 }
             }
 
             if (!stillAttached)
             {
-                if (needWallSlideLog)
-                    Debug.Log("贴墙滑行时未检测到墙体，退出贴墙状态");
+                // ★★★ 检查是否在保护期内 ★★★
+                if (IsInWallSlideProtection())
+                {
+                    Debug.LogWarning($"<color=yellow>[CheckWallAttachment] 保护期内（剩余: {wallSlideProtectionTimer:F2}秒），忽略射线检测失败</color>");
+                }
+                else
+                {
+                    Debug.LogWarning($"<color=red>[CheckWallAttachment] ✗ 未检测到墙体，准备退出贴墙状态</color>");
+                    Debug.LogWarning($"<color=yellow>[CheckWallAttachment] 射线参数 - 起点: {bodyPosition.position}, 方向: {rayDirection}, 距离: {wallCheckRayDistance}</color>");
+                    Debug.LogWarning($"<color=yellow>[CheckWallAttachment] 检测到的碰撞体数量: {hits.Length}</color>");
 
-                // 如果射线没有检测到墙体，退出贴墙状态
-                ExitWallSliding();
+                    // 如果射线没有检测到墙体，退出贴墙状态
+                    ExitWallSliding();
+                }
+            }
+            else
+            {
+                Debug.Log("<color=green>[CheckWallAttachment] ✓ 墙体附着检测通过</color>");
             }
 
             // 在Scene视图中绘制射线
@@ -1297,11 +1387,19 @@ namespace YouYouTest.VRMove2
         /// </summary>
         public void EnterWallSliding(Vector3 normal)
         {
+            // 如果已经在贴墙滑行状态，只更新墙面法线，不重新进入状态
+            if (CurrentStateType == MovementState.WallSliding)
+            {
+                Debug.LogWarning("<color=yellow>[EnterWallSliding] 已经在贴墙状态，只更新墙面法线（避免重复进入）</color>");
+                Debug.LogWarning($"<color=yellow>[EnterWallSliding] 旧法线: {wallNormal} → 新法线: {normal}</color>");
+                wallNormal = normal;
+                return; // 不重新进入状态
+            }
+
             wallNormal = normal;
             wallSlideTimer = 0f;
 
-            if (needWallSlideLog)
-                Debug.Log("进入贴墙滑行状态");
+            Debug.Log("<color=green>[EnterWallSliding] ★★★ 首次进入贴墙滑行状态 ★★★</color>");
 
             ChangeState(new WallSlidingState(this));
         }
@@ -1313,18 +1411,64 @@ namespace YouYouTest.VRMove2
         {
             if (CurrentStateType == MovementState.WallSliding)
             {
-                if (needWallSlideLog)
-                    Debug.Log("退出贴墙滑行状态");
+                // 获取调用堆栈信息
+                System.Diagnostics.StackTrace stackTrace = new System.Diagnostics.StackTrace(1, true);
+                string callerMethod = stackTrace.GetFrame(0)?.GetMethod()?.Name ?? "Unknown";
+                
+                Debug.LogWarning($"<color=magenta>[ExitWallSliding] ★★★ 退出贴墙滑行状态 ★★★</color>");
+                Debug.LogWarning($"<color=magenta>[ExitWallSliding] 调用来源: {callerMethod}</color>");
+                Debug.LogWarning($"<color=magenta>[ExitWallSliding] 当前状态: {CurrentStateType}</color>");
+                Debug.LogWarning($"<color=magenta>[ExitWallSliding] 是否在地面: {isOnGround}</color>");
+                Debug.LogWarning($"<color=magenta>[ExitWallSliding] 当前速度: {thisRb?.linearVelocity}</color>");
+                Debug.LogWarning($"<color=magenta>[ExitWallSliding] 贴墙时长: {wallSlideTimer}秒</color>");
 
                 // 清除residualVelocity，让速度就是当前离开墙面时的实际速度
                 residualVelocity = Vector3.zero;
 
                 // 根据当前是否在地面来决定下一个状态
                 if (isOnGround)
+                {
+                    Debug.LogWarning("<color=magenta>[ExitWallSliding] → 切换到地面状态</color>");
                     ChangeState(new GroundedState(this));
+                }
                 else
+                {
+                    Debug.LogWarning("<color=magenta>[ExitWallSliding] → 切换到空中状态</color>");
                     ChangeState(new AirborneState(this));
+                }
             }
+            else
+            {
+                Debug.LogWarning($"<color=yellow>[ExitWallSliding] 当前不在贴墙状态（当前状态: {CurrentStateType}），忽略退出请求</color>");
+            }
+        }
+
+        /// <summary>
+        /// 启动贴墙保护计时器
+        /// </summary>
+        public void StartWallSlideProtection()
+        {
+            wallSlideProtectionTimer = WALL_SLIDE_PROTECTION_DURATION;
+            Debug.Log($"<color=green>[WallSlideProtection] 启动贴墙保护，持续 {WALL_SLIDE_PROTECTION_DURATION} 秒</color>");
+        }
+
+        /// <summary>
+        /// 更新贴墙保护计时器（需要在 Update 中调用）
+        /// </summary>
+        public void UpdateWallSlideProtection()
+        {
+            if (wallSlideProtectionTimer > 0f)
+            {
+                wallSlideProtectionTimer -= Time.deltaTime;
+            }
+        }
+
+        /// <summary>
+        /// 检查是否在贴墙保护期内
+        /// </summary>
+        public bool IsInWallSlideProtection()
+        {
+            return wallSlideProtectionTimer > 0f;
         }
 
         #endregion
@@ -1333,73 +1477,199 @@ namespace YouYouTest.VRMove2
 
         void OnCollisionEnter(Collision collision)
         {
-            // 检测碰撞物体是否为Wall
-            if (collision.gameObject.CompareTag("Wall"))
+            // ========== 第一步：检查碰撞对象是否为墙体 ==========
+            Debug.Log($"<color=cyan>[碰撞检测] 碰到物体: {collision.gameObject.name}, Tag: {collision.gameObject.tag}</color>");
+            
+            if (!collision.gameObject.CompareTag("Wall"))
             {
-                if (needWallSlideLog)
-                    Debug.Log("检测到墙体碰撞");
+                Debug.LogWarning($"<color=yellow>[碰撞检测] 物体不是Wall标签，跳过处理</color>");
+                return;
+            }
 
-                // 获取第一个接触点的法线
-                if (collision.contactCount > 0)
+            Debug.Log("<color=green>[碰撞检测] ✓ 确认为墙体碰撞</color>");
+
+            // ========== 新增：检查是否已经在贴墙状态 ==========
+            if (CurrentStateType == MovementState.WallSliding)
+            {
+                Debug.LogWarning("<color=yellow>[碰撞检测] ✗ 已经在贴墙滑行状态，跳过重复进入（避免先退出再进入导致状态混乱）</color>");
+                Debug.LogWarning($"<color=yellow>[碰撞检测] 当前墙面法线: {wallNormal}, 新墙面法线: {(collision.contactCount > 0 ? collision.GetContact(0).normal.ToString() : "无")}</color>");
+                return;
+            }
+
+            // ========== 第二步：检查接触点 ==========
+            if (collision.contactCount <= 0)
+            {
+                Debug.LogError("<color=red>[碰撞检测] ✗ 没有接触点信息！</color>");
+                return;
+            }
+
+            ContactPoint contact = collision.GetContact(0);
+            Vector3 normal = contact.normal;
+            Debug.Log($"<color=green>[碰撞检测] ✓ 接触点数量: {collision.contactCount}, 法线: {normal}</color>");
+
+            // 从碰撞点绘制法线（红色）
+            Debug.DrawRay(contact.point, normal * 2f, Color.red, 2f);
+
+            // ========== 第三步：检查刚体 ==========
+            if (thisRb == null)
+            {
+                Debug.LogError("<color=red>[碰撞检测] ✗ Rigidbody为空！</color>");
+                return;
+            }
+
+            Vector3 velocity = thisRb.linearVelocity;
+            Debug.Log($"<color=cyan>[碰撞检测] 当前速度: {velocity}, 速度大小: {velocity.magnitude}</color>");
+
+            // ========== 第四步：计算投影向量 ==========
+            Vector3 projection = Vector3.ProjectOnPlane(velocity, normal);
+            Debug.Log($"<color=cyan>[碰撞检测] 速度在墙面上的投影: {projection}</color>");
+
+            // Y轴归零，变成水平向量
+            Vector3 horizontalProjection = new Vector3(projection.x, 0, projection.z);
+            Debug.Log($"<color=cyan>[碰撞检测] 水平投影（Y归零前）: {horizontalProjection}, 长度: {horizontalProjection.magnitude}</color>");
+
+            // 长度重置为1
+            if (horizontalProjection != Vector3.zero)
+            {
+                horizontalProjection = horizontalProjection.normalized;
+                Debug.Log($"<color=green>[碰撞检测] ✓ 归一化后的水平投影: {horizontalProjection}</color>");
+            }
+            else
+            {
+                Debug.LogWarning("<color=yellow>[碰撞检测] ! 水平投影为零向量</color>");
+            }
+
+            // 从碰撞点绘制投影向量（绿色）
+            Debug.DrawRay(contact.point, horizontalProjection * 2f, Color.green, 2f);
+
+            // ========== 第五步：检查当前状态 ==========
+            Debug.Log($"<color=cyan>[碰撞检测] 当前状态: {CurrentStateType}</color>");
+            Debug.Log($"<color=cyan>[碰撞检测] 是否在地面: {isOnGround}</color>");
+
+            bool isDashing = CurrentStateType == MovementState.Dashing;
+            bool isAirborne = !isOnGround;
+            bool hasHorizontalProjection = horizontalProjection != Vector3.zero;
+
+            Debug.Log($"<color=cyan>[碰撞检测] 状态检查 - 是否冲刺: {isDashing}, 是否空中: {isAirborne}, 有水平投影: {hasHorizontalProjection}</color>");
+
+            // ========== 第六步：判断是否可以进入贴墙滑行 ==========
+            bool canEnterWallSlide = hasHorizontalProjection && isAirborne;
+            bool dashingIntoWall = isDashing && isAirborne;
+
+            Debug.Log($"<color=cyan>[碰撞检测] 条件判断 - 普通条件满足: {canEnterWallSlide}, 冲刺条件满足: {dashingIntoWall}</color>");
+
+            if (canEnterWallSlide || dashingIntoWall)
+            {
+                Debug.Log("<color=green>[碰撞检测] ✓ 满足进入贴墙滑行的基本条件</color>");
+
+                // 如果是冲刺状态且投影向量为零，使用冲刺方向计算滑行方向
+                if (isDashing && horizontalProjection == Vector3.zero)
                 {
-                    ContactPoint contact = collision.GetContact(0);
-                    Vector3 normal = contact.normal;
-
-                    if (needWallSlideLog)
-                        Debug.Log($"碰撞点法线: {normal}");
-
-                    // 从碰撞点绘制法线（红色）
-                    Debug.DrawRay(contact.point, normal * 2f, Color.red, 2f);
-
-                    // 计算速度在法线平面上的投影向量
-                    if (thisRb != null)
+                    Debug.Log($"<color=yellow>[碰撞检测] 冲刺状态下投影为零，使用冲刺方向: {dashDirection}</color>");
+                    
+                    // 使用冲刺方向在墙面上的投影作为滑行方向
+                    Vector3 dashProjection = Vector3.ProjectOnPlane(dashDirection, normal);
+                    Debug.Log($"<color=cyan>[碰撞检测] 冲刺方向在墙面上的投影: {dashProjection}</color>");
+                    
+                    horizontalProjection = new Vector3(dashProjection.x, 0, dashProjection.z);
+                    Debug.Log($"<color=cyan>[碰撞检测] 水平化后的投影: {horizontalProjection}, 长度: {horizontalProjection.magnitude}</color>");
+                    
+                    if (horizontalProjection != Vector3.zero)
                     {
-                        Vector3 velocity = thisRb.linearVelocity;
-                        Vector3 projection = Vector3.ProjectOnPlane(velocity, normal);
-
-                        // Y轴归零，变成水平向量
-                        Vector3 horizontalProjection = new Vector3(projection.x, 0, projection.z);
-
-                        // 长度重置为1
-                        if (horizontalProjection != Vector3.zero)
-                        {
-                            horizontalProjection = horizontalProjection.normalized;
-                        }
-
-                        if (needWallSlideLog)
-                            Debug.Log($"速度在法线平面上的投影向量 (Y轴归零, 长度1): {horizontalProjection}");
-
-                        // 从碰撞点绘制投影向量（绿色）
-                        Debug.DrawRay(contact.point, horizontalProjection, Color.green, 2f);
-
-                        // 检查投影向量是否为垂直方向（没有水平分量）且不在地面上
-                        if (horizontalProjection != Vector3.zero && !isOnGround)
-                        {
-                            // 保存投影向量用于贴墙滑行
-                            wallSlideDirection = horizontalProjection;
-
-                            // 进入贴墙滑行状态
-                            EnterWallSliding(normal);
-                        }
-                        else
-                        {
-                            if (needWallSlideLog)
-                                Debug.Log("投影向量为垂直方向或在地面上，不进入滑行状态");
-                        }
+                        horizontalProjection = horizontalProjection.normalized;
+                        Debug.Log($"<color=green>[碰撞检测] ✓ 归一化后的滑行方向: {horizontalProjection}</color>");
+                    }
+                    else
+                    {
+                        Debug.LogWarning("<color=yellow>[碰撞检测] ! 归一化后仍为零向量</color>");
                     }
                 }
+
+                // 如果仍然没有有效的滑行方向，则不进入滑行状态
+                if (horizontalProjection == Vector3.zero)
+                {
+                    Debug.LogError("<color=red>[碰撞检测] ✗ 无法计算有效的滑行方向，不进入滑行状态</color>");
+                    Debug.LogError($"<color=red>[原因分析] 速度: {velocity}, 法线: {normal}, 冲刺方向: {dashDirection}</color>");
+                    return;
+                }
+
+                // 保存投影向量用于贴墙滑行
+                wallSlideDirection = horizontalProjection;
+                Debug.Log($"<color=green>[碰撞检测] ✓ 设置滑行方向: {wallSlideDirection}</color>");
+
+                if (isDashing)
+                {
+                    Debug.Log("<color=green>[碰撞检测] ★★★ 冲刺状态下碰到墙体，进入贴墙滑行状态！★★★</color>");
+                }
+                else
+                {
+                    Debug.Log("<color=green>[碰撞检测] ★★★ 普通状态下碰到墙体，进入贴墙滑行状态！★★★</color>");
+                }
+
+                // 进入贴墙滑行状态
+                EnterWallSliding(normal);
+            }
+            else
+            {
+                // ========== 详细输出不满足条件的原因 ==========
+                Debug.LogWarning("<color=red>[碰撞检测] ✗ 不满足进入贴墙滑行的条件</color>");
+                
+                if (isOnGround)
+                {
+                    Debug.LogWarning("<color=yellow>[原因] 角色在地面上（isOnGround = true）</color>");
+                }
+                
+                if (!hasHorizontalProjection && !isDashing)
+                {
+                    Debug.LogWarning("<color=yellow>[原因] 没有水平投影向量 且 不在冲刺状态</color>");
+                }
+                
+                if (CurrentStateType == MovementState.WallSliding)
+                {
+                    Debug.LogWarning("<color=yellow>[原因] 已经在贴墙滑行状态中</color>");
+                }
+
+                Debug.LogWarning($"<color=yellow>[详细信息] 水平投影: {horizontalProjection}, 冲刺: {isDashing}, 地面: {isOnGround}, 状态: {CurrentStateType}</color>");
             }
         }
 
         void OnCollisionExit(Collision collision)
         {
-            // 离开墙体时退出贴墙滑行状态
+            Debug.Log($"<color=orange>[OnCollisionExit] 离开碰撞: {collision.gameObject.name}, Tag: {collision.gameObject.tag}</color>");
+            Debug.Log($"<color=orange>[OnCollisionExit] 当前状态: {CurrentStateType}</color>");
+            
+            // ★★★ 关键修改：贴墙滑行状态下，完全不依赖 OnCollisionExit 来退出 ★★★
+            // ★★★ 只依靠 CheckWallAttachment 的射线检测来判断是否脱离墙面 ★★★
+            if (collision.gameObject.CompareTag("Wall"))
+            {
+                Debug.LogWarning($"<color=orange>[OnCollisionExit] ✓ 确认离开墙体: {collision.gameObject.name}</color>");
+                
+                if (CurrentStateType == MovementState.WallSliding)
+                {
+                    // 不在这里退出贴墙状态，而是完全依赖射线检测
+                    Debug.LogWarning("<color=yellow>[OnCollisionExit] 贴墙状态下忽略碰撞退出事件，将由射线检测决定是否退出</color>");
+                    // 不调用 ExitWallSliding()，让 CheckWallAttachment 来处理
+                }
+                else
+                {
+                    Debug.Log($"<color=orange>[OnCollisionExit] 当前不在贴墙状态（状态: {CurrentStateType}），不需要退出</color>");
+                }
+            }
+            else
+            {
+                Debug.Log($"<color=orange>[OnCollisionExit] 不是墙体，忽略</color>");
+            }
+        }
+
+        void OnCollisionStay(Collision collision)
+        {
+            // 记录持续碰撞信息（仅在贴墙状态且每60帧记录一次）
             if (collision.gameObject.CompareTag("Wall") && CurrentStateType == MovementState.WallSliding)
             {
-                if (needWallSlideLog)
-                    Debug.Log("离开墙体，退出贴墙滑行状态");
-
-                ExitWallSliding();
+                if (Time.frameCount % 60 == 0) // 每60帧记录一次，避免日志过多
+                {
+                    Debug.Log($"<color=cyan>[OnCollisionStay] 持续接触墙体: {collision.gameObject.name}, 接触点数: {collision.contactCount}</color>");
+                }
             }
         }
 

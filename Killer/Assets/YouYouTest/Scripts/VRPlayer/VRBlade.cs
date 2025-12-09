@@ -33,7 +33,7 @@ public class VRBlade : MonoBehaviour
     private void OnTriggerEnter(Collider other)
     {
         // 记录碰撞物体的名称
-        Debug.Log($"刀片碰到了: {other.gameObject.name}");
+        // Debug.Log($"刀片碰到了: {other.gameObject.name}");
         
         // 检查碰撞物体是否为敌人并且有ICanBeHit接口
         if (other.CompareTag("Enemy"))
