@@ -175,7 +175,7 @@ namespace YouYouTest.VRMove2
         public override void Enter()
         {
             Debug.Log("进入冲刺状态");
-            
+
             // 禁用刚体重力
             if (controller.thisRb != null)
             {
@@ -187,10 +187,10 @@ namespace YouYouTest.VRMove2
         {
             // 更新冲刺计时器
             controller.dashTimer -= Time.deltaTime;
-            
+
             // 处理冲刺移动
             controller.DashMovement();
-            
+
             // 检查冲刺是否结束
             if (controller.dashTimer <= 0f)
             {
@@ -201,7 +201,7 @@ namespace YouYouTest.VRMove2
         public override void Exit()
         {
             Debug.Log("离开冲刺状态");
-            
+
             // 重新启用刚体重力
             if (controller.thisRb != null)
             {
@@ -218,7 +218,7 @@ namespace YouYouTest.VRMove2
         public override void Enter()
         {
             Debug.Log("进入Hook冲刺状态");
-            
+
             // 禁用刚体重力
             if (controller.thisRb != null)
             {
@@ -230,10 +230,10 @@ namespace YouYouTest.VRMove2
         {
             // 更新Hook冲刺计时器
             controller.hookDashTimer -= Time.deltaTime;
-            
+
             // 处理Hook冲刺移动
             controller.HookDashMovement();
-            
+
             // 检查Hook冲刺是否结束（计时器耗尽）
             if (controller.hookDashTimer <= 0f)
             {
@@ -244,7 +244,7 @@ namespace YouYouTest.VRMove2
         public override void Exit()
         {
             Debug.Log("离开Hook冲刺状态");
-            
+
             // 重新启用刚体重力
             if (controller.thisRb != null)
             {
@@ -315,6 +315,8 @@ namespace YouYouTest.VRMove2
         public float wallCheckRayDistance = 6f;
         [Tooltip("是否启用贴墙滑行日志")]
         public bool needWallSlideLog = false;
+        [Tooltip("贴墙跳跃固定速度")]
+        public float wallJumpSpeed = 15f;
 
         [Header("冲刺设置")]
         [Tooltip("冲刺速度")]
@@ -344,6 +346,7 @@ namespace YouYouTest.VRMove2
         [HideInInspector] public Vector3 wallNormal; // 存储墙面法线
         [HideInInspector] public float wallSlideTimer = 0f; // 贴墙计时器
         [HideInInspector] public Vector3 wallSlideDirection; // 存储贴墙滑行方向（投影向量）
+        private bool wallJumpProtection = false; // 贴墙跳跃保护标志，防止跳跃速度被覆盖
 
         // 冲刺相关私有变量
         [HideInInspector] public float dashTimer = 0f; // 冲刺计时器
@@ -450,13 +453,13 @@ namespace YouYouTest.VRMove2
 
             // 处理转向逻辑
             HandleRotation();
-            
+
             // 处理冲刺逻辑
             HandleDash();
-            
+
             // 处理Hook冲刺逻辑
             HandleHookDash();
-            
+
             // 检测手部移动并触发冲刺
             HandleHandMoveDash();
         }
@@ -541,11 +544,11 @@ namespace YouYouTest.VRMove2
                 // 使用固定的检测距离
                 actualGroundCheckDistance = groundCheckDistance;
             }
-            actualGroundCheckDistance +=2f; // 增加一个偏移，避免贴地时检测不到
+            actualGroundCheckDistance += 2f; // 增加一个偏移，避免贴地时检测不到
 
             // 执行球体投射，检测指定层的地面
             bool hitGround = Physics.SphereCast(
-                spherePosition+Vector3.up*2f, // 抬高起点，避免穿透地面
+                spherePosition + Vector3.up * 2f, // 抬高起点，避免穿透地面
                 groundCheckRadius,
                 direction,
                 out hitInfo,
@@ -605,16 +608,16 @@ namespace YouYouTest.VRMove2
                     rightSphere.position = rightSphereTarget.position;
                     rightSphere.rotation = rightSphereTarget.rotation;
                 }
-                
+
                 // 清除方向向量和残差速度
                 leftDirection = Vector3.zero;
                 rightDirection = Vector3.zero;
                 residualVelocity = Vector3.zero;
-                
+
                 Debug.Log("检测到空中状态，取消拖拽球的影响");
                 return; // 直接返回，不执行后续的拖拽逻辑
             }
-            
+
             // 读取当前grip状态（布尔值）
             bool leftGripPressed = InputActionsManager.Actions.XRILeftInteraction.Select.IsPressed();
             bool rightGripPressed = InputActionsManager.Actions.XRIRightInteraction.Select.IsPressed();
@@ -823,7 +826,9 @@ namespace YouYouTest.VRMove2
                 // DebugGraph.MultiLog("Related Variables", DebugGraph.DefaultRed, speed.x, "speed.x");
                 // DebugGraph.MultiLog("Related Variables", DebugGraph.DefaultGreen, speed.y, "speed.y");
                 // DebugGraph.MultiLog("Related Variables", DebugGraph.DefaultBlue, speed.z, "speed.z");
-                DebugGraph.Log("Y Speed Magnitude", speed.magnitude);
+                DebugGraph.Log("跳跃", speed.magnitude);
+                DebugGraph.Write("普通跳跃");
+                Debug.LogError("跳跃速度" + speed);
 
                 // 调试信息
                 if (Time.frameCount % 30 == 0) // 每30帧打印一次，避免日志过多
@@ -835,6 +840,7 @@ namespace YouYouTest.VRMove2
             {
                 // 在普通模式下，只应用XZ轴的速度，保持原有的Y轴速度
                 thisRb.linearVelocity = new Vector3(speed.x, thisRb.linearVelocity.y, speed.z);
+
             }
 
         }
@@ -846,6 +852,14 @@ namespace YouYouTest.VRMove2
         // 空中移动循环 - 纯物理模式
         private void AirborneMoveLoop()
         {
+            // 检查贴墙跳跃保护标志，如果刚刚进行了贴墙跳跃，跳过本帧的处理以保护速度
+            if (wallJumpProtection)
+            {
+                wallJumpProtection = false;
+                Debug.Log("贴墙跳跃保护：跳过本帧空中移动逻辑");
+                return;
+            }
+
             // 在空中状态下，立即同步球体位置到目标位置，取消拖拽效果
             if (leftSphere != null && leftSphereTarget != null)
             {
@@ -857,11 +871,11 @@ namespace YouYouTest.VRMove2
                 rightSphere.position = rightSphereTarget.position;
                 rightSphere.rotation = rightSphereTarget.rotation;
             }
-            
+
             // 清除方向向量，确保不会继续应用拖拽效果
             leftDirection = Vector3.zero;
             rightDirection = Vector3.zero;
-            
+
             // 读取当前grip状态（布尔值）
             bool leftGripPressed = InputActionsManager.Actions.XRILeftInteraction.Select.IsPressed();
             bool rightGripPressed = InputActionsManager.Actions.XRIRightInteraction.Select.IsPressed();
@@ -1114,7 +1128,8 @@ namespace YouYouTest.VRMove2
         #region 贴墙滑行相关方法
 
         /// <summary>
-        /// 贴墙滑行时的跳跃检测（拖拽跳跃）
+        /// 贴墙滑行时的跳跃检测（固定方向和速度）
+        /// 跳跃方向为墙面法线方向和滑行方向之间的45度方向
         /// </summary>
         public void WallSlidingJumpCheck()
         {
@@ -1131,43 +1146,50 @@ namespace YouYouTest.VRMove2
             bool rightIs3DMode = rightGripPressed && rightTriggerPressed;
             bool isIn3DMode = leftIs3DMode || rightIs3DMode;
 
-            // 如果处于3D模式，计算跳跃方向并执行贴墙跳跃
+            // 如果处于3D模式，执行贴墙跳跃
             if (isIn3DMode)
             {
-                // 计算方向向量
-                Vector3 jumpDirection = Vector3.zero;
+                // 计算跳跃方向：墙面法线方向和滑行方向之间的45度方向
+                // 将墙面法线和滑行方向都归一化后取平均，得到45度方向
+                Vector3 normalizedWallNormal = wallNormal.normalized;
+                Vector3 normalizedSlideDirection = wallSlideDirection.normalized;
+                
+                // 取墙面法线和滑行方向的中间方向（45度）
+                Vector3 jumpDirection = (normalizedWallNormal + normalizedSlideDirection).normalized;
 
-                if (leftIs3DMode && leftSphere != null && leftSphereTarget != null)
+                // 如果两向量几乎抵消，退化为沿墙法线方向跳，并加一点上抬
+                if (jumpDirection.sqrMagnitude < 0.0001f)
                 {
-                    Vector3 rawLeftDirection = leftSphere.position - leftSphereTarget.position;
-                    jumpDirection += rawLeftDirection;
+                    jumpDirection = (normalizedWallNormal + Vector3.up * 0.5f).normalized;
+                }
+                else
+                {
+                    // 添加一个向上的分量，使跳跃有一定的向上力度
+                    jumpDirection = new Vector3(jumpDirection.x, 0.5f, jumpDirection.z).normalized;
                 }
 
-                if (rightIs3DMode && rightSphere != null && rightSphereTarget != null)
+                // 使用固定速度计算跳跃速度
+                Vector3 jumpVelocity = jumpDirection * wallJumpSpeed;
+
+                // 设置贴墙跳跃保护标志，防止速度被后续逻辑覆盖
+                wallJumpProtection = true;
+
+                // 应用跳跃速度
+                if (thisRb != null)
                 {
-                    Vector3 rawRightDirection = rightSphere.position - rightSphereTarget.position;
-                    jumpDirection += rawRightDirection;
+                    // 直接设置线速度，并用VelocityChange再推一遍，确保立即生效
+                    thisRb.velocity = jumpVelocity;
+                    DebugGraph.Write("贴墙跳跃");
+                    Debug.LogError("贴墙跳跃速度" + jumpVelocity);
                 }
 
-                // 如果有有效的跳跃方向，执行贴墙跳跃
-                if (jumpDirection.magnitude > 0.1f)
-                {
-                    // 计算跳跃速度
-                    Vector3 jumpVelocity = jumpDirection * finalVelocityMultiplier;
-                    jumpVelocity = new Vector3(jumpVelocity.x, jumpVelocity.y * multiJumpForceY, jumpVelocity.z);
-                    jumpVelocity = new Vector3(jumpVelocity.x, Mathf.Clamp(jumpVelocity.y, -maxJumpForceY, maxJumpForceY), jumpVelocity.z);
+                Debug.Log("贴墙跳跃触发，方向: " + jumpDirection + "，速度: " + jumpVelocity);
 
-                    // 应用跳跃速度
-                    if (thisRb != null)
-                    {
-                        thisRb.linearVelocity = jumpVelocity;
-                    }
-
-                    Debug.Log("贴墙跳跃触发，方向: " + jumpDirection + "，速度: " + jumpVelocity);
-
-                    // 退出贴墙滑行状态
-                    ExitWallSliding();
-                }
+                // 退出贴墙滑行状态
+                ExitWallSliding();
+                
+                // 跳跃后直接返回，不再执行后续逻辑
+                return;
             }
         }
 
@@ -1176,6 +1198,10 @@ namespace YouYouTest.VRMove2
         /// </summary>
         public void WallSlidingMovement()
         {
+            // 如果当前不再是贴墙滑行状态（例如刚刚跳跃了），则不执行滑行移动逻辑，防止覆盖跳跃速度
+            if (CurrentStateType != MovementState.WallSliding)
+                return;
+
             if (thisRb == null)
                 return;
 
@@ -1391,7 +1417,7 @@ namespace YouYouTest.VRMove2
             {
                 // 计算冲刺方向
                 Vector3 moveDirection = Vector3.zero;
-                
+
                 // 获取当前移动方向（基于手柄输入）
                 Vector2 leftStickInput = InputActionsManager.Actions.XRILeftLocomotion.Move.ReadValue<Vector2>();
                 if (leftStickInput.magnitude > 0.1f)
@@ -1399,16 +1425,16 @@ namespace YouYouTest.VRMove2
                     // 将摇杆输入转换为世界空间方向
                     Vector3 forward = playerHead.forward;
                     Vector3 right = playerHead.right;
-                    
+
                     // 只使用水平方向
                     forward.y = 0;
                     right.y = 0;
                     forward.Normalize();
                     right.Normalize();
-                    
+
                     moveDirection = forward * leftStickInput.y + right * leftStickInput.x;
                 }
-                
+
                 // 如果当前没有移动方向，则使用玩家朝向作为冲刺方向
                 if (moveDirection != Vector3.zero)
                 {
@@ -1422,7 +1448,7 @@ namespace YouYouTest.VRMove2
                     dashDirection = forward.normalized;
                 }
             }
-            
+
             Debug.Log("开始冲刺，方向: " + dashDirection);
         }
 
@@ -1443,7 +1469,7 @@ namespace YouYouTest.VRMove2
                 ChangeState(new GroundedState(this));
             else
                 ChangeState(new AirborneState(this));
-                
+
             Debug.Log("结束冲刺");
         }
 
