@@ -317,6 +317,8 @@ namespace YouYouTest.VRMove2
         public bool needWallSlideLog = false;
         [Tooltip("贴墙跳跃固定速度")]
         public float wallJumpSpeed = 15f;
+        [Tooltip("贴墙跳跃手部速度阈值")]
+        public float wallJumpHandSpeedThreshold = 2.0f;
 
         [Header("冲刺设置")]
         [Tooltip("冲刺速度")]
@@ -1149,6 +1151,39 @@ namespace YouYouTest.VRMove2
             // 如果处于3D模式，执行贴墙跳跃
             if (isIn3DMode)
             {
+                // 检测手部移动速度是否达到阈值
+                bool speedConditionMet = false;
+
+                // 检查左手
+                if (leftIs3DMode && leftSphereTarget != null)
+                {
+                    float moveDistance = Vector3.Distance(leftSphereTarget.localPosition, previousLeftHandLocalPosition);
+                    float speed = moveDistance / Time.deltaTime;
+                    if (speed > wallJumpHandSpeedThreshold)
+                    {
+                        speedConditionMet = true;
+                        Debug.Log($"左手触发贴墙跳跃，速度: {speed}");
+                    }
+                }
+
+                // 检查右手
+                if (rightIs3DMode && rightSphereTarget != null)
+                {
+                    float moveDistance = Vector3.Distance(rightSphereTarget.localPosition, previousRightHandLocalPosition);
+                    float speed = moveDistance / Time.deltaTime;
+                    if (speed > wallJumpHandSpeedThreshold)
+                    {
+                        speedConditionMet = true;
+                        Debug.Log($"右手触发贴墙跳跃，速度: {speed}");
+                    }
+                }
+
+                // 如果速度未达标，不执行跳跃
+                if (!speedConditionMet)
+                {
+                    return;
+                }
+
                 // 计算跳跃方向：墙面法线方向和滑行方向之间的45度方向
                 // 将墙面法线和滑行方向都归一化后取平均，得到45度方向
                 Vector3 normalizedWallNormal = wallNormal.normalized;
@@ -1178,7 +1213,7 @@ namespace YouYouTest.VRMove2
                 if (thisRb != null)
                 {
                     // 直接设置线速度，并用VelocityChange再推一遍，确保立即生效
-                    thisRb.velocity = jumpVelocity;
+                    thisRb.linearVelocity = jumpVelocity;
                     DebugGraph.Write("贴墙跳跃");
                     Debug.LogError("贴墙跳跃速度" + jumpVelocity);
                 }

@@ -22440,6 +22440,8 @@ MonoBehaviour:
   wallSlideSpeedMultiplier: 1.2
   wallCheckRayDistance: 6
   needWallSlideLog: 0
+  wallJumpSpeed: 15
+  wallJumpHandSpeedThreshold: 2
   dashSpeed: 15
   dashDuration: 0.3
   dashCooldown: 1
@@ -32572,6 +32574,10 @@ PrefabInstance:
       propertyPath: linePosition
       value: 
       objectReference: {fileID: 627479998}
+    - target: {fileID: 1843294423254720934, guid: 623706c30620a894f8c5b47692a475c8, type: 3}
+      propertyPath: wallJumpHandSpeedThreshold
+      value: 5
+      objectReference: {fileID: 0}
     - target: {fileID: 2877938794215709338, guid: 623706c30620a894f8c5b47692a475c8, type: 3}
       propertyPath: m_Name
       value: VRPlayer (1)
