@@ -2642,7 +2642,7 @@ Rigidbody:
   m_ImplicitTensor: 1
   m_UseGravity: 1
   m_IsKinematic: 0
-  m_Interpolate: 1
+  m_Interpolate: 0
   m_Constraints: 112
   m_CollisionDetection: 0
 --- !u!114 &6619380725990937508
@@ -2851,6 +2851,8 @@ MonoBehaviour:
   wallSlideSpeedMultiplier: 0.5
   wallCheckRayDistance: 6
   needWallSlideLog: 0
+  wallJumpSpeed: 12
+  wallJumpHandSpeedThreshold: 3
   dashSpeed: 46
   dashDuration: 0.3
   dashCooldown: 1
@@ -2873,7 +2875,6 @@ MonoBehaviour:
   playerHead: {fileID: 6026765407402143035}
   rotationAngle: 30
   rotationThreshold: 0.5
-  linePosition: {fileID: 0}
   lerpSpeed: 5
 --- !u!1 &3229531838569305600
 GameObject:

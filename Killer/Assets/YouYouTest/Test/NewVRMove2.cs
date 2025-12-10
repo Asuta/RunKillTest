@@ -424,10 +424,6 @@ namespace YouYouTest.VRMove2
 
 
 
-        //test
-        public Transform linePosition;
-
-
 
 
         [Tooltip("Lerp跟随速度，值越大跟随越快")]
@@ -803,10 +799,6 @@ namespace YouYouTest.VRMove2
 
             // 日志与可视化（只显示residualVelocity）
             // Debug.Log("当前residualVelocity: " + residualVelocity);
-            if (linePosition != null)
-            {
-                Debug.DrawLine(linePosition.position, linePosition.position + residualVelocity * 11f, Color.red, 0.1f);
-            }
 
 
             // 只有在对应grip键按住时才将方向向量加到最终速度中
@@ -837,10 +829,6 @@ namespace YouYouTest.VRMove2
             // 根据移动模式选择不同的颜色进行可视化
             Color velocityColor = is3DMovementMode ? Color.cyan : Color.green; // 3D模式用青色，普通模式用绿色
 
-            if (linePosition != null)
-            {
-                Debug.DrawLine(linePosition.position, linePosition.position + finalVelocity * 11f, velocityColor, 0.1f);
-            }
 
             // 计算最终速度
             Vector3 speed = finalVelocity * finalVelocityMultiplier;
@@ -1008,12 +996,9 @@ namespace YouYouTest.VRMove2
             // 完全取消在空中时的拖拽影响，包括持续施加的微调力
 
             // 可视化当前速度（物理系统控制的真实速度）
-            if (linePosition != null)
-            {
-                // 在空中状态下，始终使用蓝色表示纯物理模式
-                Color velocityColor = Color.blue;
-                Debug.DrawLine(linePosition.position, linePosition.position + thisRb.linearVelocity * 11f, velocityColor, 0.1f);
-            }
+            // 在空中状态下，始终使用蓝色表示纯物理模式
+            // Color velocityColor = Color.blue;
+            // Debug.DrawLine(transform.position, transform.position + thisRb.linearVelocity * 11f, velocityColor, 0.1f);
 
             // 调试信息
             if (Time.frameCount % 60 == 0) // 每60帧打印一次，避免日志过多
