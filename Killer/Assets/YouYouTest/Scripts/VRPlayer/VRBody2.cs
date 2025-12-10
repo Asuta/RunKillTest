@@ -23,6 +23,10 @@ public class VRBody2 : MonoBehaviour
             offset.y = -transform.localScale.y;
             var targetPosition = Target.position + offset;
             transform.position = targetPosition;
+            // 只跟随目标的Y轴旋转，保持当前的X和Z轴角度
+            Vector3 currentEuler = transform.eulerAngles;
+            Vector3 targetEuler = Target.eulerAngles;
+            transform.eulerAngles = new Vector3(currentEuler.x, targetEuler.y, currentEuler.z);
         }
     }
 
