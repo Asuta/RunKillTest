@@ -231,20 +231,42 @@ public class SaveLoadManager : MonoBehaviour
             return;
         }
         
+        // 生成文件名
+        string fileName = GenerateSaveFileName(slotName);
+        
+        // 尝试获取现有的关卡名称，避免覆盖用户修改过的名称
+        string levelName = slotName ?? defaultSlotName;
+        if (fileManager.FileExists(fileName))
+        {
+            try
+            {
+                string existingJson = fileManager.LoadFromFile(fileName);
+                if (!string.IsNullOrEmpty(existingJson))
+                {
+                    SceneSaveData existingData = JsonUtility.FromJson<SceneSaveData>(existingJson);
+                    if (existingData != null && !string.IsNullOrEmpty(existingData.name))
+                    {
+                        levelName = existingData.name;
+                    }
+                }
+            }
+            catch
+            {
+                // 忽略读取错误，使用默认名称
+            }
+        }
+
         // 创建完整的保存数据
         SceneSaveData sceneData = new SceneSaveData
         {
             saveTime = System.DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss"),
-            name = slotName ?? defaultSlotName, // 使用档位名称作为关卡名称
+            name = levelName, // 使用保留的或默认的名称
             objectCount = saveDataList.Count,
             objects = saveDataList
         };
         
         // 序列化为JSON
         string jsonData = JsonUtility.ToJson(sceneData, true);
-        
-        // 生成文件名
-        string fileName = GenerateSaveFileName(slotName);
         
         // 保存到文件
         bool success = fileManager.SaveToFile(fileName, jsonData);
