@@ -107,6 +107,10 @@ public static class GlobalEvent
     /// </summary>
     public static readonly UnityEvent<bool> RaycastHittingUIChange = new UnityEvent<bool>();
 
+    /// <summary>
+    /// 玩家相机切换事件
+    /// </summary>
+    public static readonly UnityEvent<Transform> PlayerCameraChange = new UnityEvent<Transform>();
 
 
 }

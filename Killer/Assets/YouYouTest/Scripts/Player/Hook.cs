@@ -72,6 +72,9 @@ public class Hook : MonoBehaviour, IConfigurable
 
         // 监听播放状态改变事件
         GlobalEvent.IsPlayChange.AddListener(OnPlayStateChange);
+
+        // 监听玩家相机切换事件
+        GlobalEvent.PlayerCameraChange.AddListener(OnPlayerCameraChange);
     }
 
     // Update is called once per frame
@@ -152,6 +155,16 @@ public class Hook : MonoBehaviour, IConfigurable
             scopeMesh.SetActive(!isPlaying);
         }
     }
+
+    /// <summary>
+    /// 玩家相机切换事件处理方法
+    /// </summary>
+    /// <param name="newCamera">新的相机Transform</param>
+    private void OnPlayerCameraChange(Transform newCamera)
+    {
+        playerCameraT = newCamera;
+        Debug.Log($"[Hook] PlayerCameraT updated to: {(newCamera != null ? newCamera.name : "null")}");
+    }
     #endregion
 
     #region Unity编辑器方法
@@ -187,6 +200,9 @@ public class Hook : MonoBehaviour, IConfigurable
 
         // 取消监听播放状态改变事件
         GlobalEvent.IsPlayChange.RemoveListener(OnPlayStateChange);
+
+        // 取消监听玩家相机切换事件
+        GlobalEvent.PlayerCameraChange.RemoveListener(OnPlayerCameraChange);
     }
     #endregion
 

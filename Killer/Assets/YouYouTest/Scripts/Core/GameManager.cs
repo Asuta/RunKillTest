@@ -189,11 +189,16 @@ public class GameManager : MonoBehaviour
         }
         set
         {
+            if (_playerCameraT == value) return; // 值相同则不触发事件
+            
             _playerCameraT = value;
             if (_playerCameraT != null)
             {
                 CustomLog.Log(needLog, "玩家相机已在GameManager中设置");
             }
+            
+            // 触发玩家相机切换事件
+            GlobalEvent.PlayerCameraChange.Invoke(_playerCameraT);
         }
     }
 
