@@ -37,6 +37,16 @@ public class TurretCheckBox : MonoBehaviour
 
     void OnTriggerEnter(Collider other)
     {
+        TryDetectPlayer(other);
+    }
+
+    void OnTriggerStay(Collider other)
+    {
+        TryDetectPlayer(other);
+    }
+
+    private void TryDetectPlayer(Collider other)
+    {
         if (!GameManager.Instance.IsPlayMode) return;
         if (isFound) return;
 
