@@ -190,7 +190,11 @@ public class GameManager : MonoBehaviour
         set
         {
             if (_playerCameraT == value) return; // 值相同则不触发事件
-            
+
+            Transform oldCamera = _playerCameraT;
+            GameObject oldPlayerRoot = ResolvePlayerRootFromCamera(oldCamera);
+            GameObject newPlayerRoot = ResolvePlayerRootFromCamera(value);
+
             _playerCameraT = value;
             if (_playerCameraT != null)
             {
@@ -199,7 +203,33 @@ public class GameManager : MonoBehaviour
             
             // 触发玩家相机切换事件
             GlobalEvent.PlayerCameraChange.Invoke(_playerCameraT);
+
+            // 当设置了新的相机时，销毁旧相机所属的Player对象（避免旧新相机在同一对象上导致误删）
+            if (value != null && oldCamera != null && oldPlayerRoot != null && oldPlayerRoot != newPlayerRoot)
+            {
+                CustomLog.Log(needLog, $"PlayerCameraT切换：销毁旧Player对象: {oldPlayerRoot.name}");
+                Destroy(oldPlayerRoot);
+            }
         }
+    }
+
+    private static GameObject ResolvePlayerRootFromCamera(Transform cameraTransform)
+    {
+        if (cameraTransform == null) return null;
+
+        // XR Rig 优先：相机通常在 XROrigin 之下
+        XROrigin xrOrigin = cameraTransform.GetComponentInParent<XROrigin>();
+        if (xrOrigin != null) return xrOrigin.gameObject;
+
+        // 其次尝试通过 Setting 组件定位 Player 根对象
+        VRPlayerSetting vrPlayerSetting = cameraTransform.GetComponentInParent<VRPlayerSetting>();
+        if (vrPlayerSetting != null) return vrPlayerSetting.gameObject;
+
+        PlayerSetting playerSetting = cameraTransform.GetComponentInParent<PlayerSetting>();
+        if (playerSetting != null) return playerSetting.gameObject;
+
+        // 兜底：销毁相机的父对象（更接近“挂载着相机的Player对象”的直觉）
+        return cameraTransform.parent != null ? cameraTransform.parent.gameObject : cameraTransform.gameObject;
     }
 
     // 存储绿色状态的Hook Transform列表
