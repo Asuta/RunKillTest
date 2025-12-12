@@ -180,6 +180,14 @@ public class VRPlayer : MonoBehaviour, ICanBeHit
         }
 
         this.GetComponent<Rigidbody>().isKinematic = !isPlayMode;
+        
+        // 当进入游戏模式时，重新记录当前位置为初始位置
+        if (isPlayMode)
+        {
+            initialPosition = transform.position;
+            initialRotation = transform.eulerAngles;
+            Debug.Log($"进入游戏模式，重新记录初始位置: {initialPosition}");
+        }
     }
 
     private void OnGameManagerReady(bool initialMode)
