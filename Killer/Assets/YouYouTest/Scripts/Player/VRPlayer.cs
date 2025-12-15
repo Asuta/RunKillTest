@@ -79,8 +79,9 @@ public class VRPlayer : MonoBehaviour, ICanBeHit
         
         // 检测菜单键和左手扳机键的组合按下
         bool menuCurrentlyPressed = InputActionsManager.Actions.XRILeftInteraction.Menu.IsPressed();
-        float leftTriggerValue = InputActionsManager.Actions.XRILeftInteraction.ActivateValue.ReadValue<float>();
-        bool leftTriggerCurrentlyPressed = leftTriggerValue > 0.1f;
+        // float leftTriggerValue = InputActionsManager.Actions.XRILeftInteraction.ActivateValue.ReadValue<float>();
+        // bool leftTriggerCurrentlyPressed = leftTriggerValue > 0.1f;
+        bool leftTriggerCurrentlyPressed = InputActionsManager.Actions.XRILeftInteraction.Activate.IsPressed();
         
         // 检测菜单键短按（用于开启UI）
         if (InputActionsManager.Actions.XRILeftInteraction.Menu.WasPressedThisFrame())
