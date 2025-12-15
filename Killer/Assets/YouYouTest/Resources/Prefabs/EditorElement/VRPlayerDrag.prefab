@@ -15621,7 +15621,7 @@ MonoBehaviour:
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_text: 'Change
+  m_text: 'Reset
 
     Mode'
   m_isRightToLeft: 0
@@ -17317,7 +17317,7 @@ GameObject:
   - component: {fileID: 5107789610022860543}
   - component: {fileID: 1478435208556448644}
   - component: {fileID: 7448039607734612629}
-  - component: {fileID: 7141327426856029369}
+  - component: {fileID: 8051687717129964033}
   m_Layer: 5
   m_Name: ResetButton
   m_TagString: Untagged
@@ -17427,7 +17427,7 @@ MonoBehaviour:
   m_OnClick:
     m_PersistentCalls:
       m_Calls: []
---- !u!114 &7141327426856029369
+--- !u!114 &8051687717129964033
 MonoBehaviour:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
@@ -17436,7 +17436,7 @@ MonoBehaviour:
   m_GameObject: {fileID: 7212461004929247911}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 11157fa1687ed83478e61eb77dd3e8ae, type: 3}
+  m_Script: {fileID: 11500000, guid: 2951742a8d0e9754aab204230f3eaa23, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
 --- !u!1 &7256092948370112998
