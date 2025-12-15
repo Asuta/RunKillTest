@@ -7,11 +7,15 @@ public class PlayerUIMove : MonoBehaviour
     public Vector3 offset;
     public Vector3 offset2;
     public Transform lookTarget;
+    public Transform UIRoot;
 
     public float maxDistance = 10f;
      
     
     public float lerpSpeed = 10f; // 插值速度，可以调整这个值来控制插值的快慢
+    
+    private float menuKeyPressTime = -1f; // 记录菜单键按下的时间
+    private const float CLICK_TIME_THRESHOLD = 0.2f; // 单击时间阈值
     
     // Start is called once before the first execution of Update after the MonoBehaviour is created
     void Start()
@@ -46,5 +50,24 @@ public class PlayerUIMove : MonoBehaviour
             transform.rotation = Quaternion.LookRotation(directionFromTarget);
         }
         
+        // 检测左手柄菜单键按下
+        if (InputActionsManager.Actions.XRILeftInteraction.Menu.WasPressedThisFrame())
+        {
+            menuKeyPressTime = Time.time; // 记录按下时间
+        }
+        
+        // 检测左手柄菜单键释放
+        if (InputActionsManager.Actions.XRILeftInteraction.Menu.WasReleasedThisFrame())
+        {
+            // 检查是否在0.1秒内释放（单击）
+            if (menuKeyPressTime > 0 && (Time.time - menuKeyPressTime) <= CLICK_TIME_THRESHOLD)
+            {
+                if (UIRoot != null)
+                {
+                    UIRoot.gameObject.SetActive(!UIRoot.gameObject.activeSelf);
+                }
+            }
+            menuKeyPressTime = -1f; // 重置按下时间
+        }
     }
 }

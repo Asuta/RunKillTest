@@ -16674,6 +16674,7 @@ MonoBehaviour:
   offset: {x: 0, y: 0, z: 0}
   offset2: {x: 0, y: 0.3, z: 0}
   lookTarget: {fileID: 6026765407402143035}
+  UIRoot: {fileID: 2903792615607040467}
   maxDistance: 0.5
   lerpSpeed: 10
 --- !u!1 &7084271306992287570
