@@ -128,7 +128,7 @@ public class LobbySaveUI : MonoBehaviour
             // 根据文本名称或内容来设置不同的信息
             if (text.name.ToLower().Contains("name") || text.name.ToLower().Contains("slot"))
             {
-                text.text = slotInfo.slotName;
+                text.text = slotInfo.LevelName;
             }
             else if (text.name.ToLower().Contains("time") || text.name.ToLower().Contains("date"))
             {
@@ -145,7 +145,7 @@ public class LobbySaveUI : MonoBehaviour
             // 如果没有特定的名称标识，使用第一个TextMeshPro组件显示存档名称
             else if (string.IsNullOrEmpty(text.text) || text.text == "New Text")
             {
-                text.text = slotInfo.slotName;
+                text.text = slotInfo.LevelName;
             }
         }
 
@@ -156,7 +156,7 @@ public class LobbySaveUI : MonoBehaviour
             // 根据文本名称或内容来设置不同的信息
             if (text.name.ToLower().Contains("name") || text.name.ToLower().Contains("slot"))
             {
-                text.text = slotInfo.slotName;
+                text.text = slotInfo.LevelName;
             }
             else if (text.name.ToLower().Contains("time") || text.name.ToLower().Contains("date"))
             {
@@ -173,7 +173,7 @@ public class LobbySaveUI : MonoBehaviour
             // 如果没有特定的名称标识，使用第一个Text组件显示存档名称
             else if (string.IsNullOrEmpty(text.text) || text.text == "New Text")
             {
-                text.text = slotInfo.slotName;
+                text.text = slotInfo.LevelName;
             }
         }
 
