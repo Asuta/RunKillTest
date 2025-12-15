@@ -16616,6 +16616,7 @@ GameObject:
   m_Component:
   - component: {fileID: 8693693111318976352}
   - component: {fileID: 3801801056285691240}
+  - component: {fileID: 8251209325448229590}
   m_Layer: 0
   m_Name: UICanvas (1)
   m_TagString: Untagged
@@ -16646,7 +16647,7 @@ MonoBehaviour:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 7052748832356734885}
-  m_Enabled: 1
+  m_Enabled: 0
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 42ee18c25d0d24a48ac80ed983bcc6d3, type: 3}
   m_Name: 
@@ -16654,6 +16655,24 @@ MonoBehaviour:
   moveTarget: {fileID: 2180601522100169184}
   offset: {x: 0, y: 0, z: 0}
   offset2: {x: 0, y: 0.19, z: 0}
+  lookTarget: {fileID: 6026765407402143035}
+  maxDistance: 0.5
+  lerpSpeed: 10
+--- !u!114 &8251209325448229590
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 7052748832356734885}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 3570db181f7e8774ea14f7d6c837c11f, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  moveTarget: {fileID: 2180601522100169184}
+  offset: {x: 0, y: 0, z: 0}
+  offset2: {x: 0, y: 0.3, z: 0}
   lookTarget: {fileID: 6026765407402143035}
   maxDistance: 0.5
   lerpSpeed: 10
