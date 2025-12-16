@@ -43,7 +43,11 @@ public class NetworkTest : MonoBehaviour
     [Header("3. 下载测试参数")]
     public string testDownloadId; // 从获取列表的结果里复制一个ID填到这里
 
-    [Header("4. ImageList")]
+    [Header("4. 分页设置")]
+    public int currentPage = 1; // 当前页码
+    public int pageSize = 10; // 每页条目数
+
+    [Header("5. ImageList")]
     public Image[] imageList; // 用于存放下载下来的图片
 
     // ---------------------------------------------------------
@@ -65,6 +69,30 @@ public class NetworkTest : MonoBehaviour
     public void TestGetList()
     {
         StartCoroutine(GetListRoutine());
+    }
+
+    [ContextMenu("2.1 Test Get List (获取指定页)")]
+    public void TestGetListWithParams()
+    {
+        StartCoroutine(GetListRoutine(currentPage, pageSize));
+    }
+
+    [ContextMenu("2.2 Test Get List (获取第1页)")]
+    public void TestGetListPage1()
+    {
+        StartCoroutine(GetListRoutine(1, 10));
+    }
+
+    [ContextMenu("2.3 Test Get List (获取第2页)")]
+    public void TestGetListPage2()
+    {
+        StartCoroutine(GetListRoutine(2, 10));
+    }
+
+    [ContextMenu("2.4 Test Get List (获取第3页)")]
+    public void TestGetListPage3()
+    {
+        StartCoroutine(GetListRoutine(3, 10));
     }
 
     [ContextMenu("3. Test Download (下载指定ID)")]
@@ -119,7 +147,13 @@ public class NetworkTest : MonoBehaviour
 
     IEnumerator GetListRoutine()
     {
-        string url = serverUrl + "/get_levels/?page=1&page_size=10";
+        StartCoroutine(GetListRoutine(1, 10));
+        yield break;
+    }
+
+    IEnumerator GetListRoutine(int page, int pageSize)
+    {
+        string url = serverUrl + $"/get_levels/?page={page}&page_size={pageSize}";
         using (UnityWebRequest www = UnityWebRequest.Get(url))
         {
             yield return www.SendWebRequest();
