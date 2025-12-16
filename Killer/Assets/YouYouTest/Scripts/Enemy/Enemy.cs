@@ -59,6 +59,7 @@ public class Enemy : MonoBehaviour, ICanBeHit, IConfigurable
 
     #region 变量声明
     public int health = 100;
+    private int initialHealth; // 保存初始血量
     public float firstLateTime;
     public float IntervalTime;
 
@@ -135,6 +136,9 @@ public class Enemy : MonoBehaviour, ICanBeHit, IConfigurable
     #region Unity生命周期方法
     private void Start()
     {
+        // 保存初始血量
+        initialHealth = health;
+        
         // 创建球体网格
         sphereMesh = CreateSphereMesh(0.1f);
         // EnemyCheckerBox.GetComponent<MeshRenderer>().enabled = false;
@@ -279,8 +283,8 @@ public class Enemy : MonoBehaviour, ICanBeHit, IConfigurable
 
     private void ResetEnemyState()
     {
-        // 重置生命值
-        health = 100;
+        // 重置生命值为初始血量
+        health = initialHealth;
 
         // 重置射击相关变量
         aimingTime = 0f;
