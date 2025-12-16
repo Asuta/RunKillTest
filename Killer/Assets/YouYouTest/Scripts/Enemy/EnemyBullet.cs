@@ -7,6 +7,8 @@ public class EnemyBullet : MonoBehaviour
     public float speed = 10f;
     public Transform target;
     public Enemy createEnemy;
+    public Vector3 explosionPosition; // 指定的爆炸位置
+    public bool useExplosionPosition = false; // 是否使用指定位置爆炸
     public GameObject greenEffect;
     public GameObject greenExplosion;
     public GameObject redEffect;
@@ -55,6 +57,12 @@ public class EnemyBullet : MonoBehaviour
             if (currentDistance <= Mathf.Epsilon)
             {
                 transform.position = B;
+                // 如果已经到达目标且是反弹状态，直接销毁
+                if (isBack)
+                {
+                    ExplodeAndDestroy();
+                    return;
+                }
             }
             else
             {
@@ -67,10 +75,20 @@ public class EnemyBullet : MonoBehaviour
                 // 以投影点为基准沿直线移动固定的世界距离
                 float moveDistance = speed * Time.deltaTime;
                 float remaining = (B - projPoint).magnitude;
+
+                Vector3 nextPos;
                 if (moveDistance >= remaining)
                 {
                     // 到达目标
-                    transform.position = B;
+                    nextPos = B;
+                    
+                    // 如果是反弹状态，到达目标（敌人身体）时直接销毁
+                    if (isBack)
+                    {
+                        transform.position = nextPos;
+                        ExplodeAndDestroy();
+                        return;
+                    }
                 }
                 else
                 {
@@ -78,8 +96,21 @@ public class EnemyBullet : MonoBehaviour
                     // 投影回线段并设置位置
                     float tNew = Vector3.Dot(movedPos - A, AB) / (currentDistance * currentDistance);
                     tNew = Mathf.Clamp01(tNew);
-                    transform.position = A + AB * tNew;
+                    nextPos = A + AB * tNew;
                 }
+
+                // 检查这一帧的移动是否经过了指定爆炸位置（防止速度过快穿透）
+                if (useExplosionPosition)
+                {
+                    if (CheckPassThrough(transform.position, nextPos, explosionPosition))
+                    {
+                        transform.position = explosionPosition;
+                        ExplodeAndDestroy();
+                        return;
+                    }
+                }
+
+                transform.position = nextPos;
             }
         }
         else if (isBack || target == null)
@@ -220,5 +251,48 @@ public class EnemyBullet : MonoBehaviour
     {
         // 检查点重置时销毁子弹
         Destroy(gameObject);
+    }
+
+
+    // 爆炸并销毁子弹的方法
+    private void ExplodeAndDestroy()
+    {
+        // 根据当前状态生成对应的特效
+        if (isBack && greenExplosion != null)
+        {
+            Instantiate(greenExplosion, transform.position, transform.rotation);
+        }
+        else if (!isBack && redExplosion != null)
+        {
+            Instantiate(redExplosion, transform.position, transform.rotation);
+        }
+        Destroy(gameObject);
+    }
+
+    // 检测线段 start->end 是否经过 point（带有一定的宽容度）
+    private bool CheckPassThrough(Vector3 start, Vector3 end, Vector3 point)
+    {
+        Vector3 segment = end - start;
+        float segmentLenSqr = segment.sqrMagnitude;
+        
+        // 如果移动距离极小，直接比较距离
+        if (segmentLenSqr < Mathf.Epsilon)
+            return Vector3.Distance(start, point) < 0.2f;
+
+        Vector3 pointToStart = point - start;
+        // 计算点在直线上的投影比例 t
+        float t = Vector3.Dot(pointToStart, segment) / segmentLenSqr;
+
+        // 如果 t 在 [0, 1] 之间，说明投影点在线段上
+        if (t >= 0f && t <= 1f)
+        {
+            Vector3 projection = start + segment * t;
+            // 检查点到线段的垂直距离是否足够近
+            if (Vector3.Distance(projection, point) < 0.3f) // 0.3f 为检测半径
+            {
+                return true;
+            }
+        }
+        return false;
     }
 }

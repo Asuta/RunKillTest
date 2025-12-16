@@ -127,6 +127,8 @@ MonoBehaviour:
   speed: 15
   target: {fileID: 0}
   createEnemy: {fileID: 0}
+  explosionPosition: {x: 0, y: 0, z: 0}
+  useExplosionPosition: 1
   greenEffect: {fileID: 5652809449961144091}
   greenExplosion: {fileID: 1774190906356354, guid: b4324d93cce3d3a4084ca2de6fd5f2de, type: 3}
   redEffect: {fileID: 1785699272862439271}
