@@ -37,7 +37,14 @@ namespace YouYouTest.CommandFramework
         {
             if (_targetObject != null)
             {
-                Object.DestroyImmediate(_targetObject);
+                if (Application.isPlaying)
+                {
+                    Object.Destroy(_targetObject);
+                }
+                else
+                {
+                    Object.DestroyImmediate(_targetObject);
+                }
                 _targetObject = null; // 避免重复销毁和悬空引用
             }
         }

@@ -1,6 +1,7 @@
 using UnityEngine;
 using UnityEngine.UI;
 using UnityEngine.XR.Interaction.Toolkit.Samples.StarterAssets;
+using YouYouTest.CommandFramework;
 using YouYouTest;
 
 
@@ -73,16 +74,12 @@ public class SelectUI : AutoCleanupBehaviour
     {
         if (delectObjects != null && delectObjects.Length > 0)
         {
-            foreach (var obj in delectObjects)
-            {
-                if (obj != null)
-                {
-                    Destroy(obj);
-                }
-            }
+            // 作为一条命令进入历史，支持撤销/重做
+            var deleteCommand = new BatchDeleteObjectCommand(delectObjects);
+            CommandHistory.Instance.ExecuteCommand(deleteCommand);
         }
 
-        Destroy(this.gameObject); // 删除UI自身
+        Destroy(this.gameObject); // 关闭/销毁UI自身
     }
     
     // 切换保存UI面板的显示状态
