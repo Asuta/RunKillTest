@@ -2,6 +2,7 @@ using UnityEngine;
 using UnityEngine.Networking;
 using System.Collections;
 using System.Text;
+using UnityEngine.UI;
 
 // 定义一个简单的类来接收服务器返回的列表数据
 [System.Serializable]
@@ -41,6 +42,9 @@ public class NetworkTest : MonoBehaviour
 
     [Header("3. 下载测试参数")]
     public string testDownloadId; // 从获取列表的结果里复制一个ID填到这里
+
+    [Header("4. ImageList")]
+    public Image[] imageList; // 用于存放下载下来的图片
 
     // ---------------------------------------------------------
     // 右键点击组件标题，选择 "1. Test Upload" 即可运行
@@ -123,35 +127,109 @@ public class NetworkTest : MonoBehaviour
             if (www.result != UnityWebRequest.Result.Success)
             {
                 Debug.LogError("获取列表失败: " + www.error);
+                yield break;
             }
-            else
-            {
-                string jsonString = www.downloadHandler.text;
-                Debug.Log("获取列表原始JSON: " + jsonString);
 
-                // 尝试解析并打印第一个关卡的ID，方便你测试
-                try
+            string jsonString = www.downloadHandler.text;
+            Debug.Log("获取列表原始JSON: " + jsonString);
+
+            LevelItem[] levels = null;
+            
+            // 尝试解析JSON
+            try
+            {
+                levels = JsonHelper.FromJson<LevelItem>(jsonString);
+            }
+            catch (System.Exception e)
+            {
+                Debug.LogError("JSON解析出错: " + e.Message);
+                yield break;
+            }
+
+            if (levels == null || levels.Length == 0)
+            {
+                Debug.LogWarning("列表是空的，请先上传一个关卡。");
+                yield break;
+            }
+
+            Debug.Log($"解析成功! 找到了 {levels.Length} 个关卡。");
+            Debug.Log($"<color=green>建议测试用的 ID: {levels[0].level_id}</color> (已为你自动填入Inspector)");
+            
+            // 自动帮你填入下载测试的ID框，方便你马上测下一步
+            testDownloadId = levels[0].level_id;
+            
+            // 开始批量下载缩略图
+            yield return StartCoroutine(DownloadThumbnailsRoutine(levels));
+        }
+    }
+
+    IEnumerator DownloadThumbnailsRoutine(LevelItem[] levels)
+    {
+        Debug.Log($"开始下载 {levels.Length} 个缩略图...");
+        
+        // 确保imageList数组有足够的空间
+        if (imageList == null || imageList.Length < levels.Length)
+        {
+            Debug.LogWarning($"imageList数组大小不足。当前大小: {(imageList == null ? 0 : imageList.Length)}, 需要: {levels.Length}");
+            yield break;
+        }
+
+        // 逐个下载缩略图
+        for (int i = 0; i < levels.Length && i < imageList.Length; i++)
+        {
+            string thumbnailUrl = levels[i].thumbnail_url;
+            if (string.IsNullOrEmpty(thumbnailUrl))
+            {
+                Debug.LogWarning($"关卡 {levels[i].level_id} 没有缩略图URL");
+                continue;
+            }
+
+            // 检查URL是否是完整的，如果不是则添加服务器地址
+            if (!thumbnailUrl.StartsWith("http://") && !thumbnailUrl.StartsWith("https://"))
+            {
+                // 如果URL以/开头，去掉多余的/
+                if (thumbnailUrl.StartsWith("/"))
                 {
-                    LevelItem[] levels = JsonHelper.FromJson<LevelItem>(jsonString);
-                    if (levels.Length > 0)
+                    thumbnailUrl = serverUrl + thumbnailUrl;
+                }
+                else
+                {
+                    thumbnailUrl = serverUrl + "/" + thumbnailUrl;
+                }
+            }
+
+            Debug.Log($"正在下载缩略图 {i + 1}/{levels.Length}: {thumbnailUrl}");
+            
+            using (UnityWebRequest wwwImg = UnityWebRequestTexture.GetTexture(thumbnailUrl))
+            {
+                yield return wwwImg.SendWebRequest();
+                
+                if (wwwImg.result == UnityWebRequest.Result.Success)
+                {
+                    Texture2D texture = DownloadHandlerTexture.GetContent(wwwImg);
+                    Debug.Log($"<color=cyan>缩略图下载完成!</color> 关卡ID: {levels[i].level_id}, 尺寸: {texture.width}x{texture.height}");
+                    
+                    // 将下载的图片显示到imageList中
+                    if (imageList[i] != null)
                     {
-                        Debug.Log($"解析成功! 找到了 {levels.Length} 个关卡。");
-                        Debug.Log($"<color=green>建议测试用的 ID: {levels[0].level_id}</color> (已为你自动填入Inspector)");
-                        
-                        // 自动帮你填入下载测试的ID框，方便你马上测下一步
-                        testDownloadId = levels[0].level_id;
+                        // 创建Sprite并设置到Image组件
+                        Sprite sprite = Sprite.Create(texture, new Rect(0, 0, texture.width, texture.height), new Vector2(0.5f, 0.5f));
+                        imageList[i].sprite = sprite;
+                        imageList[i].enabled = true; // 确保Image组件是启用的
                     }
                     else
                     {
-                        Debug.LogWarning("列表是空的，请先上传一个关卡。");
+                        Debug.LogWarning($"imageList[{i}] 为空，无法显示图片");
                     }
                 }
-                catch (System.Exception e)
+                else
                 {
-                    Debug.LogError("JSON解析出错: " + e.Message);
+                    Debug.LogError($"缩略图下载失败: {wwwImg.error}, URL: {thumbnailUrl}");
                 }
             }
         }
+        
+        Debug.Log("所有缩略图下载完成!");
     }
 
     IEnumerator DownloadRoutine(string id)
