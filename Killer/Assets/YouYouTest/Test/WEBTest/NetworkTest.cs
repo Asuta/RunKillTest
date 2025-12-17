@@ -268,6 +268,13 @@ public class NetworkTest : MonoBehaviour
 
     IEnumerator DownloadRoutine(string id)
     {
+        // 创建保存目录
+        string saveFolder = Application.dataPath + "/YouYouTest/Test/WEBTest/SaveLevel";
+        if (!System.IO.Directory.Exists(saveFolder))
+        {
+            System.IO.Directory.CreateDirectory(saveFolder);
+        }
+
         // 1. 下载 JSON
         string jsonUrl = $"{serverUrl}/download_json/{id}";
         Debug.Log("开始下载JSON: " + jsonUrl);
@@ -277,7 +284,13 @@ public class NetworkTest : MonoBehaviour
             yield return wwwJson.SendWebRequest();
             if (wwwJson.result == UnityWebRequest.Result.Success)
             {
-                Debug.Log($"<color=cyan>JSON下载完成!</color> 内容预览: {wwwJson.downloadHandler.text}");
+                string jsonContent = wwwJson.downloadHandler.text;
+                Debug.Log($"<color=cyan>JSON下载完成!</color> 内容预览: {jsonContent}");
+                
+                // 保存JSON到本地
+                string jsonPath = System.IO.Path.Combine(saveFolder, $"{id}.json");
+                System.IO.File.WriteAllText(jsonPath, jsonContent);
+                Debug.Log($"<color=green>JSON已保存到: {jsonPath}</color>");
             }
             else
             {
@@ -297,6 +310,12 @@ public class NetworkTest : MonoBehaviour
             {
                 Texture2D texture = DownloadHandlerTexture.GetContent(wwwImg);
                 Debug.Log($"<color=cyan>图片下载完成!</color> 尺寸: {texture.width}x{texture.height}");
+                
+                // 保存图片到本地
+                string imagePath = System.IO.Path.Combine(saveFolder, $"{id}.png");
+                byte[] imageBytes = texture.EncodeToPNG();
+                System.IO.File.WriteAllBytes(imagePath, imageBytes);
+                Debug.Log($"<color=green>图片已保存到: {imagePath}</color>");
                 
                 // 为了直观，我们可以把下载下来的图显示在 Inspector 的材质球或者用来替换上传的那张图看效果
                 // 这里我们建一个临时的 Sprite 展示在场景里（如果有 SpriteRenderer 的话）
