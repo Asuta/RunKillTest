@@ -51,6 +51,9 @@ def get_levels(page: int = 1, page_size: int = 10):
     all_files = os.listdir(UPLOAD_DIR)
     json_files = [f for f in all_files if f.endswith(".json")]
     
+    # 按照文件创建时间排序（最新的在前面）
+    json_files.sort(key=lambda f: os.path.getctime(os.path.join(UPLOAD_DIR, f)), reverse=True)
+    
     # 简单的分页逻辑
     start = (page - 1) * page_size
     end = start + page_size
