@@ -116,6 +116,11 @@ public class NetworkTest : MonoBehaviour
         // 添加普通字段 (名字)
         form.AddField("name", levelName);
 
+        // 添加设备ID（服务端会把它参与命名）
+        string deviceId = DeviceIDManager.GetDeviceID();
+        form.AddField("device_id", deviceId);
+        Debug.Log($"上传 device_id: {deviceId}");
+
         // 添加文件1: JSON (从TextAsset读取字节)
         // 参数: 字段名(服务端对应), 数据, 文件名, MimeType
         form.AddBinaryData("json_file", uploadJson.bytes, "level.json", "application/json");

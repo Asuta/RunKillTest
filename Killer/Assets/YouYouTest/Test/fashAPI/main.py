@@ -1,6 +1,7 @@
 import os
 import uuid
 import json
+import re
 from fastapi import FastAPI, UploadFile, File, Form
 from fastapi.staticfiles import StaticFiles
 from fastapi.responses import FileResponse
@@ -19,15 +20,34 @@ if not os.path.exists(UPLOAD_DIR):
 # 挂载静态文件目录，这样你可以直接通过 URL 访问图片
 app.mount("/static", StaticFiles(directory=UPLOAD_DIR), name="static")
 
+
+def _sanitize_id_component(value: str, *, max_len: int = 80) -> str:
+    if value is None:
+        return ""
+    value = value.strip()
+    # Keep it filesystem-safe and URL-friendly: letters, numbers, '-', '_', '.'
+    value = re.sub(r"[^0-9A-Za-z._-]+", "_", value)
+    value = value.strip("._-")
+    if len(value) > max_len:
+        value = value[:max_len]
+    return value
+
+
+def _is_safe_level_id(level_id: str) -> bool:
+    # Prevent path traversal and weird separators
+    return bool(level_id) and ("/" not in level_id) and ("\\" not in level_id) and (".." not in level_id)
+
 # --- 功能 1: 上传关卡 (JSON + 图片) ---
 @app.post("/upload_level/")
 async def upload_level(
     name: str = Form(...),          # 关卡名字
+    device_id: str = Form(""),      # 设备ID（客户端上传）
     json_file: UploadFile = File(...), # 关卡数据文件
     image_file: UploadFile = File(...) # 缩略图文件
 ):
     # 生成一个唯一的 ID (UUID)，避免文件名冲突
-    level_id = str(uuid.uuid4())
+    device_part = _sanitize_id_component(device_id) or "UNKNOWN_DEVICE"
+    level_id = f"{device_part}_{uuid.uuid4()}"
     
     # 保存 JSON
     json_filename = f"{level_id}.json"
@@ -91,6 +111,8 @@ def get_levels(page: int = 1, page_size: int = 10):
 # --- 功能 3: 下载指定的 JSON 数据 ---
 @app.get("/download_json/{level_id}")
 def download_json(level_id: str):
+    if not _is_safe_level_id(level_id):
+        return {"error": "Invalid level_id"}
     file_path = os.path.join(UPLOAD_DIR, f"{level_id}.json")
     if os.path.exists(file_path):
         return FileResponse(file_path)
