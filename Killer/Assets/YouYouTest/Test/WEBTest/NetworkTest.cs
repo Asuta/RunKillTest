@@ -9,6 +9,9 @@ using UnityEngine.UI;
 public class LevelItem
 {
     public string level_id;
+    public string name;
+    public string save_time;
+    public int object_count;
     public string json_url;
     public string thumbnail_url;
 }
