@@ -74,6 +74,7 @@ public class WebUISlotControl : MonoBehaviour
         if (sampleSlotPrefab == null || slotContainer == null) return;
 
         GameObject go = Instantiate(sampleSlotPrefab, slotContainer);
+        go.SetActive(true);
         spawnedSlots.Add(go);
         
         WebLevelSlot slot = go.GetComponent<WebLevelSlot>();
