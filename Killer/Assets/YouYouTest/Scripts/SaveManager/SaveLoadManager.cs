@@ -351,13 +351,6 @@ public class SaveLoadManager : MonoBehaviour
             string pureFileName = Path.GetFileName(fileName);
             fileName = Path.Combine("LocalSaveData", pureFileName);
 
-            // 关键：保存后，我们需要更新 GameManager 中的当前存档名，
-            // 这样后续的保存操作就会直接识别到 LocalSaveData 中的文件，不再触发重定向逻辑。
-            if (GameManager.Instance != null)
-            {
-                GameManager.Instance.nowLoadSaveSlot = ComposeSaveKey("LocalSaveData", slotName);
-            }
-
             if (enableDebugLog)
             {
                 Debug.Log($"检测到正在保存下载的关卡(请求来源: {requestedFolder})，已自动重定向并切换到本地存档: {fileName}");
@@ -413,6 +406,24 @@ public class SaveLoadManager : MonoBehaviour
             if (GameManager.Instance != null)
             {
                 GameManager.Instance.nowLoadLevelName = levelName;
+            }
+
+            if (isRedirectedFromWeb)
+            {
+                // 关键：保存后，我们需要更新 GameManager 中的当前存档名，
+                // 这样后续的保存操作就会直接识别到 LocalSaveData 中的文件，不再触发重定向逻辑。
+                if (GameManager.Instance != null)
+                {
+                    string newKey = ComposeSaveKey("LocalSaveData", slotName);
+                    GameManager.Instance.nowLoadSaveSlot = newKey;
+                    // 触发事件以更新 UI（如 SlotNameText）
+                    GlobalEvent.OnLoadSaveChange.Invoke(newKey);
+                }
+
+                if (enableDebugLog)
+                {
+                    Debug.Log("检测到 Web 关卡另存为本地，正在自动打开新的本地存档...");
+                }
             }
 
             if (enableDebugLog)
@@ -472,14 +483,9 @@ public class SaveLoadManager : MonoBehaviour
                 Debug.LogError($"生成level截图时出错: {e.Message}");
             }
 
+            // 如果是重定向，最后执行加载
             if (isRedirectedFromWeb)
             {
-                if (enableDebugLog)
-                {
-                    Debug.Log("检测到 Web 关卡另存为本地，正在自动打开新的本地存档...");
-                }
-                // 如果是从 Web 重定向来的，保存成功后直接加载这个新的本地存档
-                // 这样玩家就从“查看 Web 关卡”切换到了“编辑本地副本”
                 LoadSceneObjects(GameManager.Instance.nowLoadSaveSlot);
             }
         }
