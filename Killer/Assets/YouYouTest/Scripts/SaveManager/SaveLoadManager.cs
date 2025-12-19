@@ -1549,27 +1549,26 @@ public class SaveLoadManager : MonoBehaviour
         
         try
         {
-            // 确定文件路径
-            string fileName = jsonFileName;
-            
-            // 如果没有包含_SceneObjects.json后缀，假设是档位名称，生成完整文件名
-            if (!fileName.EndsWith("_SceneObjects.json"))
+            // 统一处理：提取档位名并重新生成路径，确保能找到 LocalSaveData 或 WebSaveData 中的文件
+            string slotName = jsonFileName;
+            if (slotName.EndsWith("_SceneObjects.json"))
             {
-                fileName = GenerateSaveFileName(fileName);
+                slotName = slotName.Substring(0, slotName.Length - "_SceneObjects.json".Length);
             }
+            // 处理可能传入的路径，只保留文件名部分作为档位名
+            slotName = Path.GetFileName(slotName);
             
-            string userFolderPath = fileManager.GetUserFolderPath();
-            string filePath = Path.Combine(userFolderPath, fileName);
+            string fileName = GenerateSaveFileName(slotName);
             
-            // 检查文件是否存在
-            if (!File.Exists(filePath))
+            // 检查文件是否存在（使用 fileManager 保持一致性）
+            if (!fileManager.FileExists(fileName))
             {
-                Debug.LogError($"存档文件不存在: {filePath}");
+                Debug.LogError($"存档文件不存在: {fileName}");
                 return false;
             }
             
             // 读取现有数据
-            string jsonData = File.ReadAllText(filePath);
+            string jsonData = fileManager.LoadFromFile(fileName);
             if (string.IsNullOrEmpty(jsonData))
             {
                 Debug.LogError("无法读取存档文件");
@@ -1590,14 +1589,14 @@ public class SaveLoadManager : MonoBehaviour
             
             // 重新序列化并保存
             string updatedJsonData = JsonUtility.ToJson(sceneData, true);
-            File.WriteAllText(filePath, updatedJsonData);
+            bool success = fileManager.SaveToFile(fileName, updatedJsonData);
             
-            if (enableDebugLog)
+            if (success && enableDebugLog)
             {
                 Debug.Log($"成功更新关卡名称: '{oldName}' -> '{newName}' (文件: {fileName})");
             }
             
-            return true;
+            return success;
         }
         catch (System.Exception e)
         {
