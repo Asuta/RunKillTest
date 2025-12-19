@@ -148,7 +148,12 @@ public class SaveUI : AutoCleanupBehaviour
                 {
                     // 如果是InputField的文本组件，通过InputField来设置文本
                     inputField.text = slotInfo.LevelName;
-                    inputField.GetComponent<LevelNameInput>().levelJsonName = slotInfo.fileName;
+                    LevelNameInput levelNameInput = inputField.GetComponent<LevelNameInput>();
+                    if (levelNameInput != null)
+                    {
+                        levelNameInput.levelJsonName = slotInfo.fileName;
+                        levelNameInput.subFolder = slotInfo.subFolder;
+                    }
                     Debug.LogError("找到InputField啦，通过InputField设置文本: " + inputField.name);
                 }
                 else
@@ -216,7 +221,7 @@ public class SaveUI : AutoCleanupBehaviour
             if (button.name.ToLower().Contains("load"))
             {
                 button.onClick.RemoveAllListeners();
-                button.onClick.AddListener(() => OnLoadButtonClicked(slotInfo.slotName));
+                button.onClick.AddListener(() => OnLoadButtonClicked(slotInfo));
             }
             else if (button.name.ToLower().Contains("save"))
             {
@@ -226,7 +231,7 @@ public class SaveUI : AutoCleanupBehaviour
             else if (button.name.ToLower().Contains("delete"))
             {
                 button.onClick.RemoveAllListeners();
-                button.onClick.AddListener(() => OnDeleteButtonClicked(slotInfo.slotName));
+                button.onClick.AddListener(() => OnDeleteButtonClicked(slotInfo));
                 
                 // 设置删除按钮的初始状态
                 button.gameObject.SetActive(deleteButtonsActive);
@@ -263,12 +268,21 @@ public class SaveUI : AutoCleanupBehaviour
             if (imageComponent != null)
             {
                 // 构建图片文件路径
-                // 逻辑：直接将 .json 替换为 .png 即可匹配最新的命名规则
+                // 逻辑：优先尝试与 JSON 同名的 .png，如果找不到（如 Web 关卡），尝试去掉 _SceneObjects 后缀的 .png
                 string imageFileName = slotInfo.fileName.Replace(".json", ".png");
-                string webImagePath = Path.Combine(Application.dataPath, "..", "UserSaveData", "WebSaveData", imageFileName);
-                string localImagePath = Path.Combine(Application.dataPath, "..", "UserSaveData", "LocalSaveData", imageFileName);
-                
-                string imagePath = File.Exists(webImagePath) ? webImagePath : localImagePath;
+                string userFolderPath = SaveLoadManager.Instance.GetUserFolderPath();
+                string imagePath = Path.GetFullPath(Path.Combine(userFolderPath, slotInfo.subFolder, imageFileName));
+
+                // 如果主路径不存在，尝试备选路径（去掉 _SceneObjects 后缀）
+                if (!File.Exists(imagePath) && imageFileName.EndsWith("_SceneObjects.png"))
+                {
+                    string fallbackFileName = imageFileName.Replace("_SceneObjects.png", ".png");
+                    string fallbackPath = Path.GetFullPath(Path.Combine(userFolderPath, slotInfo.subFolder, fallbackFileName));
+                    if (File.Exists(fallbackPath))
+                    {
+                        imagePath = fallbackPath;
+                    }
+                }
 
                 // 检查图片文件是否存在
                 if (File.Exists(imagePath))
@@ -283,11 +297,11 @@ public class SaveUI : AutoCleanupBehaviour
                         Sprite sprite = Sprite.Create(texture, new Rect(0, 0, texture.width, texture.height), new Vector2(0.5f, 0.5f));
                         imageComponent.sprite = sprite;
                         
-                        Debug.Log($"成功加载截图: {imageFileName}");
+                        Debug.Log($"成功加载截图: {Path.GetFileName(imagePath)} (来自: {slotInfo.subFolder})");
                     }
                     else
                     {
-                        Debug.LogWarning($"无法加载图片数据: {imageFileName}");
+                        Debug.LogWarning($"无法加载图片数据: {imagePath}");
                     }
                 }
                 else
@@ -312,11 +326,13 @@ public class SaveUI : AutoCleanupBehaviour
     /// 加载按钮点击事件
     /// </summary>
     /// <param name="slotName">档位名称</param>
-    private void OnLoadButtonClicked(string slotName)
+    private void OnLoadButtonClicked(SaveSlotInfo slotInfo)
     {
-        Debug.Log($"加载存档: {slotName}");
-        SaveLoadManager.Instance.LoadSceneObjects(slotName);
-        GlobalEvent.OnLoadSaveChange.Invoke(slotName);
+        if (slotInfo == null) return;
+
+        Debug.Log($"加载存档(精确): {slotInfo.subFolder}/{slotInfo.fileName}");
+        SaveLoadManager.Instance.LoadSceneObjectsByFileName(slotInfo.fileName, slotInfo.subFolder);
+        GlobalEvent.OnLoadSaveChange.Invoke(slotInfo.slotName);
     }
 
     /// <summary>
@@ -336,52 +352,17 @@ public class SaveUI : AutoCleanupBehaviour
     /// 删除按钮点击事件
     /// </summary>
     /// <param name="slotName">档位名称</param>
-    private void OnDeleteButtonClicked(string slotName)
+    private void OnDeleteButtonClicked(SaveSlotInfo slotInfo)
     {
-        Debug.Log($"删除存档: {slotName}");
+        if (slotInfo == null) return;
+
+        Debug.Log($"删除存档(精确): {slotInfo.subFolder}/{slotInfo.fileName}");
         
-        // 删除对应的图片文件
-        DeleteSlotImage(slotName);
-        
-        // 删除存档数据
-        SaveLoadManager.Instance.DeleteSaveSlot(slotName);
+        // 精确删除存档数据（同时删除对应的图片）
+        SaveLoadManager.Instance.DeleteSaveSlotByFileName(slotInfo.fileName, slotInfo.subFolder);
 
         // 删除后刷新UI
         OnEnable();
-    }
-
-    /// <summary>
-    /// 删除存档对应的图片文件
-    /// </summary>
-    /// <param name="slotName">档位名称</param>
-    private void DeleteSlotImage(string slotName)
-    {
-        try
-        {
-            // 构建图片文件路径
-            // 这里的 slotName 实际上是存档的主键，我们需要匹配对应的文件名
-            string imageFileName = $"{slotName}_SceneObjects.png";
-            string webImagePath = Path.Combine(Application.dataPath, "..", "UserSaveData", "WebSaveData", imageFileName);
-            string localImagePath = Path.Combine(Application.dataPath, "..", "UserSaveData", "LocalSaveData", imageFileName);
-            
-            string imagePath = File.Exists(webImagePath) ? webImagePath : localImagePath;
-            
-            // 检查图片文件是否存在
-            if (File.Exists(imagePath))
-            {
-                // 删除图片文件
-                File.Delete(imagePath);
-                Debug.Log($"成功删除截图文件: {imageFileName}");
-            }
-            else
-            {
-                Debug.LogWarning($"截图文件不存在，无需删除: {imagePath}");
-            }
-        }
-        catch (System.Exception ex)
-        {
-            Debug.LogError($"删除截图文件时发生错误: {ex.Message}");
-        }
     }
 
     /// <summary>

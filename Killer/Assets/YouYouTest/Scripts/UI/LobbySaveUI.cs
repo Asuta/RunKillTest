@@ -185,7 +185,7 @@ public class LobbySaveUI : MonoBehaviour
             if (button.name.ToLower().Contains("load"))
             {
                 button.onClick.RemoveAllListeners();
-                button.onClick.AddListener(() => OnLoadButtonClicked(slotInfo.slotName));
+                button.onClick.AddListener(() => OnLoadButtonClicked(slotInfo));
             }
             else if (button.name.ToLower().Contains("save"))
             {
@@ -195,7 +195,7 @@ public class LobbySaveUI : MonoBehaviour
             else if (button.name.ToLower().Contains("delete"))
             {
                 button.onClick.RemoveAllListeners();
-                button.onClick.AddListener(() => OnDeleteButtonClicked(slotInfo.slotName));
+                button.onClick.AddListener(() => OnDeleteButtonClicked(slotInfo));
                 
                 // 设置删除按钮的初始状态
                 button.gameObject.SetActive(deleteButtonsActive);
@@ -207,9 +207,12 @@ public class LobbySaveUI : MonoBehaviour
     /// 加载按钮点击事件
     /// </summary>
     /// <param name="slotName">档位名称</param>
-    private void OnLoadButtonClicked(string slotName)
+    private void OnLoadButtonClicked(SaveSlotInfo slotInfo)
     {
-        Debug.Log($"加载存档: {slotName}");
+        if (slotInfo == null) return;
+
+        string slotName = slotInfo.slotName;
+        Debug.Log($"加载存档(精确): {slotInfo.subFolder}/{slotInfo.fileName}");
 
         // 先把要加载的存档槽名写入 GameManager，后续场景/加载逻辑会读取它
         if (GameManager.Instance != null)
@@ -226,7 +229,7 @@ public class LobbySaveUI : MonoBehaviour
         {
             if (SaveLoadManager.Instance != null)
             {
-                SaveLoadManager.Instance.LoadSceneObjects(slotName);
+                SaveLoadManager.Instance.LoadSceneObjectsByFileName(slotInfo.fileName, slotInfo.subFolder);
                 if (GameManager.Instance != null)
                 {
                     GameManager.Instance.SetCanSwitchMode(true);
@@ -252,7 +255,7 @@ public class LobbySaveUI : MonoBehaviour
 
                 if (SaveLoadManager.Instance != null)
                 {
-                    SaveLoadManager.Instance.LoadSceneObjects(slotName);
+                    SaveLoadManager.Instance.LoadSceneObjectsByFileName(slotInfo.fileName, slotInfo.subFolder);
                     // 通知其他监听者
                     GlobalEvent.OnLoadSaveChange.Invoke(slotName);
                 }
@@ -293,10 +296,11 @@ public class LobbySaveUI : MonoBehaviour
     /// 删除按钮点击事件
     /// </summary>
     /// <param name="slotName">档位名称</param>
-    private void OnDeleteButtonClicked(string slotName)
+    private void OnDeleteButtonClicked(SaveSlotInfo slotInfo)
     {
-        Debug.Log($"删除存档: {slotName}");
-        SaveLoadManager.Instance.DeleteSaveSlot(slotName);
+        if (slotInfo == null) return;
+        Debug.Log($"删除存档(精确): {slotInfo.subFolder}/{slotInfo.fileName}");
+        SaveLoadManager.Instance.DeleteSaveSlotByFileName(slotInfo.fileName, slotInfo.subFolder);
 
         // 删除后刷新UI
         OnEnable();

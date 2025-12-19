@@ -131,6 +131,9 @@ public class WebLevelSlot : MonoBehaviour
     {
         Debug.Log($"准备进入场景并加载存档: {slotName}");
 
+        // Web 关卡必须从 WebSaveData 精确加载，避免与本地同名副本产生二义性
+        string webJsonFileName = $"{slotName}_SceneObjects.json";
+
         // 设置 GameManager 中的存档名
         if (GameManager.Instance != null)
         {
@@ -142,7 +145,7 @@ public class WebLevelSlot : MonoBehaviour
         {
             if (SaveLoadManager.Instance != null)
             {
-                SaveLoadManager.Instance.LoadSceneObjects(slotName);
+                SaveLoadManager.Instance.LoadSceneObjectsByFileName(webJsonFileName, "WebSaveData");
                 if (GameManager.Instance != null) GameManager.Instance.SetCanSwitchMode(true);
                 GlobalEvent.OnLoadSaveChange.Invoke(slotName);
             }
@@ -158,7 +161,7 @@ public class WebLevelSlot : MonoBehaviour
                 SceneManager.sceneLoaded -= onLoaded;
                 if (SaveLoadManager.Instance != null)
                 {
-                    SaveLoadManager.Instance.LoadSceneObjects(slotName);
+                    SaveLoadManager.Instance.LoadSceneObjectsByFileName(webJsonFileName, "WebSaveData");
                     GlobalEvent.OnLoadSaveChange.Invoke(slotName);
                 }
                 if (GameManager.Instance != null)

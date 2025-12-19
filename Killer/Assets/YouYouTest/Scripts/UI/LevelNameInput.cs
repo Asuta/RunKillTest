@@ -6,6 +6,7 @@ public class LevelNameInput : MonoBehaviour
 {
     public TMP_InputField inputField;
     public string levelJsonName;
+    public string subFolder;
     // Start is called once before the first execution of Update after the MonoBehaviour is created
     void Start()
     {
@@ -30,7 +31,14 @@ public class LevelNameInput : MonoBehaviour
     {
         Debug.Log("输入完成，新的关卡名称: " + text);
         // 这里可以添加保存关卡名称的逻辑，例如更新保存数据
-        SaveLoadManager.Instance.UpdateLevelName(levelJsonName, text);
+        if (!string.IsNullOrEmpty(subFolder))
+        {
+            SaveLoadManager.Instance.UpdateLevelName(levelJsonName, subFolder, text);
+        }
+        else
+        {
+            SaveLoadManager.Instance.UpdateLevelName(levelJsonName, text);
+        }
     }
 
     // Update is called once per frame

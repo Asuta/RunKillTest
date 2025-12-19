@@ -208,16 +208,67 @@ public class SaveLoadManager : MonoBehaviour
             slotName = slotName.Replace(c.ToString(), "");
         }
         
-        // 检查是否是网络关卡（通过 ID 格式或文件夹存在性判断）
-        // 这里我们优先检查 WebSaveData 文件夹
-        string webPath = Path.Combine(fileManager.GetUserFolderPath(), "WebSaveData", $"{slotName}_SceneObjects.json");
+        // 同名关卡可能同时存在于 WebSaveData 与 LocalSaveData：
+        // - WebSaveData：下载的原始关卡
+        // - LocalSaveData：基于下载关卡修改后的“本地副本”
+        // 为了确保“修改后的本地关卡”能被正确加载，这里改为：本地优先，其次 Web。
+
+        string userFolderPath = fileManager.GetUserFolderPath();
+        string localPath = Path.Combine(userFolderPath, "LocalSaveData", $"{slotName}_SceneObjects.json");
+        if (File.Exists(localPath))
+        {
+            return Path.Combine("LocalSaveData", $"{slotName}_SceneObjects.json");
+        }
+
+        string webPath = Path.Combine(userFolderPath, "WebSaveData", $"{slotName}_SceneObjects.json");
         if (File.Exists(webPath))
         {
             return Path.Combine("WebSaveData", $"{slotName}_SceneObjects.json");
         }
 
-        // 默认存放在 LocalSaveData 文件夹
+        // 默认存放在 LocalSaveData 文件夹（首次创建时会走这里）
         return Path.Combine("LocalSaveData", $"{slotName}_SceneObjects.json");
+    }
+
+    private static string NormalizeSaveSubFolder(string subFolder)
+    {
+        if (string.IsNullOrEmpty(subFolder)) return null;
+        // 只允许这两个子目录，避免传入任意路径
+        if (subFolder == "LocalSaveData" || subFolder == "WebSaveData") return subFolder;
+        // 容错：如果传入的是路径，取最后一级
+        string last = Path.GetFileName(subFolder);
+        if (last == "LocalSaveData" || last == "WebSaveData") return last;
+        return null;
+    }
+
+    private static string NormalizeSceneJsonFileName(string jsonFileName)
+    {
+        if (string.IsNullOrEmpty(jsonFileName)) return null;
+        // 只保留文件名部分，避免带路径
+        string nameOnly = Path.GetFileName(jsonFileName);
+        if (!nameOnly.EndsWith(".json")) nameOnly += ".json";
+        return nameOnly;
+    }
+
+    private static string GetSlotNameFromSceneJsonFileName(string jsonFileName)
+    {
+        string nameOnly = Path.GetFileNameWithoutExtension(jsonFileName);
+        if (nameOnly.EndsWith("_SceneObjects"))
+        {
+            return nameOnly.Substring(0, nameOnly.Length - "_SceneObjects".Length);
+        }
+        return nameOnly;
+    }
+
+    private string BuildRelativeSceneJsonPath(string jsonFileName, string subFolder)
+    {
+        string normalizedFileName = NormalizeSceneJsonFileName(jsonFileName);
+        if (string.IsNullOrEmpty(normalizedFileName)) return null;
+
+        string normalizedSubFolder = NormalizeSaveSubFolder(subFolder);
+        if (string.IsNullOrEmpty(normalizedSubFolder)) return normalizedFileName;
+
+        return Path.Combine(normalizedSubFolder, normalizedFileName);
     }
     
     /// <summary>
@@ -475,6 +526,84 @@ public class SaveLoadManager : MonoBehaviour
             OnLoadingError?.Invoke($"加载数据时出错: {e.Message}");
         }
     }
+
+    /// <summary>
+    /// 精确加载：指定子文件夹与 JSON 文件名，彻底消除同名二义性
+    /// </summary>
+    public void LoadSceneObjectsByFileName(string jsonFileName, string subFolder)
+    {
+        if (isLoading)
+        {
+            Debug.LogWarning("已有加载任务在进行中，忽略新的加载请求");
+            return;
+        }
+
+        if (string.IsNullOrEmpty(jsonFileName))
+        {
+            Debug.LogError("JSON文件名不能为空");
+            return;
+        }
+
+        string relativePath = BuildRelativeSceneJsonPath(jsonFileName, subFolder);
+        if (string.IsNullOrEmpty(relativePath))
+        {
+            Debug.LogError("无法构建存档路径");
+            return;
+        }
+
+        if (enableDebugLog)
+        {
+            Debug.Log($"开始加载场景对象(精确): {relativePath}");
+        }
+
+        if (!fileManager.FileExists(relativePath))
+        {
+            Debug.LogWarning($"保存文件不存在: {relativePath}");
+            OnLoadingError?.Invoke($"保存文件不存在: {relativePath}");
+            return;
+        }
+
+        string jsonData = fileManager.LoadFromFile(relativePath);
+        if (string.IsNullOrEmpty(jsonData))
+        {
+            Debug.LogError("无法读取保存文件!");
+            OnLoadingError?.Invoke("无法读取保存文件!");
+            return;
+        }
+
+        try
+        {
+            SceneSaveData sceneData = JsonUtility.FromJson<SceneSaveData>(jsonData);
+
+            if (sceneData == null || sceneData.objects == null)
+            {
+                Debug.LogError("无法解析保存文件数据!");
+                OnLoadingError?.Invoke("无法解析保存文件数据!");
+                return;
+            }
+
+            if (enableDebugLog)
+            {
+                Debug.Log($"准备加载 {sceneData.objectCount} 个对象 (保存时间: {sceneData.saveTime})");
+            }
+
+            CleanupSceneBeforeLoad();
+
+            if (useProgressiveLoading && sceneData.objectCount > 0)
+            {
+                StartProgressiveLoading(sceneData);
+            }
+            else
+            {
+                LoadObjectsImmediately(sceneData);
+            }
+        }
+        catch (System.Exception e)
+        {
+            Debug.LogError($"加载数据时出错: {e.Message}");
+            OnLoadingError?.Invoke($"加载数据时出错: {e.Message}");
+        }
+    }
     
     /// <summary>
     /// 立即加载所有对象（原有逻辑）
@@ -640,6 +769,15 @@ public class SaveLoadManager : MonoBehaviour
     }
     
     /// <summary>
+    /// 获取用户文件夹路径
+    /// </summary>
+    /// <returns>用户文件夹路径</returns>
+    public string GetUserFolderPath()
+    {
+        return fileManager.GetUserFolderPath();
+    }
+
+    /// <summary>
     /// 获取所有存档档位信息
     /// </summary>
     /// <returns>存档档位信息列表</returns>
@@ -704,6 +842,9 @@ public class SaveLoadManager : MonoBehaviour
                         }
                     }
                     
+                    // 确定子文件夹名称
+                    string subFolder = filePath.Contains("WebSaveData") ? "WebSaveData" : "LocalSaveData";
+                    
                     slotInfos.Add(new SaveSlotInfo
                     {
                         slotName = slotName,
@@ -711,7 +852,8 @@ public class SaveLoadManager : MonoBehaviour
                         saveTime = saveTime,
                         LevelName = levelName, // 设置关卡名称
                         objectCount = objectCount,
-                        fileSize = fileInfo.Length
+                        fileSize = fileInfo.Length,
+                        subFolder = subFolder // 设置子文件夹
                     });
                 }
             }
@@ -753,11 +895,14 @@ public class SaveLoadManager : MonoBehaviour
                 File.Delete(filePath);
 
                 // 同时尝试删除对应的图片文件
-                string imagePath = filePath.Replace("_SceneObjects.json", ".png");
-                if (File.Exists(imagePath))
-                {
-                    File.Delete(imagePath);
-                }
+                // 尝试两种可能的命名规则：
+                // 1. 与 JSON 同名 (Name_SceneObjects.png)
+                // 2. 去掉后缀 (Name.png)
+                string imagePath1 = filePath.Replace(".json", ".png");
+                string imagePath2 = filePath.Replace("_SceneObjects.json", ".png");
+
+                if (File.Exists(imagePath1)) File.Delete(imagePath1);
+                if (File.Exists(imagePath2) && imagePath2 != imagePath1) File.Delete(imagePath2);
                 
                 if (enableDebugLog)
                 {
@@ -778,6 +923,63 @@ public class SaveLoadManager : MonoBehaviour
         catch (System.Exception e)
         {
             Debug.LogError($"删除存档档位 {slotName} 时出错: {e.Message}");
+            return false;
+        }
+    }
+
+    /// <summary>
+    /// 精确删除：指定子文件夹与 JSON 文件名，彻底消除同名二义性
+    /// </summary>
+    public bool DeleteSaveSlotByFileName(string jsonFileName, string subFolder)
+    {
+        if (string.IsNullOrEmpty(jsonFileName))
+        {
+            Debug.LogWarning("文件名不能为空");
+            return false;
+        }
+
+        string normalizedSubFolder = NormalizeSaveSubFolder(subFolder);
+        if (string.IsNullOrEmpty(normalizedSubFolder))
+        {
+            Debug.LogWarning("subFolder 无效，必须是 LocalSaveData 或 WebSaveData");
+            return false;
+        }
+
+        string normalizedFileName = NormalizeSceneJsonFileName(jsonFileName);
+        if (string.IsNullOrEmpty(normalizedFileName)) return false;
+
+        try
+        {
+            string userFolderPath = fileManager.GetUserFolderPath();
+            string filePath = Path.Combine(userFolderPath, normalizedSubFolder, normalizedFileName);
+
+            if (File.Exists(filePath))
+            {
+                File.Delete(filePath);
+
+                // 同时尝试删除对应的图片文件（两种命名规则）
+                string imagePath1 = filePath.Replace(".json", ".png");
+                string imagePath2 = filePath.Replace("_SceneObjects.json", ".png");
+                if (File.Exists(imagePath1)) File.Delete(imagePath1);
+                if (File.Exists(imagePath2) && imagePath2 != imagePath1) File.Delete(imagePath2);
+
+                if (enableDebugLog)
+                {
+                    Debug.Log($"成功删除存档文件及图片(精确): {normalizedSubFolder}/{normalizedFileName}");
+                }
+
+                return true;
+            }
+
+            if (enableDebugLog)
+            {
+                Debug.LogWarning($"存档文件不存在: {filePath}");
+            }
+            return false;
+        }
+        catch (System.Exception e)
+        {
+            Debug.LogError($"删除存档文件 {jsonFileName} 时出错: {e.Message}");
             return false;
         }
     }
@@ -1604,6 +1806,81 @@ public class SaveLoadManager : MonoBehaviour
             return false;
         }
     }
+
+    /// <summary>
+    /// 精确改名：指定子文件夹与 JSON 文件名，彻底消除同名二义性
+    /// </summary>
+    public bool UpdateLevelName(string jsonFileName, string subFolder, string newName)
+    {
+        if (string.IsNullOrEmpty(jsonFileName))
+        {
+            Debug.LogError("JSON文件名不能为空");
+            return false;
+        }
+
+        if (string.IsNullOrEmpty(newName))
+        {
+            Debug.LogError("新的关卡名称不能为空");
+            return false;
+        }
+
+        string normalizedSubFolder = NormalizeSaveSubFolder(subFolder);
+        if (string.IsNullOrEmpty(normalizedSubFolder))
+        {
+            Debug.LogError("subFolder 无效，必须是 LocalSaveData 或 WebSaveData");
+            return false;
+        }
+
+        string normalizedFileName = NormalizeSceneJsonFileName(jsonFileName);
+        if (string.IsNullOrEmpty(normalizedFileName))
+        {
+            Debug.LogError("JSON文件名无效");
+            return false;
+        }
+
+        try
+        {
+            string relativePath = Path.Combine(normalizedSubFolder, normalizedFileName);
+
+            if (!fileManager.FileExists(relativePath))
+            {
+                Debug.LogError($"存档文件不存在: {relativePath}");
+                return false;
+            }
+
+            string jsonData = fileManager.LoadFromFile(relativePath);
+            if (string.IsNullOrEmpty(jsonData))
+            {
+                Debug.LogError("无法读取存档文件");
+                return false;
+            }
+
+            SceneSaveData sceneData = JsonUtility.FromJson<SceneSaveData>(jsonData);
+            if (sceneData == null)
+            {
+                Debug.LogError("无法解析存档文件数据");
+                return false;
+            }
+
+            string oldName = sceneData.name;
+            sceneData.name = newName;
+
+            string updatedJsonData = JsonUtility.ToJson(sceneData, true);
+            bool success = fileManager.SaveToFile(relativePath, updatedJsonData);
+
+            if (success && enableDebugLog)
+            {
+                Debug.Log($"成功更新关卡名称(精确): '{oldName}' -> '{newName}' (文件: {relativePath})");
+            }
+
+            return success;
+        }
+        catch (System.Exception e)
+        {
+            Debug.LogError($"更新关卡名称时出错: {e.Message}");
+            return false;
+        }
+    }
 }
 
 /// <summary>
@@ -1618,4 +1895,5 @@ public class SaveSlotInfo
     public string LevelName; // 关卡名称（从JSON文件中读取）
     public int objectCount;
     public long fileSize;
+    public string subFolder; // 子文件夹名称 (LocalSaveData 或 WebSaveData)
 }
