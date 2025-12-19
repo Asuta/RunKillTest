@@ -2,6 +2,9 @@ using UnityEngine;
 using UnityEngine.UI;
 using UnityEngine.Networking;
 using System.Collections;
+using System.IO;
+using UnityEngine.SceneManagement;
+using UnityEngine.Events;
 
 public class WebLevelSlot : MonoBehaviour
 {
@@ -32,19 +35,33 @@ public class WebLevelSlot : MonoBehaviour
             StartCoroutine(DownloadThumbnail(fullUrl));
         }
 
-        levelButton.onClick.RemoveAllListeners();
-        levelButton.onClick.AddListener(() => {
-            Debug.Log($"点击了关卡: {levelID}，开始下载...");
-            StartCoroutine(DownloadLevelRoutine(levelID));
-        });
+        // 检查本地是否已经下载过该关卡
+        string saveFolder = Path.Combine(Application.dataPath, "..", "UserSaveData");
+        string jsonPath = Path.Combine(saveFolder, $"{levelID}_SceneObjects.json");
+
+        if (File.Exists(jsonPath))
+        {
+            // 如果已存在，直接设置为 Play 状态
+            UpdateToPlayState();
+        }
+        else
+        {
+            // 如果不存在，设置为下载逻辑
+            levelButton.onClick.RemoveAllListeners();
+            levelButton.onClick.AddListener(() => {
+                Debug.Log($"点击了关卡: {levelID}，开始下载...");
+                StartCoroutine(DownloadLevelRoutine(levelID));
+            });
+        }
     }
 
     IEnumerator DownloadLevelRoutine(string id)
     {
-        string saveFolder = Application.dataPath + "/YouYouTest/Test/WEBTest/SaveLevel";
-        if (!System.IO.Directory.Exists(saveFolder))
+        // 统一使用 SaveLoadManager 的存储路径
+        string saveFolder = Path.Combine(Application.dataPath, "..", "UserSaveData");
+        if (!Directory.Exists(saveFolder))
         {
-            System.IO.Directory.CreateDirectory(saveFolder);
+            Directory.CreateDirectory(saveFolder);
         }
 
         // 1. 下载 JSON
@@ -55,13 +72,15 @@ public class WebLevelSlot : MonoBehaviour
             if (wwwJson.result == UnityWebRequest.Result.Success)
             {
                 string jsonContent = wwwJson.downloadHandler.text;
-                string jsonPath = System.IO.Path.Combine(saveFolder, $"{id}.json");
-                System.IO.File.WriteAllText(jsonPath, jsonContent);
-                Debug.Log($"<color=green>JSON已保存到: {jsonPath}</color>");
+                // 关键：文件名必须符合 SaveLoadManager 的 GenerateSaveFileName 规则 (slotName + "_SceneObjects.json")
+                string jsonPath = Path.Combine(saveFolder, $"{id}_SceneObjects.json");
+                File.WriteAllText(jsonPath, jsonContent);
+                Debug.Log($"<color=green>JSON已保存到存档目录: {jsonPath}</color>");
             }
             else
             {
                 Debug.LogError("JSON下载失败: " + wwwJson.error);
+                yield break; // 下载失败则不继续
             }
         }
 
@@ -73,16 +92,85 @@ public class WebLevelSlot : MonoBehaviour
             if (wwwImg.result == UnityWebRequest.Result.Success)
             {
                 Texture2D texture = DownloadHandlerTexture.GetContent(wwwImg);
-                string imagePath = System.IO.Path.Combine(saveFolder, $"{id}.png");
+                string imagePath = Path.Combine(saveFolder, $"{id}.png");
                 byte[] imageBytes = texture.EncodeToPNG();
-                System.IO.File.WriteAllBytes(imagePath, imageBytes);
-                Debug.Log($"<color=green>图片已保存到: {imagePath}</color>");
+                File.WriteAllBytes(imagePath, imageBytes);
+                Debug.Log($"<color=green>图片已保存到存档目录: {imagePath}</color>");
             }
             else
             {
-                Debug.LogError("图片下载失败: " + wwwImg.error);
+                Debug.LogWarning("图片下载失败（非致命）: " + wwwImg.error);
             }
         }
+
+        // 下载完成后，修改按钮逻辑为“进入场景”
+        UpdateToPlayState();
+    }
+
+    private void UpdateToPlayState()
+    {
+        // 修改按钮文本为 "Play"
+        TMPro.TextMeshProUGUI buttonText = levelButton.GetComponentInChildren<TMPro.TextMeshProUGUI>();
+        if (buttonText != null)
+        {
+            buttonText.text = "Play";
+        }
+        else
+        {
+            // 兼容普通 Text 组件
+            Text legacyText = levelButton.GetComponentInChildren<Text>();
+            if (legacyText != null) legacyText.text = "Play";
+        }
+
+        // 切换按钮点击事件
+        levelButton.onClick.RemoveAllListeners();
+        levelButton.onClick.AddListener(() => OnPlayButtonClicked(levelID));
+    }
+
+    private void OnPlayButtonClicked(string slotName)
+    {
+        Debug.Log($"准备进入场景并加载存档: {slotName}");
+
+        // 设置 GameManager 中的存档名
+        if (GameManager.Instance != null)
+        {
+            GameManager.Instance.nowLoadSaveSlot = slotName;
+        }
+
+        // 如果已经在 KillScene，直接加载
+        if (SceneManager.GetActiveScene().name == "KillScene")
+        {
+            if (SaveLoadManager.Instance != null)
+            {
+                SaveLoadManager.Instance.LoadSceneObjects(slotName);
+                if (GameManager.Instance != null) GameManager.Instance.SetCanSwitchMode(true);
+                GlobalEvent.OnLoadSaveChange.Invoke(slotName);
+            }
+            return;
+        }
+
+        // 不在 KillScene 时，注册加载完成回调并切换场景
+        UnityAction<Scene, LoadSceneMode> onLoaded = null;
+        onLoaded = (scene, mode) =>
+        {
+            if (scene.name == "KillScene")
+            {
+                SceneManager.sceneLoaded -= onLoaded;
+                if (SaveLoadManager.Instance != null)
+                {
+                    SaveLoadManager.Instance.LoadSceneObjects(slotName);
+                    GlobalEvent.OnLoadSaveChange.Invoke(slotName);
+                }
+                if (GameManager.Instance != null)
+                {
+                    GameManager.Instance.SetCanSwitchMode(true);
+                    GameManager.Instance.SetPlayMode(false);
+                }
+            }
+        };
+
+        SceneManager.sceneLoaded += onLoaded;
+        SceneManager.LoadScene("KillScene");
     }
 
     IEnumerator DownloadThumbnail(string url)

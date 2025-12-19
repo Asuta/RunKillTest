@@ -737,8 +737,8 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   serverUrl: http://127.0.0.1:8000
   levelName: "\u6211\u7684\u6D4B\u8BD5\u5173\u5361"
-  uploadJson: {fileID: 4900000, guid: 11becb9bb79e530428f40bb6c102a841, type: 3}
-  uploadImage: {fileID: 2800000, guid: 7581a09f2a22dcc4aa4809f36e8708d0, type: 3}
+  uploadJson: {fileID: 4900000, guid: ad6cdaa3e28cb3147baf9bff44d7c6a8, type: 3}
+  uploadImage: {fileID: 2800000, guid: ca4a47885a2ea6a48a78ac40b56ab1a7, type: 3}
   testDownloadId: EDITOR_TEST_ID_123456_3588c5e2-a8bf-4c4c-8f1b-c0b6204978a2
   currentPage: 1
   pageSize: 10
