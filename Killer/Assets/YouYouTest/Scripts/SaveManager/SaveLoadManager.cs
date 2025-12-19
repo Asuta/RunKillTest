@@ -349,6 +349,33 @@ public class SaveLoadManager : MonoBehaviour
         {
             isRedirectedFromWeb = true;
             string pureFileName = Path.GetFileName(fileName);
+            
+            // 检查 LocalSaveData 中是否已存在同名文件
+            string userFolderPath = fileManager.GetUserFolderPath();
+            string localFolderPath = Path.Combine(userFolderPath, "LocalSaveData");
+            string targetLocalPath = Path.Combine(localFolderPath, pureFileName);
+
+            if (File.Exists(targetLocalPath))
+            {
+                // 如果已存在，生成带数字后缀的新文件名
+                string nameWithoutExt = Path.GetFileNameWithoutExtension(pureFileName); // e.g. "Level_SceneObjects"
+                string slotBaseName = GetSlotNameFromSceneJsonFileName(pureFileName); // e.g. "Level"
+                
+                int counter = 1;
+                string newSlotName = slotBaseName;
+                string newFileName = pureFileName;
+                
+                while (File.Exists(Path.Combine(localFolderPath, newFileName)))
+                {
+                    newSlotName = $"{slotBaseName}({counter})";
+                    newFileName = $"{newSlotName}_SceneObjects.json";
+                    counter++;
+                }
+                
+                slotName = newSlotName;
+                pureFileName = newFileName;
+            }
+
             fileName = Path.Combine("LocalSaveData", pureFileName);
 
             if (enableDebugLog)
@@ -364,6 +391,15 @@ public class SaveLoadManager : MonoBehaviour
         if (GameManager.Instance != null && !string.IsNullOrEmpty(GameManager.Instance.nowLoadLevelName))
         {
             levelName = GameManager.Instance.nowLoadLevelName;
+            // 如果是因为重定向而生成了新档位（带数字后缀），关卡显示名称也同步加上后缀
+            if (isRedirectedFromWeb && slotName.Contains("("))
+            {
+                string suffix = slotName.Substring(slotName.LastIndexOf('('));
+                if (!levelName.EndsWith(suffix))
+                {
+                    levelName += suffix;
+                }
+            }
         }
 
         if (fileManager.FileExists(fileName))
