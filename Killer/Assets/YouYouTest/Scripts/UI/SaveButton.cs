@@ -51,7 +51,8 @@ public class SaveButton : MonoBehaviour
             Debug.Log($"保存到存档槽: {currentSaveSlot}");
             // 调用SaveLoadManager单例的保存方法，传入当前存档槽
             SaveLoadManager.Instance.SaveSceneObjects(currentSaveSlot);
-            savedSlotName = currentSaveSlot;
+            // 获取可能被重定向后的存档槽名称
+            savedSlotName = GameManager.Instance.nowLoadSaveSlot;
         }
         
         // 触发保存完成事件，通知UI刷新

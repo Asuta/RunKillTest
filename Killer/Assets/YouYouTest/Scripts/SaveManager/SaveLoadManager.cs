@@ -338,13 +338,16 @@ public class SaveLoadManager : MonoBehaviour
         // 生成文件名
         string fileName = GenerateSaveFileName(slotName);
 
+        bool isRedirectedFromWeb = false;
+
         // 如果调用方显式要求保存到本地/网络，优先遵循（当前逻辑只允许写到本地）
         // 若 requestedFolder == WebSaveData，我们仍会走下方“重定向到本地”逻辑。
 
-        // 逻辑调整：如果当前目标路径在 WebSaveData 中，说明玩家正在尝试保存一个下载的关卡
-        // 我们强制将其重定向到 LocalSaveData，实现“另存为本地”
-        if (fileName.Contains("WebSaveData"))
+        // 逻辑调整：如果当前目标路径在 WebSaveData 中，或者显式请求的是 WebSaveData，
+        // 说明玩家正在尝试保存一个下载的关卡，我们强制将其重定向到 LocalSaveData，实现“另存为本地”
+        if (fileName.Contains("WebSaveData") || requestedFolder == "WebSaveData")
         {
+            isRedirectedFromWeb = true;
             string pureFileName = Path.GetFileName(fileName);
             fileName = Path.Combine("LocalSaveData", pureFileName);
 
@@ -357,7 +360,7 @@ public class SaveLoadManager : MonoBehaviour
 
             if (enableDebugLog)
             {
-                Debug.Log($"检测到正在保存下载的关卡，已自动重定向并切换到本地存档: {fileName}");
+                Debug.Log($"检测到正在保存下载的关卡(请求来源: {requestedFolder})，已自动重定向并切换到本地存档: {fileName}");
             }
         }
         
@@ -467,6 +470,17 @@ public class SaveLoadManager : MonoBehaviour
             catch (System.Exception e)
             {
                 Debug.LogError($"生成level截图时出错: {e.Message}");
+            }
+
+            if (isRedirectedFromWeb)
+            {
+                if (enableDebugLog)
+                {
+                    Debug.Log("检测到 Web 关卡另存为本地，正在自动打开新的本地存档...");
+                }
+                // 如果是从 Web 重定向来的，保存成功后直接加载这个新的本地存档
+                // 这样玩家就从“查看 Web 关卡”切换到了“编辑本地副本”
+                LoadSceneObjects(GameManager.Instance.nowLoadSaveSlot);
             }
         }
     }
