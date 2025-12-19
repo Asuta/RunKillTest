@@ -242,6 +242,26 @@ public class SaveLoadManager : MonoBehaviour
         
         // 生成文件名
         string fileName = GenerateSaveFileName(slotName);
+
+        // 逻辑调整：如果当前目标路径在 WebSaveData 中，说明玩家正在尝试保存一个下载的关卡
+        // 我们强制将其重定向到 LocalSaveData，实现“另存为本地”
+        if (fileName.Contains("WebSaveData"))
+        {
+            string pureFileName = Path.GetFileName(fileName);
+            fileName = Path.Combine("LocalSaveData", pureFileName);
+
+            // 关键：保存后，我们需要更新 GameManager 中的当前存档名，
+            // 这样后续的保存操作就会直接识别到 LocalSaveData 中的文件，不再触发重定向逻辑。
+            if (GameManager.Instance != null)
+            {
+                GameManager.Instance.nowLoadSaveSlot = slotName;
+            }
+
+            if (enableDebugLog)
+            {
+                Debug.Log($"检测到正在保存下载的关卡，已自动重定向并切换到本地存档: {fileName}");
+            }
+        }
         
         // 尝试获取现有的关卡名称，避免覆盖用户修改过的名称
         string levelName = slotName ?? defaultSlotName;

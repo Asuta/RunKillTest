@@ -85,8 +85,16 @@ public static class ObjectSnapshot
                 byte[] bytes = screenshot.EncodeToPNG();
 
                 // 根据枚举类型确定保存路径
-                string subFolder = saveType == SnapshotSaveType.TypeSelect ? "SelectImages" : "LevelImages";
-                string directoryPath = Path.Combine(Application.persistentDataPath, subFolder);
+                string directoryPath;
+                if (saveType == SnapshotSaveType.TypeSelect)
+                {
+                    directoryPath = Path.Combine(Application.persistentDataPath, "SelectImages");
+                }
+                else
+                {
+                    // 关卡截图统一存放在 UserSaveData 目录下
+                    directoryPath = Path.Combine(Application.dataPath, "..", "UserSaveData");
+                }
 
                 // 确保目录存在
                 if (!Directory.Exists(directoryPath))

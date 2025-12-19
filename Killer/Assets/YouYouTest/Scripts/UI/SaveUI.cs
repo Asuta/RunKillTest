@@ -263,9 +263,13 @@ public class SaveUI : AutoCleanupBehaviour
             if (imageComponent != null)
             {
                 // 构建图片文件路径
-                string imageFileName = $"{slotInfo.slotName}_SceneObjects.png";
-                string imagePath = Path.Combine(Application.persistentDataPath, "LevelImages", imageFileName);
+                // 逻辑：直接将 .json 替换为 .png 即可匹配最新的命名规则
+                string imageFileName = slotInfo.fileName.Replace(".json", ".png");
+                string webImagePath = Path.Combine(Application.dataPath, "..", "UserSaveData", "WebSaveData", imageFileName);
+                string localImagePath = Path.Combine(Application.dataPath, "..", "UserSaveData", "LocalSaveData", imageFileName);
                 
+                string imagePath = File.Exists(webImagePath) ? webImagePath : localImagePath;
+
                 // 检查图片文件是否存在
                 if (File.Exists(imagePath))
                 {
@@ -355,8 +359,12 @@ public class SaveUI : AutoCleanupBehaviour
         try
         {
             // 构建图片文件路径
+            // 这里的 slotName 实际上是存档的主键，我们需要匹配对应的文件名
             string imageFileName = $"{slotName}_SceneObjects.png";
-            string imagePath = Path.Combine(Application.persistentDataPath, "LevelImages", imageFileName);
+            string webImagePath = Path.Combine(Application.dataPath, "..", "UserSaveData", "WebSaveData", imageFileName);
+            string localImagePath = Path.Combine(Application.dataPath, "..", "UserSaveData", "LocalSaveData", imageFileName);
+            
+            string imagePath = File.Exists(webImagePath) ? webImagePath : localImagePath;
             
             // 检查图片文件是否存在
             if (File.Exists(imagePath))
