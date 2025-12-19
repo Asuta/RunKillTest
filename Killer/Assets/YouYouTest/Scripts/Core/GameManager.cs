@@ -403,6 +403,7 @@ public class GameManager : MonoBehaviour
     public CheckPoint nowActivateCheckPoint;
 
     public string nowLoadSaveSlot; // 当前加载的存档槽
+    public string nowLoadLevelName; // 当前加载的关卡名称
 
     // Start is called once before the first execution of Update after the MonoBehaviour is created
     void Start()

@@ -363,6 +363,13 @@ public class SaveLoadManager : MonoBehaviour
         
         // 尝试获取现有的关卡名称，避免覆盖用户修改过的名称
         string levelName = slotName ?? defaultSlotName;
+
+        // 优先使用当前加载的关卡名称（如果存在），这能确保从Web关卡另存为本地时保留原有关卡名
+        if (GameManager.Instance != null && !string.IsNullOrEmpty(GameManager.Instance.nowLoadLevelName))
+        {
+            levelName = GameManager.Instance.nowLoadLevelName;
+        }
+
         if (fileManager.FileExists(fileName))
         {
             try
@@ -398,9 +405,17 @@ public class SaveLoadManager : MonoBehaviour
         // 保存到文件
         bool success = fileManager.SaveToFile(fileName, jsonData);
         
-        if (success && enableDebugLog)
+        if (success)
         {
-            Debug.Log($"成功保存 {saveDataList.Count} 个对象");
+            if (GameManager.Instance != null)
+            {
+                GameManager.Instance.nowLoadLevelName = levelName;
+            }
+
+            if (enableDebugLog)
+            {
+                Debug.Log($"成功保存 {saveDataList.Count} 个对象");
+            }
             
             // 保存JSON文件后，生成截图
             try
@@ -560,6 +575,12 @@ public class SaveLoadManager : MonoBehaviour
             {
                 Debug.Log($"准备加载 {sceneData.objectCount} 个对象 (保存时间: {sceneData.saveTime})");
             }
+
+            // 记录当前加载的关卡名称
+            if (GameManager.Instance != null)
+            {
+                GameManager.Instance.nowLoadLevelName = sceneData.name;
+            }
             
             // 在加载前先清理场景
             CleanupSceneBeforeLoad();
@@ -641,6 +662,12 @@ public class SaveLoadManager : MonoBehaviour
             if (enableDebugLog)
             {
                 Debug.Log($"准备加载 {sceneData.objectCount} 个对象 (保存时间: {sceneData.saveTime})");
+            }
+
+            // 记录当前加载的关卡名称
+            if (GameManager.Instance != null)
+            {
+                GameManager.Instance.nowLoadLevelName = sceneData.name;
             }
 
             CleanupSceneBeforeLoad();
@@ -1941,9 +1968,21 @@ public class SaveLoadManager : MonoBehaviour
             string updatedJsonData = JsonUtility.ToJson(sceneData, true);
             bool success = fileManager.SaveToFile(relativePath, updatedJsonData);
 
-            if (success && enableDebugLog)
+            if (success)
             {
-                Debug.Log($"成功更新关卡名称(精确): '{oldName}' -> '{newName}' (文件: {relativePath})");
+                // 如果更新的是当前加载的关卡，同步更新 GameManager 中的名称
+                string currentKey = GameManager.Instance != null ? GameManager.Instance.nowLoadSaveSlot : null;
+                string targetKey = ComposeSaveKey(normalizedSubFolder, GetSlotNameFromSceneJsonFileName(normalizedFileName));
+                
+                if (currentKey == targetKey && GameManager.Instance != null)
+                {
+                    GameManager.Instance.nowLoadLevelName = newName;
+                }
+
+                if (enableDebugLog)
+                {
+                    Debug.Log($"成功更新关卡名称(精确): '{oldName}' -> '{newName}' (文件: {relativePath})");
+                }
             }
 
             return success;
