@@ -147,7 +147,7 @@ public class WebLevelSlot : MonoBehaviour
             {
                 SaveLoadManager.Instance.LoadSceneObjectsByFileName(webJsonFileName, "WebSaveData");
                 if (GameManager.Instance != null) GameManager.Instance.SetCanSwitchMode(true);
-                GlobalEvent.OnLoadSaveChange.Invoke(slotName);
+                GlobalEvent.OnLoadSaveChange.Invoke(SaveLoadManager.ComposeSaveKey("WebSaveData", slotName));
             }
             return;
         }
@@ -162,7 +162,7 @@ public class WebLevelSlot : MonoBehaviour
                 if (SaveLoadManager.Instance != null)
                 {
                     SaveLoadManager.Instance.LoadSceneObjectsByFileName(webJsonFileName, "WebSaveData");
-                    GlobalEvent.OnLoadSaveChange.Invoke(slotName);
+                    GlobalEvent.OnLoadSaveChange.Invoke(SaveLoadManager.ComposeSaveKey("WebSaveData", slotName));
                 }
                 if (GameManager.Instance != null)
                 {

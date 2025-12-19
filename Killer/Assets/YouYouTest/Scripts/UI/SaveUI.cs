@@ -332,7 +332,7 @@ public class SaveUI : AutoCleanupBehaviour
 
         Debug.Log($"加载存档(精确): {slotInfo.subFolder}/{slotInfo.fileName}");
         SaveLoadManager.Instance.LoadSceneObjectsByFileName(slotInfo.fileName, slotInfo.subFolder);
-        GlobalEvent.OnLoadSaveChange.Invoke(slotInfo.slotName);
+        GlobalEvent.OnLoadSaveChange.Invoke(SaveLoadManager.ComposeSaveKey(slotInfo.subFolder, slotInfo.slotName));
     }
 
     /// <summary>

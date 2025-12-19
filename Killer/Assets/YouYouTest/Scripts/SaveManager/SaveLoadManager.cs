@@ -10,6 +10,8 @@ using UnityEditor;
 
 public class SaveLoadManager : MonoBehaviour
 {
+    public const char SaveKeySeparator = '|';
+
     // 单例模式实现
     private static SaveLoadManager _instance;
     public static SaveLoadManager Instance => _instance;
@@ -196,6 +198,13 @@ public class SaveLoadManager : MonoBehaviour
     /// <returns>生成的文件名</returns>
     private string GenerateSaveFileName(string slotName)
     {
+        // 兼容：如果传入的是带来源的 key（"LocalSaveData|Slot"），先解析出真实 slotName
+        ParseSaveKey(slotName, out _, out string parsedSlotName);
+        if (!string.IsNullOrEmpty(parsedSlotName))
+        {
+            slotName = parsedSlotName;
+        }
+
         if (string.IsNullOrEmpty(slotName))
         {
             slotName = defaultSlotName;
@@ -228,6 +237,34 @@ public class SaveLoadManager : MonoBehaviour
 
         // 默认存放在 LocalSaveData 文件夹（首次创建时会走这里）
         return Path.Combine("LocalSaveData", $"{slotName}_SceneObjects.json");
+    }
+
+    public static string ComposeSaveKey(string subFolder, string slotName)
+    {
+        string normalized = NormalizeSaveSubFolder(subFolder);
+        if (string.IsNullOrEmpty(normalized)) return slotName;
+        if (string.IsNullOrEmpty(slotName)) return normalized.ToString();
+        return $"{normalized}{SaveKeySeparator}{slotName}";
+    }
+
+    public static void ParseSaveKey(string key, out string subFolder, out string slotName)
+    {
+        subFolder = null;
+        slotName = key;
+
+        if (string.IsNullOrEmpty(key)) return;
+
+        int idx = key.IndexOf(SaveKeySeparator);
+        if (idx <= 0 || idx >= key.Length - 1) return;
+
+        string left = key.Substring(0, idx);
+        string right = key.Substring(idx + 1);
+
+        string normalized = NormalizeSaveSubFolder(left);
+        if (string.IsNullOrEmpty(normalized)) return;
+
+        subFolder = normalized;
+        slotName = right;
     }
 
     private static string NormalizeSaveSubFolder(string subFolder)
@@ -277,6 +314,13 @@ public class SaveLoadManager : MonoBehaviour
     /// <param name="slotName">档位名称，如果为空则使用默认档位</param>
     public void SaveSceneObjects(string slotName = null)
     {
+        // 兼容：允许传入带来源的 key
+        ParseSaveKey(slotName, out string requestedFolder, out string parsedSlotName);
+        if (!string.IsNullOrEmpty(parsedSlotName))
+        {
+            slotName = parsedSlotName;
+        }
+
         if (enableDebugLog)
         {
             Debug.Log("开始保存场景对象...");
@@ -294,6 +338,9 @@ public class SaveLoadManager : MonoBehaviour
         // 生成文件名
         string fileName = GenerateSaveFileName(slotName);
 
+        // 如果调用方显式要求保存到本地/网络，优先遵循（当前逻辑只允许写到本地）
+        // 若 requestedFolder == WebSaveData，我们仍会走下方“重定向到本地”逻辑。
+
         // 逻辑调整：如果当前目标路径在 WebSaveData 中，说明玩家正在尝试保存一个下载的关卡
         // 我们强制将其重定向到 LocalSaveData，实现“另存为本地”
         if (fileName.Contains("WebSaveData"))
@@ -305,7 +352,7 @@ public class SaveLoadManager : MonoBehaviour
             // 这样后续的保存操作就会直接识别到 LocalSaveData 中的文件，不再触发重定向逻辑。
             if (GameManager.Instance != null)
             {
-                GameManager.Instance.nowLoadSaveSlot = slotName;
+                GameManager.Instance.nowLoadSaveSlot = ComposeSaveKey("LocalSaveData", slotName);
             }
 
             if (enableDebugLog)
@@ -456,6 +503,15 @@ public class SaveLoadManager : MonoBehaviour
     /// <param name="slotName">档位名称，如果为空则使用默认档位</param>
     public void LoadSceneObjects(string slotName = null)
     {
+        // 兼容：如果传入的是带来源的 key，则精确加载该来源
+        ParseSaveKey(slotName, out string requestedFolder, out string parsedSlotName);
+        if (!string.IsNullOrEmpty(requestedFolder))
+        {
+            string jsonFile = $"{parsedSlotName}_SceneObjects.json";
+            LoadSceneObjectsByFileName(jsonFile, requestedFolder);
+            return;
+        }
+
         if (isLoading)
         {
             Debug.LogWarning("已有加载任务在进行中，忽略新的加载请求");
@@ -878,6 +934,14 @@ public class SaveLoadManager : MonoBehaviour
     /// <returns>是否删除成功</returns>
     public bool DeleteSaveSlot(string slotName)
     {
+        // 兼容：允许传入带来源的 key，做到精确删除
+        ParseSaveKey(slotName, out string requestedFolder, out string parsedSlotName);
+        if (!string.IsNullOrEmpty(requestedFolder))
+        {
+            string jsonFile = $"{parsedSlotName}_SceneObjects.json";
+            return DeleteSaveSlotByFileName(jsonFile, requestedFolder);
+        }
+
         if (string.IsNullOrEmpty(slotName))
         {
             Debug.LogWarning("档位名称不能为空");
@@ -991,6 +1055,15 @@ public class SaveLoadManager : MonoBehaviour
     /// <returns>档位是否存在</returns>
     public bool SaveSlotExists(string slotName)
     {
+        // 兼容：允许传入带来源的 key
+        ParseSaveKey(slotName, out string requestedFolder, out string parsedSlotName);
+        if (!string.IsNullOrEmpty(requestedFolder))
+        {
+            string jsonFile = $"{parsedSlotName}_SceneObjects.json";
+            string relative = Path.Combine(requestedFolder, jsonFile);
+            return fileManager.FileExists(relative);
+        }
+
         if (string.IsNullOrEmpty(slotName))
         {
             return false;

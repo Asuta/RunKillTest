@@ -235,7 +235,7 @@ public class LobbySaveUI : MonoBehaviour
                     GameManager.Instance.SetCanSwitchMode(true);
                 }
                 // 通知其他监听者已切换/加载存档
-                GlobalEvent.OnLoadSaveChange.Invoke(slotName);
+                GlobalEvent.OnLoadSaveChange.Invoke(SaveLoadManager.ComposeSaveKey(slotInfo.subFolder, slotInfo.slotName));
             }
             else
             {
@@ -257,7 +257,7 @@ public class LobbySaveUI : MonoBehaviour
                 {
                     SaveLoadManager.Instance.LoadSceneObjectsByFileName(slotInfo.fileName, slotInfo.subFolder);
                     // 通知其他监听者
-                    GlobalEvent.OnLoadSaveChange.Invoke(slotName);
+                    GlobalEvent.OnLoadSaveChange.Invoke(SaveLoadManager.ComposeSaveKey(slotInfo.subFolder, slotInfo.slotName));
                 }
                 else
                 {
