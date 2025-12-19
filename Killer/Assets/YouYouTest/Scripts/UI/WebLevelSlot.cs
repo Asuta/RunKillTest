@@ -35,8 +35,8 @@ public class WebLevelSlot : MonoBehaviour
             StartCoroutine(DownloadThumbnail(fullUrl));
         }
 
-        // 检查本地是否已经下载过该关卡
-        string saveFolder = Path.Combine(Application.dataPath, "..", "UserSaveData");
+        // 检查本地是否已经下载过该关卡 (网络关卡存放在 WebSaveData)
+        string saveFolder = Path.Combine(Application.dataPath, "..", "UserSaveData", "WebSaveData");
         string jsonPath = Path.Combine(saveFolder, $"{levelID}_SceneObjects.json");
 
         if (File.Exists(jsonPath))
@@ -57,8 +57,8 @@ public class WebLevelSlot : MonoBehaviour
 
     IEnumerator DownloadLevelRoutine(string id)
     {
-        // 统一使用 SaveLoadManager 的存储路径
-        string saveFolder = Path.Combine(Application.dataPath, "..", "UserSaveData");
+        // 网络下载的关卡存放在 WebSaveData 子文件夹
+        string saveFolder = Path.Combine(Application.dataPath, "..", "UserSaveData", "WebSaveData");
         if (!Directory.Exists(saveFolder))
         {
             Directory.CreateDirectory(saveFolder);

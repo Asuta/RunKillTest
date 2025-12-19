@@ -208,7 +208,16 @@ public class SaveLoadManager : MonoBehaviour
             slotName = slotName.Replace(c.ToString(), "");
         }
         
-        return $"{slotName}_SceneObjects.json";
+        // 检查是否是网络关卡（通过 ID 格式或文件夹存在性判断）
+        // 这里我们优先检查 WebSaveData 文件夹
+        string webPath = Path.Combine(fileManager.GetUserFolderPath(), "WebSaveData", $"{slotName}_SceneObjects.json");
+        if (File.Exists(webPath))
+        {
+            return Path.Combine("WebSaveData", $"{slotName}_SceneObjects.json");
+        }
+
+        // 默认存放在 LocalSaveData 文件夹
+        return Path.Combine("LocalSaveData", $"{slotName}_SceneObjects.json");
     }
     
     /// <summary>
@@ -306,11 +315,16 @@ public class SaveLoadManager : MonoBehaviour
                 if (levelObjects.Count > 0)
                 {
                     // 生成图片文件名（去掉扩展名）
+                    // 获取不带路径的文件名作为截图名
                     string imageFileName = Path.GetFileNameWithoutExtension(fileName);
                     
-                    // 调用截图方法，使用档位名称作为图片名
-                    ObjectSnapshot.CaptureAndSave(levelObjects, SnapshotSaveType.TypeLevel, imageFileName);
-                    Debug.Log($"已生成level对象的截图: {imageFileName}.png");
+                    // 确定截图保存的子文件夹（LocalSaveData 或 WebSaveData）
+                    string subFolder = fileName.Contains("WebSaveData") ? "WebSaveData" : "LocalSaveData";
+                    string snapshotPath = Path.Combine(subFolder, imageFileName);
+                    
+                    // 调用截图方法，使用带子文件夹的路径作为图片名
+                    ObjectSnapshot.CaptureAndSave(levelObjects, SnapshotSaveType.TypeLevel, snapshotPath);
+                    Debug.Log($"已生成level对象的截图: {snapshotPath}.png");
                 }
                 else
                 {
@@ -616,18 +630,19 @@ public class SaveLoadManager : MonoBehaviour
         try
         {
             string userFolderPath = fileManager.GetUserFolderPath();
+            string localFolderPath = Path.Combine(userFolderPath, "LocalSaveData");
+            string webFolderPath = Path.Combine(userFolderPath, "WebSaveData");
+
+            // 确保文件夹存在
+            if (!Directory.Exists(localFolderPath)) Directory.CreateDirectory(localFolderPath);
+            if (!Directory.Exists(webFolderPath)) Directory.CreateDirectory(webFolderPath);
             
-            if (!Directory.Exists(userFolderPath))
-            {
-                if (enableDebugLog)
-                {
-                    Debug.Log("存档文件夹不存在，返回空列表");
-                }
-                return slotInfos;
-            }
+            // 获取两个文件夹下的所有JSON文件
+            List<string> jsonFilesList = new List<string>();
+            jsonFilesList.AddRange(Directory.GetFiles(localFolderPath, "*_SceneObjects.json"));
+            jsonFilesList.AddRange(Directory.GetFiles(webFolderPath, "*_SceneObjects.json"));
             
-            // 获取所有JSON文件
-            string[] jsonFiles = Directory.GetFiles(userFolderPath, "*_SceneObjects.json");
+            string[] jsonFiles = jsonFilesList.ToArray();
             
             foreach (string filePath in jsonFiles)
             {
@@ -716,10 +731,17 @@ public class SaveLoadManager : MonoBehaviour
             if (File.Exists(filePath))
             {
                 File.Delete(filePath);
+
+                // 同时尝试删除对应的图片文件
+                string imagePath = filePath.Replace("_SceneObjects.json", ".png");
+                if (File.Exists(imagePath))
+                {
+                    File.Delete(imagePath);
+                }
                 
                 if (enableDebugLog)
                 {
-                    Debug.Log($"成功删除存档档位: {slotName}");
+                    Debug.Log($"成功删除存档档位及图片: {slotName}");
                 }
                 
                 return true;
