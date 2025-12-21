@@ -3,6 +3,7 @@ using UnityEngine.Networking;
 using System.Collections;
 using System.Text;
 using UnityEngine.UI;
+using VInspector;
 
 // 定义一个简单的类来接收服务器返回的列表数据
 [System.Serializable]
@@ -57,6 +58,7 @@ public class NetworkTest : MonoBehaviour
     // 右键点击组件标题，选择 "1. Test Upload" 即可运行
     // ---------------------------------------------------------
     
+    [Button]
     [ContextMenu("1. Test Upload (上传)")]
     public void TestUpload()
     {
