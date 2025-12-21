@@ -135,6 +135,23 @@ public class SaveUI : AutoCleanupBehaviour
     /// <param name="slotInfo">存档档位信息</param>
     private void SetupEntryComponents(GameObject entry, SaveSlotInfo slotInfo)
     {
+        // 根据关卡来源设置底色
+        // 如果是网络下载的关卡（subFolder 包含 "Web"），将底色设置为紫色
+        UnityEngine.UI.Image backgroundImage = entry.GetComponent<UnityEngine.UI.Image>();
+        if (backgroundImage != null)
+        {
+            if (slotInfo.subFolder != null && slotInfo.subFolder.ToLower().Contains("web"))
+            {
+                // 设置为紫色 (Purple)
+                backgroundImage.color = new Color(0.6f, 0.2f, 0.8f, 1f);
+            }
+            else
+            {
+                // 保持原色（通常是白色或默认色）
+                backgroundImage.color = Color.white;
+            }
+        }
+
         // 查找TextMeshPro组件来显示存档信息
         TMPro.TextMeshProUGUI[] textComponents = entry.GetComponentsInChildren<TMPro.TextMeshProUGUI>();
         foreach (var text in textComponents)
