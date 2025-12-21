@@ -17,6 +17,32 @@ public class WebLevelSlot : MonoBehaviour
     public void Setup(LevelItem data, string serverUrl)
     {
         this.serverUrl = serverUrl;
+
+        // 处理空数据情况
+        if (data == null)
+        {
+            levelID = "";
+            if (levelText != null) levelText.text = "";
+            if (levelImage != null) levelImage.sprite = null;
+            if (levelButton != null)
+            {
+                levelButton.onClick.RemoveAllListeners();
+                // 禁用按钮或设置为空点击
+                levelButton.interactable = false;
+                
+                // 清除按钮文本
+                TMPro.TextMeshProUGUI buttonText = levelButton.GetComponentInChildren<TMPro.TextMeshProUGUI>();
+                if (buttonText != null) buttonText.text = "";
+                else
+                {
+                    Text legacyText = levelButton.GetComponentInChildren<Text>();
+                    if (legacyText != null) legacyText.text = "";
+                }
+            }
+            return;
+        }
+
+        if (levelButton != null) levelButton.interactable = true;
         levelID = data.level_id;
         levelText.text = string.IsNullOrEmpty(data.name) ? "未命名关卡" : data.name;
         
@@ -48,6 +74,10 @@ public class WebLevelSlot : MonoBehaviour
         {
             // 如果不存在，设置为下载逻辑
             levelButton.onClick.RemoveAllListeners();
+            // 恢复按钮文本为默认（可能是 "Download"）
+            TMPro.TextMeshProUGUI buttonText = levelButton.GetComponentInChildren<TMPro.TextMeshProUGUI>();
+            if (buttonText != null) buttonText.text = "Download";
+
             levelButton.onClick.AddListener(() => {
                 Debug.Log($"点击了关卡: {levelID}，开始下载...");
                 StartCoroutine(DownloadLevelRoutine(levelID));
