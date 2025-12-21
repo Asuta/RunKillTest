@@ -21,6 +21,7 @@ public class SaveUI : AutoCleanupBehaviour
     {
         // 注册全局事件监听器
         RegisterEvent(GlobalEvent.OnSaveComplete, OnSaveComplete);
+        GlobalEvent.OnLoadSaveChange.AddListener(OnLoadSaveChangeInternal);
         
         // 为addButton添加点击事件监听器
         if (addButton != null)
@@ -70,6 +71,22 @@ public class SaveUI : AutoCleanupBehaviour
         Debug.Log($"收到保存完成事件，档位: {slotName}，刷新UI列表");
         // 刷新存档列表显示
         OnEnable();
+    }
+
+    /// <summary>
+    /// 存档加载变更事件处理
+    /// </summary>
+    /// <param name="saveKey">存档Key</param>
+    private void OnLoadSaveChangeInternal(string saveKey)
+    {
+        Debug.Log($"收到存档加载变更事件: {saveKey}，刷新UI列表以更新高亮状态");
+        // 刷新存档列表显示以更新高亮
+        OnEnable();
+    }
+
+    private void OnDestroy()
+    {
+        GlobalEvent.OnLoadSaveChange.RemoveListener(OnLoadSaveChangeInternal);
     }
 
     /// <summary>
@@ -150,6 +167,24 @@ public class SaveUI : AutoCleanupBehaviour
                 // 保持原色（通常是白色或默认色）
                 backgroundImage.color = Color.white;
             }
+        }
+
+        // 设置外描边高亮（如果当前是加载的关卡）
+        UnityEngine.UI.Outline outline = entry.GetComponent<UnityEngine.UI.Outline>();
+        if (outline == null)
+        {
+            // 如果没有Outline组件，尝试添加一个
+            outline = entry.AddComponent<UnityEngine.UI.Outline>();
+            outline.effectDistance = new Vector2(5, -5);
+        }
+
+        if (outline != null)
+        {
+            string currentKey = SaveLoadManager.ComposeSaveKey(slotInfo.subFolder, slotInfo.slotName);
+            bool isCurrent = currentKey == GameManager.Instance.nowLoadSaveSlot;
+            
+            outline.enabled = isCurrent;
+            outline.effectColor = Color.yellow; // 高亮颜色设为黄色
         }
 
         // 查找TextMeshPro组件来显示存档信息
