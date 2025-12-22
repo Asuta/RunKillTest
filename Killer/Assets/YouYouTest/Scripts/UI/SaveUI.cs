@@ -157,12 +157,14 @@ public class SaveUI : AutoCleanupBehaviour
     /// <param name="slotInfo">存档档位信息</param>
     private void SetupEntryComponents(GameObject entry, SaveSlotInfo slotInfo)
     {
+        bool isWebLevel = slotInfo.subFolder != null && slotInfo.subFolder.ToLower().Contains("web");
+
         // 根据关卡来源设置底色
         // 如果是网络下载的关卡（subFolder 包含 "Web"），将底色设置为紫色
         UnityEngine.UI.Image backgroundImage = entry.GetComponent<UnityEngine.UI.Image>();
         if (backgroundImage != null)
         {
-            if (slotInfo.subFolder != null && slotInfo.subFolder.ToLower().Contains("web"))
+            if (isWebLevel)
             {
                 // 设置为紫色 (Purple)
                 backgroundImage.color = new Color(0.6f, 0.2f, 0.8f, 1f);
@@ -280,6 +282,9 @@ public class SaveUI : AutoCleanupBehaviour
             {
                 button.onClick.RemoveAllListeners();
                 button.onClick.AddListener(() => OnUploadButtonClicked(slotInfo));
+
+                // 如果是Web关卡，隐藏上传按钮
+                button.gameObject.SetActive(!isWebLevel);
             }
             else if (btnName.Contains("load"))
             {
