@@ -5,35 +5,6 @@ using System.Text;
 using UnityEngine.UI;
 using VInspector;
 
-// 定义一个简单的类来接收服务器返回的列表数据
-[System.Serializable]
-public class LevelItem
-{
-    public string level_id;
-    public string name;
-    public string save_time;
-    public int object_count;
-    public string json_url;
-    public string thumbnail_url;
-}
-
-// 帮助类：用来解析JSON数组 (因为JsonUtility默认不支持根节点是数组)
-public static class JsonHelper
-{
-    public static T[] FromJson<T>(string json)
-    {
-        string newJson = "{ \"array\": " + json + "}";
-        Wrapper<T> wrapper = JsonUtility.FromJson<Wrapper<T>>(newJson);
-        return wrapper.array;
-    }
-
-    [System.Serializable]
-    private class Wrapper<T>
-    {
-        public T[] array;
-    }
-}
-
 public class NetworkTest : MonoBehaviour
 {
     [Header("1. 服务器设置")]
@@ -67,37 +38,73 @@ public class NetworkTest : MonoBehaviour
             Debug.LogError("请先在Inspector面板拖入 Json文件 和 图片！");
             return;
         }
-        StartCoroutine(UploadRoutine());
+        
+        byte[] imageBytes = uploadImage.EncodeToPNG();
+        if (imageBytes == null)
+        {
+            Debug.LogError("图片转换失败！请检查图片的 Import Settings 是否开启了 Read/Write。");
+            return;
+        }
+
+        SaveNetworkManager.Instance.UploadLevelRaw(
+            levelName, 
+            "level.json", 
+            uploadJson.bytes, 
+            "thumb.png", 
+            imageBytes, 
+            serverUrl, 
+            (success, message) => {
+                if (success) Debug.Log("上传成功! 服务器返回: " + message);
+                else Debug.LogError("上传失败: " + message);
+            }
+        );
     }
 
     [ContextMenu("2. Test Get List (获取列表)")]
     public void TestGetList()
     {
-        StartCoroutine(GetListRoutine());
+        TestGetListWithParams();
     }
 
     [ContextMenu("2.1 Test Get List (获取指定页)")]
     public void TestGetListWithParams()
     {
-        StartCoroutine(GetListRoutine(currentPage, pageSize));
+        SaveNetworkManager.Instance.GetLevelList(serverUrl, currentPage, pageSize, (levels) => {
+            if (levels == null || levels.Length == 0)
+            {
+                Debug.LogWarning("列表是空的，请先上传一个关卡。");
+                return;
+            }
+
+            Debug.Log($"解析成功! 找到了 {levels.Length} 个关卡。");
+            Debug.Log($"<color=green>建议测试用的 ID: {levels[0].level_id}</color> (已为你自动填入Inspector)");
+            
+            testDownloadId = levels[0].level_id;
+            
+            // 开始批量下载缩略图
+            StartCoroutine(DownloadThumbnailsRoutine(levels));
+        });
     }
 
     [ContextMenu("2.2 Test Get List (获取第1页)")]
     public void TestGetListPage1()
     {
-        StartCoroutine(GetListRoutine(1, 10));
+        currentPage = 1;
+        TestGetListWithParams();
     }
 
     [ContextMenu("2.3 Test Get List (获取第2页)")]
     public void TestGetListPage2()
     {
-        StartCoroutine(GetListRoutine(2, 10));
+        currentPage = 2;
+        TestGetListWithParams();
     }
 
     [ContextMenu("2.4 Test Get List (获取第3页)")]
     public void TestGetListPage3()
     {
-        StartCoroutine(GetListRoutine(3, 10));
+        currentPage = 3;
+        TestGetListWithParams();
     }
 
     [ContextMenu("3. Test Download (下载指定ID)")]
@@ -108,104 +115,14 @@ public class NetworkTest : MonoBehaviour
             Debug.LogError("请先在Inspector里填入 testDownloadId");
             return;
         }
-        StartCoroutine(DownloadRoutine(testDownloadId));
+        
+        SaveNetworkManager.Instance.DownloadLevel(serverUrl, testDownloadId, (success) => {
+            if (success) Debug.Log("<color=green>下载并保存成功!</color>");
+            else Debug.LogError("下载失败");
+        });
     }
 
     // --- 具体实现协程 ---
-
-    IEnumerator UploadRoutine()
-    {
-        // 1. 准备表单
-        WWWForm form = new WWWForm();
-        
-        // 添加普通字段 (名字)
-        form.AddField("name", levelName);
-
-        // 添加设备ID（服务端会把它参与命名）
-        string deviceId = DeviceIDManager.GetDeviceID();
-        form.AddField("device_id", deviceId);
-        Debug.Log($"上传 device_id: {deviceId}");
-
-        // 添加文件1: JSON (从TextAsset读取字节)
-        // 参数: 字段名(服务端对应), 数据, 文件名, MimeType
-        form.AddBinaryData("json_file", uploadJson.bytes, "level.json", "application/json");
-
-        // 添加文件2: 图片 (将Texture转为PNG字节流)
-        byte[] imageBytes = uploadImage.EncodeToPNG();
-        if (imageBytes == null)
-        {
-            Debug.LogError("图片转换失败！请检查图片的 Import Settings 是否开启了 Read/Write。");
-            yield break;
-        }
-        form.AddBinaryData("image_file", imageBytes, "thumb.png", "image/png");
-
-        // 2. 发送请求
-        using (UnityWebRequest www = UnityWebRequest.Post(serverUrl + "/upload_level/", form))
-        {
-            yield return www.SendWebRequest();
-
-            if (www.result != UnityWebRequest.Result.Success)
-            {
-                Debug.LogError("上传失败: " + www.error);
-            }
-            else
-            {
-                Debug.Log("上传成功! 服务器返回: " + www.downloadHandler.text);
-            }
-        }
-    }
-
-    IEnumerator GetListRoutine()
-    {
-        StartCoroutine(GetListRoutine(1, 10));
-        yield break;
-    }
-
-    IEnumerator GetListRoutine(int page, int pageSize)
-    {
-        string url = serverUrl + $"/get_levels/?page={page}&page_size={pageSize}";
-        using (UnityWebRequest www = UnityWebRequest.Get(url))
-        {
-            yield return www.SendWebRequest();
-
-            if (www.result != UnityWebRequest.Result.Success)
-            {
-                Debug.LogError("获取列表失败: " + www.error);
-                yield break;
-            }
-
-            string jsonString = www.downloadHandler.text;
-            Debug.Log("获取列表原始JSON: " + jsonString);
-
-            LevelItem[] levels = null;
-            
-            // 尝试解析JSON
-            try
-            {
-                levels = JsonHelper.FromJson<LevelItem>(jsonString);
-            }
-            catch (System.Exception e)
-            {
-                Debug.LogError("JSON解析出错: " + e.Message);
-                yield break;
-            }
-
-            if (levels == null || levels.Length == 0)
-            {
-                Debug.LogWarning("列表是空的，请先上传一个关卡。");
-                yield break;
-            }
-
-            Debug.Log($"解析成功! 找到了 {levels.Length} 个关卡。");
-            Debug.Log($"<color=green>建议测试用的 ID: {levels[0].level_id}</color> (已为你自动填入Inspector)");
-            
-            // 自动帮你填入下载测试的ID框，方便你马上测下一步
-            testDownloadId = levels[0].level_id;
-            
-            // 开始批量下载缩略图
-            yield return StartCoroutine(DownloadThumbnailsRoutine(levels));
-        }
-    }
 
     IEnumerator DownloadThumbnailsRoutine(LevelItem[] levels)
     {
@@ -222,119 +139,23 @@ public class NetworkTest : MonoBehaviour
         for (int i = 0; i < levels.Length && i < imageList.Length; i++)
         {
             string thumbnailUrl = levels[i].thumbnail_url;
-            if (string.IsNullOrEmpty(thumbnailUrl))
+            if (string.IsNullOrEmpty(thumbnailUrl)) continue;
+
+            if (!thumbnailUrl.StartsWith("http"))
             {
-                Debug.LogWarning($"关卡 {levels[i].level_id} 没有缩略图URL");
-                continue;
+                thumbnailUrl = serverUrl.TrimEnd('/') + (thumbnailUrl.StartsWith("/") ? "" : "/") + thumbnailUrl;
             }
 
-            // 检查URL是否是完整的，如果不是则添加服务器地址
-            if (!thumbnailUrl.StartsWith("http://") && !thumbnailUrl.StartsWith("https://"))
-            {
-                // 如果URL以/开头，去掉多余的/
-                if (thumbnailUrl.StartsWith("/"))
+            int index = i;
+            SaveNetworkManager.Instance.DownloadThumbnail(thumbnailUrl, (sprite) => {
+                if (sprite != null && imageList[index] != null)
                 {
-                    thumbnailUrl = serverUrl + thumbnailUrl;
+                    imageList[index].sprite = sprite;
+                    imageList[index].enabled = true;
                 }
-                else
-                {
-                    thumbnailUrl = serverUrl + "/" + thumbnailUrl;
-                }
-            }
-
-            Debug.Log($"正在下载缩略图 {i + 1}/{levels.Length}: {thumbnailUrl}");
-            
-            using (UnityWebRequest wwwImg = UnityWebRequestTexture.GetTexture(thumbnailUrl))
-            {
-                yield return wwwImg.SendWebRequest();
-                
-                if (wwwImg.result == UnityWebRequest.Result.Success)
-                {
-                    Texture2D texture = DownloadHandlerTexture.GetContent(wwwImg);
-                    Debug.Log($"<color=cyan>缩略图下载完成!</color> 关卡ID: {levels[i].level_id}, 尺寸: {texture.width}x{texture.height}");
-                    
-                    // 将下载的图片显示到imageList中
-                    if (imageList[i] != null)
-                    {
-                        // 创建Sprite并设置到Image组件
-                        Sprite sprite = Sprite.Create(texture, new Rect(0, 0, texture.width, texture.height), new Vector2(0.5f, 0.5f));
-                        imageList[i].sprite = sprite;
-                        imageList[i].enabled = true; // 确保Image组件是启用的
-                    }
-                    else
-                    {
-                        Debug.LogWarning($"imageList[{i}] 为空，无法显示图片");
-                    }
-                }
-                else
-                {
-                    Debug.LogError($"缩略图下载失败: {wwwImg.error}, URL: {thumbnailUrl}");
-                }
-            }
+            });
         }
         
-        Debug.Log("所有缩略图下载完成!");
-    }
-
-    IEnumerator DownloadRoutine(string id)
-    {
-        // 创建保存目录
-        string saveFolder = Application.dataPath + "/YouYouTest/Test/WEBTest/SaveLevel";
-        if (!System.IO.Directory.Exists(saveFolder))
-        {
-            System.IO.Directory.CreateDirectory(saveFolder);
-        }
-
-        // 1. 下载 JSON
-        string jsonUrl = $"{serverUrl}/download_json/{id}";
-        Debug.Log("开始下载JSON: " + jsonUrl);
-        
-        using (UnityWebRequest wwwJson = UnityWebRequest.Get(jsonUrl))
-        {
-            yield return wwwJson.SendWebRequest();
-            if (wwwJson.result == UnityWebRequest.Result.Success)
-            {
-                string jsonContent = wwwJson.downloadHandler.text;
-                Debug.Log($"<color=cyan>JSON下载完成!</color> 内容预览: {jsonContent}");
-                
-                // 保存JSON到本地
-                string jsonPath = System.IO.Path.Combine(saveFolder, $"{id}.json");
-                System.IO.File.WriteAllText(jsonPath, jsonContent);
-                Debug.Log($"<color=green>JSON已保存到: {jsonPath}</color>");
-            }
-            else
-            {
-                Debug.LogError("JSON下载失败: " + wwwJson.error);
-            }
-        }
-
-        // 2. 下载 图片 (注意这里的路径逻辑要和服务端一致)
-        // 我们的服务端是 /static/{id}.png
-        string imgUrl = $"{serverUrl}/static/{id}.png";
-        Debug.Log("开始下载图片: " + imgUrl);
-
-        using (UnityWebRequest wwwImg = UnityWebRequestTexture.GetTexture(imgUrl))
-        {
-            yield return wwwImg.SendWebRequest();
-            if (wwwImg.result == UnityWebRequest.Result.Success)
-            {
-                Texture2D texture = DownloadHandlerTexture.GetContent(wwwImg);
-                Debug.Log($"<color=cyan>图片下载完成!</color> 尺寸: {texture.width}x{texture.height}");
-                
-                // 保存图片到本地
-                string imagePath = System.IO.Path.Combine(saveFolder, $"{id}.png");
-                byte[] imageBytes = texture.EncodeToPNG();
-                System.IO.File.WriteAllBytes(imagePath, imageBytes);
-                Debug.Log($"<color=green>图片已保存到: {imagePath}</color>");
-                
-                // 为了直观，我们可以把下载下来的图显示在 Inspector 的材质球或者用来替换上传的那张图看效果
-                // 这里我们建一个临时的 Sprite 展示在场景里（如果有 SpriteRenderer 的话）
-                // 简单起见，我只打印成功日志。
-            }
-            else
-            {
-                Debug.LogError("图片下载失败: " + wwwImg.error);
-            }
-        }
+        Debug.Log("所有缩略图下载请求已发出!");
     }
 }

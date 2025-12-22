@@ -58,7 +58,9 @@ public class WebLevelSlot : MonoBehaviour
             {
                 fullUrl = serverUrl.TrimEnd('/') + (fullUrl.StartsWith("/") ? "" : "/") + fullUrl;
             }
-            StartCoroutine(DownloadThumbnail(fullUrl));
+            SaveNetworkManager.Instance.DownloadThumbnail(fullUrl, (sprite) => {
+                if (levelImage != null) levelImage.sprite = sprite;
+            });
         }
 
         // 检查本地是否已经下载过该关卡 (网络关卡存放在 WebSaveData)
@@ -80,61 +82,14 @@ public class WebLevelSlot : MonoBehaviour
 
             levelButton.onClick.AddListener(() => {
                 Debug.Log($"点击了关卡: {levelID}，开始下载...");
-                StartCoroutine(DownloadLevelRoutine(levelID));
+                SaveNetworkManager.Instance.DownloadLevel(serverUrl, levelID, (success) => {
+                    if (success)
+                    {
+                        UpdateToPlayState();
+                    }
+                });
             });
         }
-    }
-
-    IEnumerator DownloadLevelRoutine(string id)
-    {
-        // 网络下载的关卡存放在 WebSaveData 子文件夹
-        string saveFolder = Path.Combine(Application.dataPath, "..", "UserSaveData", "WebSaveData");
-        if (!Directory.Exists(saveFolder))
-        {
-            Directory.CreateDirectory(saveFolder);
-        }
-
-        // 1. 下载 JSON
-        string jsonUrl = $"{serverUrl.TrimEnd('/')}/download_json/{id}";
-        using (UnityWebRequest wwwJson = UnityWebRequest.Get(jsonUrl))
-        {
-            yield return wwwJson.SendWebRequest();
-            if (wwwJson.result == UnityWebRequest.Result.Success)
-            {
-                string jsonContent = wwwJson.downloadHandler.text;
-                // 关键：文件名必须符合 SaveLoadManager 的 GenerateSaveFileName 规则 (slotName + "_SceneObjects.json")
-                string jsonPath = Path.Combine(saveFolder, $"{id}_SceneObjects.json");
-                File.WriteAllText(jsonPath, jsonContent);
-                Debug.Log($"<color=green>JSON已保存到存档目录: {jsonPath}</color>");
-            }
-            else
-            {
-                Debug.LogError("JSON下载失败: " + wwwJson.error);
-                yield break; // 下载失败则不继续
-            }
-        }
-
-        // 2. 下载 图片
-        string imgUrl = $"{serverUrl.TrimEnd('/')}/static/{id}.png";
-        using (UnityWebRequest wwwImg = UnityWebRequestTexture.GetTexture(imgUrl))
-        {
-            yield return wwwImg.SendWebRequest();
-            if (wwwImg.result == UnityWebRequest.Result.Success)
-            {
-                Texture2D texture = DownloadHandlerTexture.GetContent(wwwImg);
-                string imagePath = Path.Combine(saveFolder, $"{id}.png");
-                byte[] imageBytes = texture.EncodeToPNG();
-                File.WriteAllBytes(imagePath, imageBytes);
-                Debug.Log($"<color=green>图片已保存到存档目录: {imagePath}</color>");
-            }
-            else
-            {
-                Debug.LogWarning("图片下载失败（非致命）: " + wwwImg.error);
-            }
-        }
-
-        // 下载完成后，修改按钮逻辑为“进入场景”
-        UpdateToPlayState();
     }
 
     private void UpdateToPlayState()
@@ -204,22 +159,5 @@ public class WebLevelSlot : MonoBehaviour
 
         SceneManager.sceneLoaded += onLoaded;
         SceneManager.LoadScene("KillScene");
-    }
-
-    IEnumerator DownloadThumbnail(string url)
-    {
-        using (UnityWebRequest www = UnityWebRequestTexture.GetTexture(url))
-        {
-            yield return www.SendWebRequest();
-
-            if (www.result == UnityWebRequest.Result.Success)
-            {
-                Texture2D texture = DownloadHandlerTexture.GetContent(www);
-                if (levelImage != null)
-                {
-                    levelImage.sprite = Sprite.Create(texture, new Rect(0, 0, texture.width, texture.height), new Vector2(0.5f, 0.5f));
-                }
-            }
-        }
     }
 }
