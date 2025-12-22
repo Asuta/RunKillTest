@@ -1,5 +1,6 @@
 using System;
 using UnityEngine;
+using UnityEngine.Events;
 using VInspector;
 
 public class CheckPoint : MonoBehaviour
@@ -20,6 +21,9 @@ public class CheckPoint : MonoBehaviour
     
     // 材质引用
     private Material material;
+
+    //unityEvent
+    public UnityEvent<CheckPoint> OnCheckPointActivated;
 
     // Start is called once before the first execution of Update after the MonoBehaviour is created
     void Start()
