@@ -3,6 +3,8 @@ using System.Collections.Generic;
 using System.IO;
 using VInspector;
 using TMPro;
+using UnityEngine.Networking;
+using System.Collections;
 
 public class SaveUI : AutoCleanupBehaviour
 {
@@ -11,6 +13,9 @@ public class SaveUI : AutoCleanupBehaviour
     public Transform entryParent;
     public Transform addButton;
     public Transform setDeleteButton;
+
+    [Header("服务器设置")]
+    public string serverUrl = "http://127.0.0.1:8000";
 
     
     [Header("删除按钮控制")]
@@ -269,18 +274,24 @@ public class SaveUI : AutoCleanupBehaviour
         UnityEngine.UI.Button[] buttons = entry.GetComponentsInChildren<UnityEngine.UI.Button>(true);
         foreach (var button in buttons)
         {
+            string btnName = button.name.ToLower();
             // 根据按钮名称设置不同的功能
-            if (button.name.ToLower().Contains("load"))
+            if (btnName.Contains("upload"))
+            {
+                button.onClick.RemoveAllListeners();
+                button.onClick.AddListener(() => OnUploadButtonClicked(slotInfo));
+            }
+            else if (btnName.Contains("load"))
             {
                 button.onClick.RemoveAllListeners();
                 button.onClick.AddListener(() => OnLoadButtonClicked(slotInfo));
             }
-            else if (button.name.ToLower().Contains("save"))
+            else if (btnName.Contains("save"))
             {
                 button.onClick.RemoveAllListeners();
                 button.onClick.AddListener(() => OnSaveButtonClicked(slotInfo.slotName));
             }
-            else if (button.name.ToLower().Contains("delete"))
+            else if (btnName.Contains("delete"))
             {
                 button.onClick.RemoveAllListeners();
                 button.onClick.AddListener(() => OnDeleteButtonClicked(slotInfo));
@@ -415,6 +426,78 @@ public class SaveUI : AutoCleanupBehaviour
 
         // 删除后刷新UI
         OnEnable();
+    }
+
+    /// <summary>
+    /// 上传按钮点击事件
+    /// </summary>
+    private void OnUploadButtonClicked(SaveSlotInfo slotInfo)
+    {
+        if (slotInfo == null) return;
+        Debug.Log($"开始上传存档: {slotInfo.LevelName}");
+        StartCoroutine(UploadRoutine(slotInfo));
+    }
+
+    private IEnumerator UploadRoutine(SaveSlotInfo slotInfo)
+    {
+        string userFolderPath = SaveLoadManager.Instance.GetUserFolderPath();
+        
+        // 1. 准备 JSON 文件路径和数据
+        string jsonPath = Path.GetFullPath(Path.Combine(userFolderPath, slotInfo.subFolder, slotInfo.fileName));
+        if (!File.Exists(jsonPath))
+        {
+            Debug.LogError($"上传失败，找不到JSON文件: {jsonPath}");
+            yield break;
+        }
+        byte[] jsonBytes = File.ReadAllBytes(jsonPath);
+
+        // 2. 准备图片文件路径和数据 (复用 SetupEntryImage 的逻辑)
+        string imageFileName = slotInfo.fileName.Replace(".json", ".png");
+        string imagePath = Path.GetFullPath(Path.Combine(userFolderPath, slotInfo.subFolder, imageFileName));
+
+        if (!File.Exists(imagePath) && imageFileName.EndsWith("_SceneObjects.png"))
+        {
+            string fallbackFileName = imageFileName.Replace("_SceneObjects.png", ".png");
+            string fallbackPath = Path.GetFullPath(Path.Combine(userFolderPath, slotInfo.subFolder, fallbackFileName));
+            if (File.Exists(fallbackPath))
+            {
+                imagePath = fallbackPath;
+            }
+        }
+
+        if (!File.Exists(imagePath))
+        {
+            Debug.LogError($"上传失败，找不到图片文件: {imagePath}");
+            yield break;
+        }
+        byte[] imageBytes = File.ReadAllBytes(imagePath);
+
+        // 3. 构建表单
+        WWWForm form = new WWWForm();
+        form.AddField("name", slotInfo.LevelName);
+        
+        // 获取设备ID
+        string deviceId = DeviceIDManager.GetDeviceID();
+        form.AddField("device_id", deviceId);
+        
+        // 添加文件
+        form.AddBinaryData("json_file", jsonBytes, slotInfo.fileName, "application/json");
+        form.AddBinaryData("image_file", imageBytes, Path.GetFileName(imagePath), "image/png");
+
+        // 4. 发送请求
+        using (UnityWebRequest www = UnityWebRequest.Post(serverUrl + "/upload_level/", form))
+        {
+            yield return www.SendWebRequest();
+
+            if (www.result != UnityWebRequest.Result.Success)
+            {
+                Debug.LogError($"上传失败: {www.error}");
+            }
+            else
+            {
+                Debug.Log($"<color=green>上传成功!</color> 服务器返回: {www.downloadHandler.text}");
+            }
+        }
     }
 
     /// <summary>

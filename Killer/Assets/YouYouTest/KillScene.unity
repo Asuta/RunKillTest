@@ -2832,6 +2832,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   inputField: {fileID: 0}
   levelJsonName: 
+  subFolder: 
 --- !u!1 &214039601
 GameObject:
   m_ObjectHideFlags: 0
@@ -7753,12 +7754,12 @@ GameObject:
   - component: {fileID: 550183461}
   - component: {fileID: 550183460}
   m_Layer: 5
-  m_Name: SaveButton
+  m_Name: UploadButton
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 0
+  m_IsActive: 1
 --- !u!224 &550183458
 RectTransform:
   m_ObjectHideFlags: 0
@@ -8231,7 +8232,7 @@ MonoBehaviour:
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_text: Save
+  m_text: UploadButton
   m_isRightToLeft: 0
   m_fontAsset: {fileID: 11400000, guid: 8f586378b4e144a9851e7b34d9b748ee, type: 2}
   m_sharedMaterial: {fileID: 2180264, guid: 8f586378b4e144a9851e7b34d9b748ee, type: 2}
@@ -12357,6 +12358,7 @@ MonoBehaviour:
   _closestAngleHook: {fileID: 0}
   nowActivateCheckPoint: {fileID: 0}
   nowLoadSaveSlot: 
+  nowLoadLevelName: 
 --- !u!4 &1052136197
 Transform:
   m_ObjectHideFlags: 0
