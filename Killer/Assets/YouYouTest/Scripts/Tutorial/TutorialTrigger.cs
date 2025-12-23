@@ -22,7 +22,7 @@ public class TutorialTrigger : MonoBehaviour
 
     void OnTriggerEnter(Collider other)
     {
-        if (!hasTriggered)
+        if (!hasTriggered && other.CompareTag("Player"))
         {
             hasTriggered = true;
             Debug.Log("hahaha");
