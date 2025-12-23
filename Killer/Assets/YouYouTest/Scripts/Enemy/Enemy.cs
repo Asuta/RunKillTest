@@ -51,6 +51,18 @@ public class Enemy : MonoBehaviour, ICanBeHit, IConfigurable
             }
         ));
 
+        // 配置 RespawnTime
+        items.Add(new ConfigItem(
+            "RespawnTime",
+            respawnTime,
+            ConfigType.Float,
+            (newValue) =>
+            {
+                respawnTime = Convert.ToSingle(newValue);
+                Debug.Log($"[Enemy Config] RespawnTime updated to: {respawnTime}");
+            }
+        ));
+
 
 
         return items;
@@ -62,6 +74,7 @@ public class Enemy : MonoBehaviour, ICanBeHit, IConfigurable
     private int initialHealth; // 保存初始血量
     public float firstLateTime;
     public float IntervalTime;
+    public float respawnTime = 5f; // 复活间隔时间（秒）
 
     public Transform target;
     public Transform EnemyBody;
@@ -274,8 +287,8 @@ public class Enemy : MonoBehaviour, ICanBeHit, IConfigurable
 
     private System.Collections.IEnumerator ReactivateAfterDelay()
     {
-        // 等待5秒
-        yield return new WaitForSeconds(5f);
+        // 等待复活间隔时间
+        yield return new WaitForSeconds(respawnTime);
 
         // 重新激活并重置状态
         ReactivateAndReset();
