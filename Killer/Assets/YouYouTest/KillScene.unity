@@ -3406,7 +3406,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 2814469672946783624, guid: 5ae42b00c5aaa754ea8192cef6694918, type: 3}
       propertyPath: m_IsActive
-      value: 1
+      value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 4841855984824766329, guid: 5ae42b00c5aaa754ea8192cef6694918, type: 3}
       propertyPath: m_Pivot.x
@@ -9465,7 +9465,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   tutorialControl: {fileID: 1764721576}
   tutorialPanel: {fileID: 1474479514}
-  videoClip: {fileID: 32900000, guid: bd284ffb1acdec6408d71d5c46ac3ad5, type: 3}
+  videoClip: {fileID: 32900000, guid: 3a2619857ab33c14f88d2055bb215afd, type: 3}
 --- !u!1 &724796164
 GameObject:
   m_ObjectHideFlags: 0
@@ -16731,7 +16731,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 2814469672946783624, guid: 5ae42b00c5aaa754ea8192cef6694918, type: 3}
       propertyPath: m_IsActive
-      value: 1
+      value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 4841855984824766329, guid: 5ae42b00c5aaa754ea8192cef6694918, type: 3}
       propertyPath: m_Pivot.x
@@ -59227,7 +59227,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 2814469672946783624, guid: 5ae42b00c5aaa754ea8192cef6694918, type: 3}
       propertyPath: m_IsActive
-      value: 1
+      value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 4841855984824766329, guid: 5ae42b00c5aaa754ea8192cef6694918, type: 3}
       propertyPath: m_Pivot.x
