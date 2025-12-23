@@ -1,10 +1,12 @@
 using UnityEngine;
+using UnityEngine.Video;
 
 public class TutorialTrigger : MonoBehaviour
 {
     private bool hasTriggered = false;
     public TutorialControl tutorialControl;
     public GameObject tutorialPanel;
+    public VideoClip videoClip;
 
     // Start is called once before the first execution of Update after the MonoBehaviour is created
     void Start()
@@ -24,7 +26,7 @@ public class TutorialTrigger : MonoBehaviour
         {
             hasTriggered = true;
             Debug.Log("hahaha");
-            tutorialControl.ShowTutorialPanel(tutorialPanel);
+            tutorialControl.ShowTutorialPanel(tutorialPanel, videoClip);
         }
     }
 }

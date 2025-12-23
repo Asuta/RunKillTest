@@ -22,10 +22,8 @@ public class CheckPoint : MonoBehaviour
     // 材质引用
     private Material material;
 
-    //unityEvent
-    public UnityEvent<CheckPoint> OnCheckPointActivated;
 
-    // Start is called once before the first execution of Update after the MonoBehaviour is created
+    // 在MonoBehaviour创建后，Update第一次执行前调用一次
     void Start()
     {
         // 获取材质组件
@@ -34,7 +32,7 @@ public class CheckPoint : MonoBehaviour
         UpdateMaterialColor();
     }
 
-    // Update is called once per frame
+    // 每帧调用一次
     void Update()
     {
         
