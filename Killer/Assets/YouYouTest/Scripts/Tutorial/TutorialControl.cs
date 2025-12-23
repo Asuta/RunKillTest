@@ -8,6 +8,11 @@ public class TutorialControl : MonoBehaviour
 
     public void ShowTutorialPanel(GameObject newPanel, VideoClip videoClip)
     {
+        if (TutorialPanel == newPanel)
+        {
+            return;
+        }
+
         if (TutorialPanel != null)
         {
             TutorialPanel.SetActive(false);

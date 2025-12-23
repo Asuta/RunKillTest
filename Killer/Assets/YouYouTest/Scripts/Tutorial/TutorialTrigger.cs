@@ -3,7 +3,6 @@ using UnityEngine.Video;
 
 public class TutorialTrigger : MonoBehaviour
 {
-    private bool hasTriggered = false;
     public TutorialControl tutorialControl;
     public GameObject tutorialPanel;
     public VideoClip videoClip;
@@ -22,9 +21,8 @@ public class TutorialTrigger : MonoBehaviour
 
     void OnTriggerEnter(Collider other)
     {
-        if (!hasTriggered && other.CompareTag("Player"))
+        if (other.CompareTag("Player"))
         {
-            hasTriggered = true;
             Debug.Log("hahaha");
             tutorialControl.ShowTutorialPanel(tutorialPanel, videoClip);
         }
