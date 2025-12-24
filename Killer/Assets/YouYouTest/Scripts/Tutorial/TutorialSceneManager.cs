@@ -64,6 +64,27 @@ public class TutorialSceneManager : MonoBehaviour
             }
             
             Debug.Log($"TutorialSceneManager: 成功加载 {loadedCount}/{sceneData.objectCount} 个对象");
+
+            // 查找 VRPlayerDrag 对象并切换 UI 画布
+            GameObject vrPlayerDrag = GameObject.Find("VRPlayerDrag(Clone)");
+            if (vrPlayerDrag != null)
+            {
+                Transform uiCanvas = FindChildRecursive(vrPlayerDrag.transform, "UICanvas");
+                if (uiCanvas != null)
+                {
+                    uiCanvas.gameObject.SetActive(false);
+                }
+
+                Transform uiCanvasTutorial = FindChildRecursive(vrPlayerDrag.transform, "UICanvas (Tutorial)");
+                if (uiCanvasTutorial != null)
+                {
+                    uiCanvasTutorial.gameObject.SetActive(true);
+                }
+            }
+            else
+            {
+                Debug.LogWarning("TutorialSceneManager: 未找到名为 VRPlayerDrag 的对象");
+            }
         }
         catch (System.Exception e)
         {
@@ -194,5 +215,25 @@ public class TutorialSceneManager : MonoBehaviour
     void Update()
     {
         
+    }
+
+    /// <summary>
+    /// 递归查找子物体
+    /// </summary>
+    private Transform FindChildRecursive(Transform parent, string name)
+    {
+        foreach (Transform child in parent)
+        {
+            if (child.name == name)
+            {
+                return child;
+            }
+            Transform result = FindChildRecursive(child, name);
+            if (result != null)
+            {
+                return result;
+            }
+        }
+        return null;
     }
 }
