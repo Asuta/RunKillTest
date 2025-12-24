@@ -633,6 +633,13 @@ namespace YouYouTest.VRMove2
             if (thisRb == null)
                 return;
 
+            // 运行时关闭二段跳：立刻停止持续施力
+            if (!enableDoubleJump)
+            {
+                airborneMoveJumpTimer = 0f;
+                return;
+            }
+
             if (airborneMoveJumpTimer <= 0f)
                 return;
 
