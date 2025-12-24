@@ -645,31 +645,46 @@ namespace YouYouTest.VRMove2
 
             airborneMoveJumpTimer -= Time.fixedDeltaTime;
 
+            // 使用手部 target 的本地坐标位移差：避免玩家自身位移/刚体运动导致世界坐标变化污染输入
             Vector3 localDeltaSum = Vector3.zero;
+            Transform deltaReference = null;
+
             if (leftSphereTarget != null)
             {
                 Vector3 current = leftSphereTarget.localPosition;
                 localDeltaSum += (current - prevLeftHandLocalPosForAirJump);
                 prevLeftHandLocalPosForAirJump = current;
+                if (deltaReference == null) deltaReference = leftSphereTarget.parent;
             }
             if (rightSphereTarget != null)
             {
                 Vector3 current = rightSphereTarget.localPosition;
                 localDeltaSum += (current - prevRightHandLocalPosForAirJump);
                 prevRightHandLocalPosForAirJump = current;
+                if (deltaReference == null) deltaReference = rightSphereTarget.parent;
             }
 
-            // 将手的位移差从参考坐标系转换到世界坐标
-            Transform refTransform = GetAirJumpReferenceTransform();
-            Vector3 worldDelta = refTransform.TransformVector(localDeltaSum);
+            // 将 local 位移差转换到世界方向：用 target 的父物体作为参考坐标系（最符合 localPosition 的定义）
+            if (deltaReference == null)
+                deltaReference = GetAirJumpReferenceTransform();
+
+            Vector3 worldDelta = deltaReference.TransformVector(localDeltaSum);
 
             // 手往某方向移动，一般希望角色往相反方向加速，所以取反
             Vector3 deltaV = -worldDelta * airborneMoveJumpVelocityChangeMultiplier;
             deltaV = new Vector3(deltaV.x, deltaV.y * airborneMoveJumpYMultiplier, deltaV.z);
 
-            if (airborneMoveJumpMaxVelocityChangePerStep > 0f && deltaV.magnitude > airborneMoveJumpMaxVelocityChangePerStep)
+            // 关键：分离限幅，避免 Y 分量过大时把 XZ 挤没（导致“看起来只能竖直跳”）
+            if (airborneMoveJumpMaxVelocityChangePerStep > 0f)
             {
-                deltaV = deltaV.normalized * airborneMoveJumpMaxVelocityChangePerStep;
+                Vector3 horizontalDeltaV = new Vector3(deltaV.x, 0, deltaV.z);
+                if (horizontalDeltaV.magnitude > airborneMoveJumpMaxVelocityChangePerStep)
+                {
+                    horizontalDeltaV = horizontalDeltaV.normalized * airborneMoveJumpMaxVelocityChangePerStep;
+                }
+
+                float clampedY = Mathf.Clamp(deltaV.y, -airborneMoveJumpMaxVelocityChangePerStep, airborneMoveJumpMaxVelocityChangePerStep);
+                deltaV = new Vector3(horizontalDeltaV.x, clampedY, horizontalDeltaV.z);
             }
 
             // 持续施加速度变化（与质量无关）
@@ -678,9 +693,12 @@ namespace YouYouTest.VRMove2
             // 速度上限保护：水平速度不超过 maxTranslationSpeed，Y 轴不超过 maxJumpForceY
             Vector3 v = thisRb.linearVelocity;
             Vector3 horizontal = new Vector3(v.x, 0, v.z);
-            if (horizontal.magnitude > maxTranslationSpeed)
+
+            // 地面逻辑里水平速度会再乘 finalVelocityMultiplier（所以实际水平可远大于 maxTranslationSpeed）
+            float horizontalMax = Mathf.Max(0f, maxTranslationSpeed * Mathf.Max(1f, finalVelocityMultiplier));
+            if (horizontalMax > 0f && horizontal.magnitude > horizontalMax)
             {
-                horizontal = horizontal.normalized * maxTranslationSpeed;
+                horizontal = horizontal.normalized * horizontalMax;
                 v = new Vector3(horizontal.x, v.y, horizontal.z);
             }
             v = new Vector3(v.x, Mathf.Clamp(v.y, -maxJumpForceY, maxJumpForceY), v.z);
