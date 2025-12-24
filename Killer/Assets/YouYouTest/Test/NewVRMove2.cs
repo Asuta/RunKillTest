@@ -429,6 +429,22 @@ namespace YouYouTest.VRMove2
         [Tooltip("Lerp跟随速度，值越大跟随越快")]
         public float lerpSpeed = 5f;
 
+        [Header("二段跳（空中位移跳跃）")]
+        [Tooltip("是否启用二段跳：在空中额外允许跳跃一次")]
+        public bool enableDoubleJump = true;
+
+        [Tooltip("空中位移跳跃的持续施力时间（秒）")]
+        public float airborneMoveJumpSustainDuration = 0.2f;
+
+        [Tooltip("把‘手的位移差(米)’换算为‘角色速度变化(米/秒)’的倍率（每个 FixedUpdate 以 VelocityChange 施加）")]
+        public float airborneMoveJumpVelocityChangeMultiplier = 25f;
+
+        [Tooltip("空中位移跳跃 Y 轴倍率（用于让上抬更明显/更弱）")]
+        public float airborneMoveJumpYMultiplier = 1f;
+
+        [Tooltip("单次 FixedUpdate 允许施加的最大速度变化（米/秒），防止瞬间过大")]
+        public float airborneMoveJumpMaxVelocityChangePerStep = 8f;
+
 
         #region 私有变量
 
@@ -441,6 +457,13 @@ namespace YouYouTest.VRMove2
         // 记录Trigger松开的时间，用于处理"同时松开"的容差
         private float lastLeftTriggerReleaseTime = -100f;
         private float lastRightTriggerReleaseTime = -100f;
+
+        // 二段跳（空中位移跳跃）状态
+        private bool canAirDoubleJump = true;
+        private float airborneMoveJumpTimer = 0f;
+        private bool lastIs3DMovementMode = false;
+        private Vector3 prevLeftHandLocalPosForAirJump;
+        private Vector3 prevRightHandLocalPosForAirJump;
 
         #endregion
 
@@ -484,6 +507,9 @@ namespace YouYouTest.VRMove2
 
             // 检测手部移动并触发冲刺
             HandleHandMoveDash();
+
+            // 二段跳输入检测（空中位移跳跃，持续施力）
+            HandleAirborneMoveJump();
         }
 
         // LateUpdate is called after all Update functions have been called
@@ -502,6 +528,9 @@ namespace YouYouTest.VRMove2
             {
                 thisRb.AddForce(Vector3.down * addGravityForceY, ForceMode.Acceleration);
             }
+
+            // 空中位移跳跃：在 0.2 秒内持续施力（VelocityChange）
+            ApplyAirborneMoveJumpSustainForce();
             DebugGraph.Log("final speeeeed", thisRb.linearVelocity.magnitude);
         }
 
@@ -529,6 +558,133 @@ namespace YouYouTest.VRMove2
             currentState = newState;
             CurrentStateType = newStateType;
             currentState.Enter();
+
+            // 状态切换时，对二段跳相关状态做最小化维护
+            if (CurrentStateType == MovementState.Grounded)
+            {
+                canAirDoubleJump = true;
+                airborneMoveJumpTimer = 0f;
+            }
+        }
+
+        private bool GetIs3DMovementMode()
+        {
+            bool leftGripPressed = InputActionsManager.Actions.XRILeftInteraction.Select.IsPressed();
+            bool rightGripPressed = InputActionsManager.Actions.XRIRightInteraction.Select.IsPressed();
+            bool leftTriggerPressed = InputActionsManager.Actions.XRILeftInteraction.Activate.IsPressed();
+            bool rightTriggerPressed = InputActionsManager.Actions.XRIRightInteraction.Activate.IsPressed();
+
+            return (leftGripPressed && leftTriggerPressed) || (rightGripPressed && rightTriggerPressed);
+        }
+
+        /// <summary>
+        /// 空中二段跳：在空中额外允许一次“位移跳跃”，并在短时间内持续施力
+        /// </summary>
+        private void HandleAirborneMoveJump()
+        {
+            bool is3DMode = GetIs3DMovementMode();
+            bool risingEdge = is3DMode && !lastIs3DMovementMode;
+            lastIs3DMovementMode = is3DMode;
+
+            if (!enableDoubleJump)
+                return;
+
+            // 只允许在空中触发一次
+            if (CurrentStateType != MovementState.Airborne)
+                return;
+
+            // 冲刺/贴墙/Hook 冲刺期间不允许触发（避免逻辑打架）
+            if (CurrentStateType == MovementState.Dashing || CurrentStateType == MovementState.WallSliding || CurrentStateType == MovementState.HookDashing)
+                return;
+
+            if (!risingEdge)
+                return;
+
+            if (!canAirDoubleJump)
+                return;
+
+            StartAirborneMoveJumpSustain();
+        }
+
+        private void StartAirborneMoveJumpSustain()
+        {
+            canAirDoubleJump = false;
+            airborneMoveJumpTimer = Mathf.Max(0f, airborneMoveJumpSustainDuration);
+
+            if (leftSphereTarget != null)
+                prevLeftHandLocalPosForAirJump = leftSphereTarget.localPosition;
+            if (rightSphereTarget != null)
+                prevRightHandLocalPosForAirJump = rightSphereTarget.localPosition;
+
+            Debug.Log($"触发二段跳（空中位移跳跃），持续施力 {airborneMoveJumpTimer:0.###} 秒");
+        }
+
+        private Transform GetAirJumpReferenceTransform()
+        {
+            if (vrOrigin != null)
+                return vrOrigin;
+            if (playerHead != null)
+                return playerHead;
+            return transform;
+        }
+
+        private void ApplyAirborneMoveJumpSustainForce()
+        {
+            if (thisRb == null)
+                return;
+
+            if (airborneMoveJumpTimer <= 0f)
+                return;
+
+            // 如果不在空中（比如落地了），直接结束持续施力
+            if (CurrentStateType != MovementState.Airborne)
+            {
+                airborneMoveJumpTimer = 0f;
+                return;
+            }
+
+            airborneMoveJumpTimer -= Time.fixedDeltaTime;
+
+            Vector3 localDeltaSum = Vector3.zero;
+            if (leftSphereTarget != null)
+            {
+                Vector3 current = leftSphereTarget.localPosition;
+                localDeltaSum += (current - prevLeftHandLocalPosForAirJump);
+                prevLeftHandLocalPosForAirJump = current;
+            }
+            if (rightSphereTarget != null)
+            {
+                Vector3 current = rightSphereTarget.localPosition;
+                localDeltaSum += (current - prevRightHandLocalPosForAirJump);
+                prevRightHandLocalPosForAirJump = current;
+            }
+
+            // 将手的位移差从参考坐标系转换到世界坐标
+            Transform refTransform = GetAirJumpReferenceTransform();
+            Vector3 worldDelta = refTransform.TransformVector(localDeltaSum);
+
+            // 手往某方向移动，一般希望角色往相反方向加速，所以取反
+            Vector3 deltaV = -worldDelta * airborneMoveJumpVelocityChangeMultiplier;
+            deltaV = new Vector3(deltaV.x, deltaV.y * airborneMoveJumpYMultiplier, deltaV.z);
+
+            if (airborneMoveJumpMaxVelocityChangePerStep > 0f && deltaV.magnitude > airborneMoveJumpMaxVelocityChangePerStep)
+            {
+                deltaV = deltaV.normalized * airborneMoveJumpMaxVelocityChangePerStep;
+            }
+
+            // 持续施加速度变化（与质量无关）
+            thisRb.AddForce(deltaV, ForceMode.VelocityChange);
+
+            // 速度上限保护：水平速度不超过 maxTranslationSpeed，Y 轴不超过 maxJumpForceY
+            Vector3 v = thisRb.linearVelocity;
+            Vector3 horizontal = new Vector3(v.x, 0, v.z);
+            if (horizontal.magnitude > maxTranslationSpeed)
+            {
+                horizontal = horizontal.normalized * maxTranslationSpeed;
+                v = new Vector3(horizontal.x, v.y, horizontal.z);
+            }
+            v = new Vector3(v.x, Mathf.Clamp(v.y, -maxJumpForceY, maxJumpForceY), v.z);
+            thisRb.linearVelocity = v;
         }
 
         // 地面移动逻辑
