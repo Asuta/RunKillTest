@@ -5,6 +5,7 @@ using UnityEngine;
 public class EnemyBullet : MonoBehaviour
 {
     public float speed = 10f;
+    public float travelTime = 3f; // 子弹飞行到目标所需的时间（秒）
     public Transform target;
     public Enemy createEnemy;
     public Vector3 explosionPosition; // 指定的爆炸位置
@@ -20,6 +21,8 @@ public class EnemyBullet : MonoBehaviour
 
     // 起始点（用于基于线段的移动算法）
     private Vector3 originPos;
+    // 子弹生成时间（用于基于时间的移动算法）
+    private float spawnTime;
     // Start在MonoBehaviour创建后，在第一次执行Update之前被调用一次
     void Start()
     {
@@ -29,6 +32,8 @@ public class EnemyBullet : MonoBehaviour
 
         // 初始化起点为子弹生成时的位置
         originPos = transform.position;
+        // 记录生成时间
+        spawnTime = Time.time;
 
         GlobalEvent.CheckPointReset.AddListener(OnCheckPointReset);
     }
@@ -43,7 +48,7 @@ public class EnemyBullet : MonoBehaviour
     // Update每帧调用一次
     void Update()
     {
-        // 向目标移动（使用投影基准 + 固定世界位移算法）
+        // 向目标移动（使用基于时间的百分比移动算法）
         if (target != null)
         {
             // 如果 originPos 未初始化（Vector3.zero），则用当前位置作为起点
@@ -66,38 +71,13 @@ public class EnemyBullet : MonoBehaviour
             }
             else
             {
-                Vector3 dir = AB / currentDistance;
-                // 将当前位置投影到 AB 线段上（夹制到 [A,B]）
-                float tProj = Vector3.Dot(transform.position - A, AB) / (currentDistance * currentDistance);
-                tProj = Mathf.Clamp01(tProj);
-                Vector3 projPoint = A + AB * tProj;
+                // 计算经过的时间比例（0到1之间）
+                float elapsedTime = Time.time - spawnTime;
+                float t = elapsedTime / travelTime;
+                t = Mathf.Clamp01(t);
 
-                // 以投影点为基准沿直线移动固定的世界距离
-                float moveDistance = speed * Time.deltaTime;
-                float remaining = (B - projPoint).magnitude;
-
-                Vector3 nextPos;
-                if (moveDistance >= remaining)
-                {
-                    // 到达目标
-                    nextPos = B;
-                    
-                    // 如果是反弹状态，到达目标（敌人身体）时直接销毁
-                    if (isBack)
-                    {
-                        transform.position = nextPos;
-                        ExplodeAndDestroy();
-                        return;
-                    }
-                }
-                else
-                {
-                    Vector3 movedPos = projPoint + dir * moveDistance;
-                    // 投影回线段并设置位置
-                    float tNew = Vector3.Dot(movedPos - A, AB) / (currentDistance * currentDistance);
-                    tNew = Mathf.Clamp01(tNew);
-                    nextPos = A + AB * tNew;
-                }
+                // 使用线性插值计算当前位置
+                Vector3 nextPos = Vector3.Lerp(A, B, t);
 
                 // 检查这一帧的移动是否经过了指定爆炸位置（防止速度过快穿透）
                 if (useExplosionPosition)
@@ -111,6 +91,17 @@ public class EnemyBullet : MonoBehaviour
                 }
 
                 transform.position = nextPos;
+
+                // 如果到达目标（t >= 1）
+                if (t >= 1f)
+                {
+                    // 如果是反弹状态，到达目标（敌人身体）时直接销毁
+                    if (isBack)
+                    {
+                        ExplodeAndDestroy();
+                        return;
+                    }
+                }
             }
         }
         else if (isBack || target == null)
@@ -166,6 +157,8 @@ public class EnemyBullet : MonoBehaviour
                     target = createEnemy.EnemyBody;
                     // 反弹后以当前点作为新的起点
                     originPos = transform.position;
+                    // 重置生成时间
+                    spawnTime = Time.time;
                 }
                 else
                 {
