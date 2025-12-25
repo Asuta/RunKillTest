@@ -11320,6 +11320,10 @@ PrefabInstance:
     serializedVersion: 3
     m_TransformParent: {fileID: 0}
     m_Modifications:
+    - target: {fileID: 849945230132916865, guid: 623706c30620a894f8c5b47692a475c8, type: 3}
+      propertyPath: health
+      value: 1000000
+      objectReference: {fileID: 0}
     - target: {fileID: 2877938794215709338, guid: 623706c30620a894f8c5b47692a475c8, type: 3}
       propertyPath: m_Name
       value: VRPlayerDrag

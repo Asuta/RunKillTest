@@ -23,6 +23,7 @@ public class EnemyBullet : MonoBehaviour
     private Vector3 originPos;
     // 子弹生成时间（用于基于时间的移动算法）
     private float spawnTime;
+    
     // Start在MonoBehaviour创建后，在第一次执行Update之前被调用一次
     void Start()
     {
@@ -288,4 +289,5 @@ public class EnemyBullet : MonoBehaviour
         }
         return false;
     }
+
 }

@@ -244,7 +244,39 @@ public class Enemy : MonoBehaviour, ICanBeHit, IConfigurable
             enemyBullet.createEnemy = this;
         }
 
+        // 启动发射 3 秒后的独立检测协程（与子弹存活无关）
+        StartCoroutine(DelayedSphereCastCheck(EnemyBody.position, target.position));
+
         Debug.Log("Enemy fired a bullet!");
+    }
+
+    private System.Collections.IEnumerator DelayedSphereCastCheck(Vector3 startPos, Vector3 targetPos)
+    {
+        // 等待 3 秒
+        yield return new WaitForSeconds(3f);
+
+        // 计算方向和距离
+        Vector3 direction = (targetPos - startPos).normalized;
+        float distance = Vector3.Distance(startPos, targetPos);
+
+        Debug.Log($"[Enemy] Performing independent SphereCast check. Start: {startPos}, Target: {targetPos}, Distance: {distance}, Radius: {sphereCastRadius}");
+
+        // 使用 SphereCastAll 检测路径上所有对象 (暂时不使用 detectionLayer 以便排查)
+        RaycastHit[] hits = Physics.SphereCastAll(startPos, sphereCastRadius, direction, distance);
+
+        if (hits.Length == 0)
+        {
+            Debug.Log("[Enemy] SphereCast hit nothing at all.");
+        }
+
+        foreach (RaycastHit hit in hits)
+        {
+            Debug.Log($"[Enemy] SphereCast detected: {hit.collider.gameObject.name} on layer {LayerMask.LayerToName(hit.collider.gameObject.layer)}");
+            if (hit.collider.gameObject.name == "PlayerHit")
+            {
+                Debug.Log("hahahahahahahahaha");
+            }
+        }
     }
 
     private void OnCheckPointReset()
