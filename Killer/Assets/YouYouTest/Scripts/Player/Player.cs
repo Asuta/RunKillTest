@@ -69,8 +69,8 @@ public class Player : MonoBehaviour, ICanBeHit
         isDead = true; // 设置死亡标志
         // 显示红色面板
         deathRed.SetActive(true);
-        // 2.5秒后触发检查点重置事件
-        Invoke(nameof(TriggerCheckPointReset), 2.5f);
+        // 0.5秒后触发检查点重置事件
+        Invoke(nameof(TriggerCheckPointReset), 0.5f);
     }
     
     private void TriggerCheckPointReset()
