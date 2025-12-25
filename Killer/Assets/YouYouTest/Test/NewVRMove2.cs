@@ -465,6 +465,11 @@ namespace YouYouTest.VRMove2
         private Vector3 prevLeftHandLocalPosForAirJump;
         private Vector3 prevRightHandLocalPosForAirJump;
 
+        // 贴墙跳跃（持续施力）状态
+        private float wallMoveJumpTimer = 0f;
+        private Vector3 prevLeftHandLocalPosForWallJump;
+        private Vector3 prevRightHandLocalPosForWallJump;
+
         #endregion
 
         #region Unity生命周期方法
@@ -531,6 +536,9 @@ namespace YouYouTest.VRMove2
 
             // 空中位移跳跃：在 0.2 秒内持续施力（VelocityChange）
             ApplyAirborneMoveJumpSustainForce();
+
+            // 贴墙跳跃：在 0.2 秒内持续施力（VelocityChange）
+            ApplyWallMoveJumpSustainForce();
             DebugGraph.Log("final speeeeed", thisRb.linearVelocity.magnitude);
         }
 
@@ -608,6 +616,9 @@ namespace YouYouTest.VRMove2
 
         private void StartAirborneMoveJumpSustain()
         {
+            // 避免与贴墙跳跃持续施力叠加
+            wallMoveJumpTimer = 0f;
+
             canAirDoubleJump = false;
             airborneMoveJumpTimer = Mathf.Max(0f, airborneMoveJumpSustainDuration);
 
@@ -617,6 +628,21 @@ namespace YouYouTest.VRMove2
                 prevRightHandLocalPosForAirJump = rightSphereTarget.localPosition;
 
             Debug.Log($"触发二段跳（空中位移跳跃），持续施力 {airborneMoveJumpTimer:0.###} 秒");
+        }
+
+        private void StartWallMoveJumpSustain()
+        {
+            // 避免与空中二段跳持续施力叠加
+            airborneMoveJumpTimer = 0f;
+
+            wallMoveJumpTimer = Mathf.Max(0f, airborneMoveJumpSustainDuration);
+
+            if (leftSphereTarget != null)
+                prevLeftHandLocalPosForWallJump = leftSphereTarget.localPosition;
+            if (rightSphereTarget != null)
+                prevRightHandLocalPosForWallJump = rightSphereTarget.localPosition;
+
+            Debug.Log($"触发贴墙跳跃（持续施力），持续施力 {wallMoveJumpTimer:0.###} 秒");
         }
 
         private Transform GetAirJumpReferenceTransform()
@@ -702,6 +728,69 @@ namespace YouYouTest.VRMove2
             Vector3 horizontal = new Vector3(v.x, 0, v.z);
 
             // 地面逻辑里水平速度会再乘 finalVelocityMultiplier（所以实际水平可远大于 maxTranslationSpeed）
+            float horizontalMax = Mathf.Max(0f, maxTranslationSpeed * Mathf.Max(1f, finalVelocityMultiplier));
+            if (horizontalMax > 0f && horizontal.magnitude > horizontalMax)
+            {
+                horizontal = horizontal.normalized * horizontalMax;
+                v = new Vector3(horizontal.x, v.y, horizontal.z);
+            }
+            v = new Vector3(v.x, Mathf.Clamp(v.y, -maxJumpForceY, maxJumpForceY), v.z);
+            thisRb.linearVelocity = v;
+        }
+
+        private void ApplyWallMoveJumpSustainForce()
+        {
+            if (thisRb == null)
+                return;
+
+            if (wallMoveJumpTimer <= 0f)
+                return;
+
+            // 贴墙跳跃触发后会退出贴墙状态，此处不强制要求状态；只要计时器在走就持续施力
+            wallMoveJumpTimer -= Time.fixedDeltaTime;
+
+            Vector3 localDeltaSum = Vector3.zero;
+            Transform deltaReference = null;
+
+            if (leftSphereTarget != null)
+            {
+                Vector3 current = leftSphereTarget.localPosition;
+                localDeltaSum += (current - prevLeftHandLocalPosForWallJump);
+                prevLeftHandLocalPosForWallJump = current;
+                if (deltaReference == null) deltaReference = leftSphereTarget.parent;
+            }
+            if (rightSphereTarget != null)
+            {
+                Vector3 current = rightSphereTarget.localPosition;
+                localDeltaSum += (current - prevRightHandLocalPosForWallJump);
+                prevRightHandLocalPosForWallJump = current;
+                if (deltaReference == null) deltaReference = rightSphereTarget.parent;
+            }
+
+            if (deltaReference == null)
+                deltaReference = GetAirJumpReferenceTransform();
+
+            Vector3 worldDelta = deltaReference.TransformVector(localDeltaSum);
+
+            Vector3 deltaV = -worldDelta * airborneMoveJumpVelocityChangeMultiplier;
+            deltaV = new Vector3(deltaV.x, deltaV.y * airborneMoveJumpYMultiplier, deltaV.z);
+
+            if (airborneMoveJumpMaxVelocityChangePerStep > 0f)
+            {
+                Vector3 horizontalDeltaV = new Vector3(deltaV.x, 0, deltaV.z);
+                if (horizontalDeltaV.magnitude > airborneMoveJumpMaxVelocityChangePerStep)
+                {
+                    horizontalDeltaV = horizontalDeltaV.normalized * airborneMoveJumpMaxVelocityChangePerStep;
+                }
+
+                float clampedY = Mathf.Clamp(deltaV.y, -airborneMoveJumpMaxVelocityChangePerStep, airborneMoveJumpMaxVelocityChangePerStep);
+                deltaV = new Vector3(horizontalDeltaV.x, clampedY, horizontalDeltaV.z);
+            }
+
+            thisRb.AddForce(deltaV, ForceMode.VelocityChange);
+
+            Vector3 v = thisRb.linearVelocity;
+            Vector3 horizontal = new Vector3(v.x, 0, v.z);
             float horizontalMax = Mathf.Max(0f, maxTranslationSpeed * Mathf.Max(1f, finalVelocityMultiplier));
             if (horizontalMax > 0f && horizontal.magnitude > horizontalMax)
             {
@@ -1343,78 +1432,15 @@ namespace YouYouTest.VRMove2
             // 如果处于3D模式，执行贴墙跳跃
             if (isIn3DMode)
             {
-                // 检测手部移动速度是否达到阈值
-                bool speedConditionMet = false;
-
-                // 检查左手
-                if (leftIs3DMode && leftSphereTarget != null)
-                {
-                    float moveDistance = Vector3.Distance(leftSphereTarget.localPosition, previousLeftHandLocalPosition);
-                    float speed = moveDistance / Time.deltaTime;
-                    if (speed > wallJumpHandSpeedThreshold)
-                    {
-                        speedConditionMet = true;
-                        Debug.Log($"左手触发贴墙跳跃，速度: {speed}");
-                    }
-                }
-
-                // 检查右手
-                if (rightIs3DMode && rightSphereTarget != null)
-                {
-                    float moveDistance = Vector3.Distance(rightSphereTarget.localPosition, previousRightHandLocalPosition);
-                    float speed = moveDistance / Time.deltaTime;
-                    if (speed > wallJumpHandSpeedThreshold)
-                    {
-                        speedConditionMet = true;
-                        Debug.Log($"右手触发贴墙跳跃，速度: {speed}");
-                    }
-                }
-
-                // 如果速度未达标，不执行跳跃
-                if (!speedConditionMet)
-                {
-                    return;
-                }
-
-                // 计算跳跃方向：墙面法线方向和滑行方向之间的45度方向
-                // 将墙面法线和滑行方向都归一化后取平均，得到45度方向
-                Vector3 normalizedWallNormal = wallNormal.normalized;
-                Vector3 normalizedSlideDirection = wallSlideDirection.normalized;
-                
-                // 取墙面法线和滑行方向的中间方向（45度）
-                Vector3 jumpDirection = (normalizedWallNormal + normalizedSlideDirection).normalized;
-
-                // 如果两向量几乎抵消，退化为沿墙法线方向跳，并加一点上抬
-                if (jumpDirection.sqrMagnitude < 0.0001f)
-                {
-                    jumpDirection = (normalizedWallNormal + Vector3.up * 0.5f).normalized;
-                }
-                else
-                {
-                    // 添加一个向上的分量，使跳跃有一定的向上力度
-                    jumpDirection = new Vector3(jumpDirection.x, 1f, jumpDirection.z).normalized;
-                }
-
-                // 使用固定速度计算跳跃速度
-                Vector3 jumpVelocity = jumpDirection * wallJumpSpeed;
-
-                // 设置贴墙跳跃保护标志，防止速度被后续逻辑覆盖
+                // 改为“持续施力”的贴墙跳跃：方向/力度由 0.2 秒内手部位移差决定
                 wallJumpProtection = true;
 
-                // 应用跳跃速度
-                if (thisRb != null)
-                {
-                    // 直接设置线速度，并用VelocityChange再推一遍，确保立即生效
-                    thisRb.linearVelocity = jumpVelocity;
-                    DebugGraph.Write("贴墙跳跃");
-                    Debug.LogError("贴墙跳跃速度" + jumpVelocity);
-                }
-
-                Debug.Log("贴墙跳跃触发，方向: " + jumpDirection + "，速度: " + jumpVelocity);
-
-                // 退出贴墙滑行状态
+                // 先退出贴墙滑行，避免 WallSlidingMovement 覆盖速度
                 ExitWallSliding();
-                
+
+                // 启动持续施力计时器
+                StartWallMoveJumpSustain();
+
                 // 跳跃后直接返回，不再执行后续逻辑
                 return;
             }

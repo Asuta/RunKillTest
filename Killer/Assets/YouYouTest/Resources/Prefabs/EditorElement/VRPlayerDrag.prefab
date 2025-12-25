@@ -20475,6 +20475,11 @@ MonoBehaviour:
   rotationAngle: 30
   rotationThreshold: 0.5
   lerpSpeed: 5
+  enableDoubleJump: 1
+  airborneMoveJumpSustainDuration: 0.2
+  airborneMoveJumpVelocityChangeMultiplier: 25
+  airborneMoveJumpYMultiplier: 1
+  airborneMoveJumpMaxVelocityChangePerStep: 8
 --- !u!114 &5364758977895391900
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -29022,7 +29027,7 @@ LineRenderer:
   m_Positions: []
   m_Parameters:
     serializedVersion: 3
-    widthMultiplier: 0.02
+    widthMultiplier: 0.01
     widthCurve:
       serializedVersion: 2
       m_Curve:
@@ -54189,7 +54194,7 @@ LineRenderer:
   m_Positions: []
   m_Parameters:
     serializedVersion: 3
-    widthMultiplier: 0.02
+    widthMultiplier: 0.01
     widthCurve:
       serializedVersion: 2
       m_Curve:
