@@ -573,6 +573,11 @@ namespace YouYouTest.VRMove2
                 canAirDoubleJump = true;
                 airborneMoveJumpTimer = 0f;
             }
+            else if (CurrentStateType == MovementState.WallSliding)
+            {
+                // 每次进入贴墙滑行（碰到滑行墙并进入该状态）时，刷新一次二段跳次数
+                canAirDoubleJump = true;
+            }
         }
 
         private bool GetIs3DMovementMode()
@@ -595,6 +600,11 @@ namespace YouYouTest.VRMove2
             lastIs3DMovementMode = is3DMode;
 
             if (!enableDoubleJump)
+                return;
+
+            // 关键：如果当前正在进行贴墙跳的持续施力（或者刚刚触发），则不允许触发二段跳
+            // 这样可以确保贴墙跳动作本身不会因为 Rising Edge 立即消耗掉二段跳机会
+            if (wallMoveJumpTimer > 0f)
                 return;
 
             // 只允许在空中触发一次
