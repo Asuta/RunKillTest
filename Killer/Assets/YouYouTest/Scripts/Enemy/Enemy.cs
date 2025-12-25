@@ -342,8 +342,8 @@ public class Enemy : MonoBehaviour, ICanBeHit, IConfigurable
         // 绘制球
         DrawSphere(endPoint);
 
-        // 绘制球形射线
-        DrawSphereCast(EnemyBody.position, targetPosition);
+        // 绘制球形射线 - 使用原始的 target.position 作为终点（bullet的目标点）
+        DrawSphereCast(EnemyBody.position, target.position);
     }
 
     private void DrawSphereCast(Vector3 start, Vector3 end)

@@ -125,7 +125,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   speed: 15
-  travelTime: 0.3
+  travelTime: 3
   target: {fileID: 0}
   createEnemy: {fileID: 0}
   explosionPosition: {x: 0, y: 0, z: 0}
