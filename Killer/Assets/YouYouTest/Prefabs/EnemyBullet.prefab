@@ -125,7 +125,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   speed: 15
-  travelTime: 3
+  travelTime: 0.3
   target: {fileID: 0}
   createEnemy: {fileID: 0}
   explosionPosition: {x: 0, y: 0, z: 0}
@@ -162,7 +162,7 @@ Rigidbody:
   m_IsKinematic: 1
   m_Interpolate: 0
   m_Constraints: 0
-  m_CollisionDetection: 0
+  m_CollisionDetection: 2
 --- !u!1 &5652809449961144091
 GameObject:
   m_ObjectHideFlags: 0

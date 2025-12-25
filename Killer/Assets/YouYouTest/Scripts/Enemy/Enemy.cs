@@ -92,6 +92,10 @@ public class Enemy : MonoBehaviour, ICanBeHit, IConfigurable
     private float lastFireTime = 0f;
     private bool hasFiredFirstShot = false;
 
+    // 球形射线检测相关
+    public float sphereCastRadius = 0.5f;
+    public LayerMask detectionLayer;
+
     //死亡状态
     private bool isDead = false;
 
@@ -337,6 +341,36 @@ public class Enemy : MonoBehaviour, ICanBeHit, IConfigurable
 
         // 绘制球
         DrawSphere(endPoint);
+
+        // 绘制球形射线
+        DrawSphereCast(EnemyBody.position, targetPosition);
+    }
+
+    private void DrawSphereCast(Vector3 start, Vector3 end)
+    {
+        Vector3 direction = end - start;
+        float distance = direction.magnitude;
+        direction.Normalize();
+
+        // 执行球形射线检测
+        RaycastHit hit;
+        bool hasHit = Physics.SphereCast(start, sphereCastRadius, direction, out hit, distance, detectionLayer);
+
+        // 确定绘制的终点和颜色
+        Vector3 actualEnd = hasHit ? hit.point : end;
+        Color drawColor = hasHit ? Color.red : Color.green;
+
+        // 参考 NewVRMove2.cs 中的画法，使用 CapsuleWireframeDrawer 绘制球形射线可视化
+        // 球形射线在空间中扫过的区域实际上是一个胶囊体
+        // 起点球心为 start，终点球心为 actualEnd
+        
+        // 计算胶囊体的两个端点
+        // 注意：CapsuleWireframeDrawer.DrawCapsuleCastGizmo 内部会处理起点和方向
+        // 这里我们直接使用 DrawWireCapsule 来表示当前检测到的范围
+        CapsuleWireframeDrawer.DrawWireCapsule(start, actualEnd, sphereCastRadius, drawColor);
+
+        // 如果需要，也可以绘制投射过程的连线
+        // CapsuleWireframeDrawer.DrawCapsuleCastGizmo(start, start, sphereCastRadius, actualEnd - start, drawColor);
     }
 
     private void DrawLine(Vector3 start, Vector3 end)
