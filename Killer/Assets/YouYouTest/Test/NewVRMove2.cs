@@ -433,6 +433,10 @@ namespace YouYouTest.VRMove2
         [Tooltip("是否启用二段跳：在空中额外允许跳跃一次")]
         public bool enableDoubleJump = true;
 
+        [Header("普通跳跃")]
+        [Tooltip("是否启用普通跳跃：同时按下grip和trigger键时可以进行跳跃")]
+        public bool enableNormalJump = true;
+
         [Tooltip("空中位移跳跃的持续施力时间（秒）")]
         public float airborneMoveJumpSustainDuration = 0.2f;
 
@@ -1113,7 +1117,7 @@ namespace YouYouTest.VRMove2
             // 计算最终速度
             Vector3 speed = finalVelocity * finalVelocityMultiplier;
 
-            if (is3DMovementMode)
+            if (is3DMovementMode && enableNormalJump)
             {
                 speed = new Vector3(speed.x, speed.y * multiJumpForceY, speed.z);
                 // 在3D移动模式下，完全应用计算出的速度（包括Y轴）
