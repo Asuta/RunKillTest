@@ -103,6 +103,12 @@ public class Enemy : MonoBehaviour, ICanBeHit, IConfigurable
     public GameObject deathEffect;
     public GameObject hitEffect;
 
+    //声音
+    public AudioSource audioSource;
+    public AudioClip aimSound;
+    public AudioClip fireSound;
+
+
     #endregion
 
     #region 伤害处理
@@ -236,6 +242,12 @@ public class Enemy : MonoBehaviour, ICanBeHit, IConfigurable
             return;
         }
 
+        // 播放瞄准声音
+        if (audioSource != null && aimSound != null)
+        {
+            audioSource.PlayOneShot(aimSound);
+        }
+
         // // 创建子弹实例
         // GameObject bullet = Instantiate(bulletPrefab, EnemyBody.position, Quaternion.identity);
         // EnemyBullet enemyBullet = bullet.GetComponent<EnemyBullet>();
@@ -277,20 +289,33 @@ public class Enemy : MonoBehaviour, ICanBeHit, IConfigurable
             if (hit.collider.gameObject.name == "PlayerHit")
             {
                 Debug.LogError("Enemy SphereCast hit PlayerHit!");
+                // 播放开火声音
+                if (audioSource != null && fireSound != null)
+                {
+                    audioSource.PlayOneShot(fireSound);
+                }
                 // 播放命中特效
                 if (hitEffect != null)
                 {
                     Instantiate(hitEffect, hit.point, Quaternion.identity);
                 }
+
             }
             if (hit.collider.gameObject.name == "PlayerDefense")
             {
                 Debug.LogError("Enemy SphereCast hit PlayerDefense!");
+
+                // 播放开火声音
+                if (audioSource != null && fireSound != null)
+                {
+                    audioSource.PlayOneShot(fireSound);
+                }
                 // 播放命中特效
                 if (hitEffect != null)
                 {
                     Instantiate(hitEffect, hit.point, Quaternion.identity);
                 }
+
             }
         }
     }
