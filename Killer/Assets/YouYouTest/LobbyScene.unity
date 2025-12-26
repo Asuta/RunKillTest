@@ -40301,6 +40301,7 @@ MonoBehaviour:
     serializedVersion: 2
     m_Bits: 0
   deathEffect: {fileID: 1890581295539120, guid: 0e1c7fb597c927a41893518fb7dc7472, type: 3}
+  hitEffect: {fileID: 1938031414114752, guid: d616c4de34d1bda439766b6dab9b9609, type: 3}
 --- !u!114 &1085825675543425844
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -59526,6 +59527,7 @@ MonoBehaviour:
     serializedVersion: 2
     m_Bits: 0
   deathEffect: {fileID: 1890581295539120, guid: 0e1c7fb597c927a41893518fb7dc7472, type: 3}
+  hitEffect: {fileID: 1938031414114752, guid: d616c4de34d1bda439766b6dab9b9609, type: 3}
 --- !u!1 &7535481271784202256
 GameObject:
   m_ObjectHideFlags: 0
@@ -62556,6 +62558,7 @@ MonoBehaviour:
     serializedVersion: 2
     m_Bits: 0
   deathEffect: {fileID: 1890581295539120, guid: 0e1c7fb597c927a41893518fb7dc7472, type: 3}
+  hitEffect: {fileID: 1938031414114752, guid: d616c4de34d1bda439766b6dab9b9609, type: 3}
 --- !u!1 &8464202733069888067
 GameObject:
   m_ObjectHideFlags: 0

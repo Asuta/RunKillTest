@@ -101,6 +101,8 @@ public class Enemy : MonoBehaviour, ICanBeHit, IConfigurable
 
     //特效
     public GameObject deathEffect;
+    public GameObject hitEffect;
+
     #endregion
 
     #region 伤害处理
@@ -234,15 +236,15 @@ public class Enemy : MonoBehaviour, ICanBeHit, IConfigurable
             return;
         }
 
-        // 创建子弹实例
-        GameObject bullet = Instantiate(bulletPrefab, EnemyBody.position, Quaternion.identity);
-        EnemyBullet enemyBullet = bullet.GetComponent<EnemyBullet>();
+        // // 创建子弹实例
+        // GameObject bullet = Instantiate(bulletPrefab, EnemyBody.position, Quaternion.identity);
+        // EnemyBullet enemyBullet = bullet.GetComponent<EnemyBullet>();
 
-        if (enemyBullet != null)
-        {
-            enemyBullet.target = target;
-            enemyBullet.createEnemy = this;
-        }
+        // if (enemyBullet != null)
+        // {
+        //     enemyBullet.target = target;
+        //     enemyBullet.createEnemy = this;
+        // }
 
         // 启动发射 3 秒后的独立检测协程（与子弹存活无关）
         StartCoroutine(DelayedSphereCastCheck(EnemyBody.position, target.position));
@@ -275,10 +277,20 @@ public class Enemy : MonoBehaviour, ICanBeHit, IConfigurable
             if (hit.collider.gameObject.name == "PlayerHit")
             {
                 Debug.LogError("Enemy SphereCast hit PlayerHit!");
-            } 
+                // 播放命中特效
+                if (hitEffect != null)
+                {
+                    Instantiate(hitEffect, hit.point, Quaternion.identity);
+                }
+            }
             if (hit.collider.gameObject.name == "PlayerDefense")
             {
                 Debug.LogError("Enemy SphereCast hit PlayerDefense!");
+                // 播放命中特效
+                if (hitEffect != null)
+                {
+                    Instantiate(hitEffect, hit.point, Quaternion.identity);
+                }
             }
         }
     }
