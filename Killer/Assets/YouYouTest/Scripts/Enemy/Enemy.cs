@@ -155,7 +155,7 @@ public class Enemy : MonoBehaviour, ICanBeHit, IConfigurable
     {
         // 保存初始血量
         initialHealth = health;
-        
+
         // 创建球体网格
         sphereMesh = CreateSphereMesh(0.1f);
         // EnemyCheckerBox.GetComponent<MeshRenderer>().enabled = false;
@@ -274,7 +274,11 @@ public class Enemy : MonoBehaviour, ICanBeHit, IConfigurable
             Debug.Log($"[Enemy] SphereCast detected: {hit.collider.gameObject.name} on layer {LayerMask.LayerToName(hit.collider.gameObject.layer)}");
             if (hit.collider.gameObject.name == "PlayerHit")
             {
-                Debug.Log("hahahahahahahahaha");
+                Debug.LogError("Enemy SphereCast hit PlayerHit!");
+            } 
+            if (hit.collider.gameObject.name == "PlayerDefense")
+            {
+                Debug.LogError("Enemy SphereCast hit PlayerDefense!");
             }
         }
     }
@@ -395,7 +399,7 @@ public class Enemy : MonoBehaviour, ICanBeHit, IConfigurable
         // 参考 NewVRMove2.cs 中的画法，使用 CapsuleWireframeDrawer 绘制球形射线可视化
         // 球形射线在空间中扫过的区域实际上是一个胶囊体
         // 起点球心为 start，终点球心为 actualEnd
-        
+
         // 计算胶囊体的两个端点
         // 注意：CapsuleWireframeDrawer.DrawCapsuleCastGizmo 内部会处理起点和方向
         // 这里我们直接使用 DrawWireCapsule 来表示当前检测到的范围
