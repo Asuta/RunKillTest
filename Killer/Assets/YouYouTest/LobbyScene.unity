@@ -40535,6 +40535,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   health: 1
   firstLateTime: 1
+  fireIntervalTime: 3
   IntervalTime: 3
   respawnTime: 5
   target: {fileID: 0}
@@ -59765,6 +59766,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   health: 1
   firstLateTime: 1
+  fireIntervalTime: 0
   IntervalTime: 3
   respawnTime: 5
   target: {fileID: 0}
@@ -62799,6 +62801,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   health: 1
   firstLateTime: 1
+  fireIntervalTime: 0
   IntervalTime: 3
   respawnTime: 5
   target: {fileID: 0}
