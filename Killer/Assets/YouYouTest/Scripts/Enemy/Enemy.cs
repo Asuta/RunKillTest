@@ -73,7 +73,6 @@ public class Enemy : MonoBehaviour, ICanBeHit, IConfigurable
     public int health = 100;
     private int initialHealth; // 保存初始血量
     public float firstLateTime;
-    public float fireIntervalTime; // 开枪间隔时间（开枪后等待的时间）
     public float IntervalTime;
     public float respawnTime = 5f; // 复活间隔时间（秒）
 
@@ -91,12 +90,11 @@ public class Enemy : MonoBehaviour, ICanBeHit, IConfigurable
     // 射击计时器
     private float aimingTime = 0f;
     private float lastFireTime = 0f;
-    private float fireIntervalStartTime = 0f; // 开枪间隔开始时间
     private bool hasFiredFirstShot = false;
-    private bool isInFireInterval = false; // 是否在开枪间隔期间
 
     // 球形射线检测相关
     public float sphereCastRadius = 0.5f;
+    public float delayedCheckDelay = 3f; // 延迟检测时间（秒）
     public LayerMask detectionLayer;
 
     //死亡状态
@@ -201,7 +199,6 @@ public class Enemy : MonoBehaviour, ICanBeHit, IConfigurable
             // 重置瞄准计时器
             aimingTime = 0f;
             hasFiredFirstShot = false;
-            isInFireInterval = false;
         }
     }
     #endregion
@@ -214,44 +211,26 @@ public class Enemy : MonoBehaviour, ICanBeHit, IConfigurable
 
     private void HandleShooting()
     {
+        // 累计瞄准时间
+        aimingTime += Time.deltaTime;
+
         if (!hasFiredFirstShot)
         {
             // 第一次发射：瞄准 firstLateTime 秒后
-            aimingTime += Time.deltaTime;
             if (aimingTime >= firstLateTime)
             {
                 Fire();
                 hasFiredFirstShot = true;
-                lastFireTime = Time.time;
-                // 进入开枪间隔
-                isInFireInterval = true;
-                fireIntervalStartTime = Time.time;
+                // 第一次发射后，lastFireTime 由 DelayedSphereCastCheck 协程结束时更新
             }
         }
         else
         {
-            if (isInFireInterval)
+            // 后续发射：每隔5秒发射一次
+            if (Time.time - lastFireTime >= IntervalTime)
             {
-                // 在开枪间隔期间，什么都不干，只等待
-                if (Time.time - fireIntervalStartTime >= fireIntervalTime)
-                {
-                    // 开枪间隔结束，开始瞄准
-                    isInFireInterval = false;
-                    aimingTime = 0f;
-                }
-            }
-            else
-            {
-                // 瞄准期间
-                aimingTime += Time.deltaTime;
-                if (aimingTime >= IntervalTime)
-                {
-                    Fire();
-                    lastFireTime = Time.time;
-                    // 进入开枪间隔
-                    isInFireInterval = true;
-                    fireIntervalStartTime = Time.time;
-                }
+                Fire();
+                lastFireTime = Time.time;
             }
         }
     }
@@ -280,7 +259,7 @@ public class Enemy : MonoBehaviour, ICanBeHit, IConfigurable
         //     enemyBullet.createEnemy = this;
         // }
 
-        // 启动发射 3 秒后的独立检测协程（与子弹存活无关）
+        // 启动延迟检测协程，检测完成后才会更新 lastFireTime
         StartCoroutine(DelayedSphereCastCheck(EnemyBody.position, target.position));
 
         Debug.Log("Enemy fired a bullet!");
@@ -288,8 +267,8 @@ public class Enemy : MonoBehaviour, ICanBeHit, IConfigurable
 
     private System.Collections.IEnumerator DelayedSphereCastCheck(Vector3 startPos, Vector3 targetPos)
     {
-        // 等待 3 秒
-        yield return new WaitForSeconds(3f);
+        // 等待 delayedCheckDelay 秒
+        yield return new WaitForSeconds(delayedCheckDelay);
 
         // 计算方向和距离
         Vector3 direction = (targetPos - startPos).normalized;
@@ -340,6 +319,10 @@ public class Enemy : MonoBehaviour, ICanBeHit, IConfigurable
 
             }
         }
+
+        // 延迟检测完成后，更新 lastFireTime，开始计算射击间隔
+        lastFireTime = Time.time;
+        Debug.Log($"[Enemy] Delayed check completed. lastFireTime updated to: {lastFireTime}");
     }
 
     private void OnCheckPointReset()
@@ -349,7 +332,6 @@ public class Enemy : MonoBehaviour, ICanBeHit, IConfigurable
         aimingTime = 0f;
         hasFiredFirstShot = false;
         lastFireTime = 0f;
-        isInFireInterval = false;
 
         Debug.Log("Enemy: Checkpoint reset - stopped attacking and cleared target");
     }
@@ -403,7 +385,6 @@ public class Enemy : MonoBehaviour, ICanBeHit, IConfigurable
         aimingTime = 0f;
         lastFireTime = 0f;
         hasFiredFirstShot = false;
-        isInFireInterval = false;
 
         // 重置目标（如果需要）
         target = null; // 根据游戏需求决定是否重置目标

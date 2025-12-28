@@ -40535,8 +40535,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   health: 1
   firstLateTime: 1
-  fireIntervalTime: 3
-  IntervalTime: 3
+  IntervalTime: 2
   respawnTime: 5
   target: {fileID: 0}
   EnemyBody: {fileID: 4804642896487031146}
@@ -40545,6 +40544,7 @@ MonoBehaviour:
   sphereMaterial: {fileID: 2100001, guid: 2ec66658b9de135428647d5bb59c198f, type: 2}
   bulletPrefab: {fileID: 2151867230420632495, guid: e3dba13aa9f886149b125c3506185898, type: 3}
   sphereCastRadius: 0.5
+  delayedCheckDelay: 1
   detectionLayer:
     serializedVersion: 2
     m_Bits: 0
@@ -59766,7 +59766,6 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   health: 1
   firstLateTime: 1
-  fireIntervalTime: 0
   IntervalTime: 3
   respawnTime: 5
   target: {fileID: 0}
@@ -59776,6 +59775,7 @@ MonoBehaviour:
   sphereMaterial: {fileID: 2100001, guid: 2ec66658b9de135428647d5bb59c198f, type: 2}
   bulletPrefab: {fileID: 2151867230420632495, guid: e3dba13aa9f886149b125c3506185898, type: 3}
   sphereCastRadius: 0.5
+  delayedCheckDelay: 3
   detectionLayer:
     serializedVersion: 2
     m_Bits: 0
@@ -62801,7 +62801,6 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   health: 1
   firstLateTime: 1
-  fireIntervalTime: 0
   IntervalTime: 3
   respawnTime: 5
   target: {fileID: 0}
@@ -62811,6 +62810,7 @@ MonoBehaviour:
   sphereMaterial: {fileID: 2100001, guid: 2ec66658b9de135428647d5bb59c198f, type: 2}
   bulletPrefab: {fileID: 2151867230420632495, guid: e3dba13aa9f886149b125c3506185898, type: 3}
   sphereCastRadius: 0.5
+  delayedCheckDelay: 3
   detectionLayer:
     serializedVersion: 2
     m_Bits: 0
