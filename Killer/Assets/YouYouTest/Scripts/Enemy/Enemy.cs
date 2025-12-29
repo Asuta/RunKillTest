@@ -86,6 +86,7 @@ public class Enemy : MonoBehaviour, ICanBeHit, IConfigurable
     private int initialHealth; // 保存初始血量
     public float firstLateTime;
     public float IntervalTime;
+    public float delayedCheckDelay = 3f; // 延迟检测时间（秒）
     public float respawnTime = 5f; // 复活间隔时间（秒）
     public float detectionWindowOffset = 0.2f; // 持续检测的前后偏移时间（秒）
 
@@ -107,7 +108,6 @@ public class Enemy : MonoBehaviour, ICanBeHit, IConfigurable
 
     // 球形射线检测相关
     public float sphereCastRadius = 0.5f;
-    public float delayedCheckDelay = 3f; // 延迟检测时间（秒）
     public LayerMask detectionLayer;
 
     //死亡状态
@@ -310,7 +310,36 @@ public class Enemy : MonoBehaviour, ICanBeHit, IConfigurable
                 if (hit.collider.gameObject.name == "PlayerHit")
                 {
                     Debug.Log("<color=cyan>[Enemy] 窗口持续检测成功：检测到了 PlayerHit！</color>");
+
+                    // 播放开火/命中音效
+                    if (audioSource != null && fireSound != null)
+                    {
+                        audioSource.PlayOneShot(fireSound);
+                    }
+                    // 播放命中特效
+                    if (hitEffect != null)
+                    {
+                        Instantiate(hitEffect, hit.point, Quaternion.identity);
+                    }
+
                     hitPlayer = true;
+                    break;
+                }
+
+                if (hit.collider.gameObject.name == "PlayerDefense")
+                {
+                    Debug.Log("<color=yellow>[Enemy] 窗口持续检测：被 PlayerDefense 挡住！</color>");
+
+                    if (audioSource != null && fireSound != null)
+                    {
+                        audioSource.PlayOneShot(fireSound);
+                    }
+                    if (hitEffect != null)
+                    {
+                        Instantiate(hitEffect, hit.point, Quaternion.identity);
+                    }
+
+                    hitPlayer = true; // 这里借用 hitPlayer 来停止窗口检测
                     break;
                 }
             }
@@ -333,59 +362,12 @@ public class Enemy : MonoBehaviour, ICanBeHit, IConfigurable
         // 等待 delayedCheckDelay 秒
         yield return new WaitForSeconds(delayedCheckDelay);
 
-        // 计算方向和距离
-        Vector3 direction = (targetPos - startPos).normalized;
-        float distance = Vector3.Distance(startPos, targetPos);
-
-        Debug.Log($"[Enemy] Performing independent SphereCast check. Start: {startPos}, Target: {targetPos}, Distance: {distance}, Radius: {sphereCastRadius}");
-
-        // 使用 SphereCastAll 检测路径上所有对象 (暂时不使用 detectionLayer 以便排查)
-        RaycastHit[] hits = Physics.SphereCastAll(startPos, sphereCastRadius, direction, distance);
-
-        if (hits.Length == 0)
-        {
-            Debug.Log("[Enemy] SphereCast hit nothing at all.");
-        }
-
-        foreach (RaycastHit hit in hits)
-        {
-            Debug.Log($"[Enemy] SphereCast detected: {hit.collider.gameObject.name} on layer {LayerMask.LayerToName(hit.collider.gameObject.layer)}");
-            if (hit.collider.gameObject.name == "PlayerHit")
-            {
-                Debug.LogError("Enemy SphereCast hit PlayerHit!");
-                // 播放开火声音
-                if (audioSource != null && fireSound != null)
-                {
-                    audioSource.PlayOneShot(fireSound);
-                }
-                // 播放命中特效
-                if (hitEffect != null)
-                {
-                    Instantiate(hitEffect, hit.point, Quaternion.identity);
-                }
-
-            }
-            if (hit.collider.gameObject.name == "PlayerDefense")
-            {
-                Debug.LogError("Enemy SphereCast hit PlayerDefense!");
-
-                // 播放开火声音
-                if (audioSource != null && fireSound != null)
-                {
-                    audioSource.PlayOneShot(fireSound);
-                }
-                // 播放命中特效
-                if (hitEffect != null)
-                {
-                    Instantiate(hitEffect, hit.point, Quaternion.identity);
-                }
-
-            }
-        }
+        // 瞬间检测已取消，现在只由 ContinuousWindowDetection 处理检测逻辑
+        Debug.Log($"[Enemy] Delayed timer reached ({delayedCheckDelay}s).");
 
         // 延迟检测完成后，更新 lastFireTime，开始计算射击间隔
         lastFireTime = Time.time;
-        Debug.Log($"[Enemy] Delayed check completed. lastFireTime updated to: {lastFireTime}");
+        Debug.Log($"[Enemy] lastFireTime updated to: {lastFireTime}");
     }
 
     private void OnCheckPointReset()
