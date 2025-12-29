@@ -276,8 +276,23 @@ public class Enemy : MonoBehaviour, ICanBeHit, IConfigurable
         StartCoroutine(DelayedSphereCastCheck(EnemyBody.position, target.position));
         // 启动新增的持续窗口检测协程 (2.8s - 3.2s)
         StartCoroutine(ContinuousWindowDetection(EnemyBody.position, target));
+        // 启动中途音效播放协程
+        StartCoroutine(PlayMidpointSound());
 
         Debug.Log("Enemy fired a bullet!");
+    }
+
+    private System.Collections.IEnumerator PlayMidpointSound()
+    {
+        // 等待总延迟时间的一半
+        yield return new WaitForSeconds(delayedCheckDelay / 2f);
+
+        // 如果敌人还没死，则播放第二次瞄准声音
+        if (!isDead && audioSource != null && aimSound != null)
+        {
+            audioSource.PlayOneShot(aimSound);
+            Debug.Log($"[Enemy] Midpoint sound played at {Time.time} (Half of {delayedCheckDelay}s)");
+        }
     }
 
     private System.Collections.IEnumerator ContinuousWindowDetection(Vector3 startPos, Transform targetTransform)
