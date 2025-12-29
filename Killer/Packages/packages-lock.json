@@ -94,6 +94,15 @@
       },
       "url": "https://packages.unity.com"
     },
+    "com.unity.ide.trae": {
+      "version": "https://github.com/MetaZhi/com.unity.ide.trae.git",
+      "depth": 0,
+      "source": "git",
+      "dependencies": {
+        "com.unity.test-framework": "1.1.9"
+      },
+      "hash": "c6359226593f397e10c3442a490099647c51ed47"
+    },
     "com.unity.ide.visualstudio": {
       "version": "2.0.23",
       "depth": 0,
@@ -102,6 +111,15 @@
         "com.unity.test-framework": "1.1.9"
       },
       "url": "https://packages.unity.com"
+    },
+    "com.unity.ides": {
+      "version": "https://github.com/dunward/com.unity.ides.git",
+      "depth": 0,
+      "source": "git",
+      "dependencies": {
+        "com.unity.test-framework": "1.1.9"
+      },
+      "hash": "6d02147fb5181de0b39db25efb599b16d8d67ef5"
     },
     "com.unity.inputsystem": {
       "version": "1.14.0",

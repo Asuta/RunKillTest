@@ -40537,6 +40537,7 @@ MonoBehaviour:
   firstLateTime: 1
   IntervalTime: 2
   respawnTime: 5
+  detectionWindowOffset: 0.2
   target: {fileID: 0}
   EnemyBody: {fileID: 4804642896487031146}
   checkBox: {fileID: 8886506255636841087}
@@ -40544,7 +40545,7 @@ MonoBehaviour:
   sphereMaterial: {fileID: 2100001, guid: 2ec66658b9de135428647d5bb59c198f, type: 2}
   bulletPrefab: {fileID: 2151867230420632495, guid: e3dba13aa9f886149b125c3506185898, type: 3}
   sphereCastRadius: 0.5
-  delayedCheckDelay: 1
+  delayedCheckDelay: 1.8
   detectionLayer:
     serializedVersion: 2
     m_Bits: 0
@@ -59768,6 +59769,7 @@ MonoBehaviour:
   firstLateTime: 1
   IntervalTime: 3
   respawnTime: 5
+  detectionWindowOffset: 0.2
   target: {fileID: 0}
   EnemyBody: {fileID: 4982486167389947223}
   checkBox: {fileID: 2965593129527904035}
@@ -62803,6 +62805,7 @@ MonoBehaviour:
   firstLateTime: 1
   IntervalTime: 3
   respawnTime: 5
+  detectionWindowOffset: 0.2
   target: {fileID: 0}
   EnemyBody: {fileID: 369927363348325375}
   checkBox: {fileID: 5285330660537320614}

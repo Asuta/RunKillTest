@@ -63,6 +63,18 @@ public class Enemy : MonoBehaviour, ICanBeHit, IConfigurable
             }
         ));
 
+        // 配置 DetectionWindowOffset
+        items.Add(new ConfigItem(
+            "WindowOffset",
+            detectionWindowOffset,
+            ConfigType.Float,
+            (newValue) =>
+            {
+                detectionWindowOffset = Convert.ToSingle(newValue);
+                Debug.Log($"[Enemy Config] WindowOffset updated to: {detectionWindowOffset}");
+            }
+        ));
+
 
 
         return items;
@@ -75,6 +87,7 @@ public class Enemy : MonoBehaviour, ICanBeHit, IConfigurable
     public float firstLateTime;
     public float IntervalTime;
     public float respawnTime = 5f; // 复活间隔时间（秒）
+    public float detectionWindowOffset = 0.2f; // 持续检测的前后偏移时间（秒）
 
     public Transform target;
     public Transform EnemyBody;
@@ -261,8 +274,58 @@ public class Enemy : MonoBehaviour, ICanBeHit, IConfigurable
 
         // 启动延迟检测协程，检测完成后才会更新 lastFireTime
         StartCoroutine(DelayedSphereCastCheck(EnemyBody.position, target.position));
+        // 启动新增的持续窗口检测协程 (2.8s - 3.2s)
+        StartCoroutine(ContinuousWindowDetection(EnemyBody.position, target));
 
         Debug.Log("Enemy fired a bullet!");
+    }
+
+    private System.Collections.IEnumerator ContinuousWindowDetection(Vector3 startPos, Transform targetTransform)
+    {
+        if (targetTransform == null) yield break;
+
+        // 计算开始检测的等待时间 (delayedCheckDelay - offset)
+        float waitBeforeWindow = Mathf.Max(0, delayedCheckDelay - detectionWindowOffset);
+        yield return new WaitForSeconds(waitBeforeWindow);
+
+        float windowDuration = detectionWindowOffset * 2f; // 持续时间为前后偏移之和
+        float elapsed = 0f;
+
+        Debug.Log($"[Enemy] Continuous detection window started at {Time.time}, duration: {windowDuration}s");
+
+        while (elapsed < windowDuration)
+        {
+            if (targetTransform == null) break;
+
+            Vector3 currentTargetPos = targetTransform.position;
+            Vector3 direction = (currentTargetPos - startPos).normalized;
+            float distance = Vector3.Distance(startPos, currentTargetPos);
+
+            // 执行球形射线检测
+            RaycastHit[] hits = Physics.SphereCastAll(startPos, sphereCastRadius, direction, distance);
+            bool hitPlayer = false;
+
+            foreach (var hit in hits)
+            {
+                if (hit.collider.gameObject.name == "PlayerHit")
+                {
+                    Debug.Log("<color=cyan>[Enemy] 窗口持续检测成功：检测到了 PlayerHit！</color>");
+                    hitPlayer = true;
+                    break;
+                }
+            }
+
+            if (hitPlayer)
+            {
+                // 检测到后停止检测
+                yield break;
+            }
+
+            elapsed += Time.deltaTime;
+            yield return null; // 等待下一帧继续检测
+        }
+
+        Debug.Log($"[Enemy] Continuous detection window ended at {Time.time}");
     }
 
     private System.Collections.IEnumerator DelayedSphereCastCheck(Vector3 startPos, Vector3 targetPos)
