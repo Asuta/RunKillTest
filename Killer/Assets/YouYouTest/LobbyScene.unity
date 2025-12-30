@@ -40535,7 +40535,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   health: 1
   firstLateTime: 1
-  fireIntervalTime: 3
+  fireIntervalTime: 2
   IntervalTime: 3
   respawnTime: 5
   target: {fileID: 0}
@@ -40551,8 +40551,8 @@ MonoBehaviour:
   deathEffect: {fileID: 1890581295539120, guid: 0e1c7fb597c927a41893518fb7dc7472, type: 3}
   hitEffect: {fileID: 1938031414114752, guid: d616c4de34d1bda439766b6dab9b9609, type: 3}
   audioSource: {fileID: 8910244156653853111}
-  aimSound: {fileID: 8300000, guid: a717f063ed998e542939b2f0e2660a73, type: 3}
-  fireSound: {fileID: 8300000, guid: eb88ed98832e0fd4282791615234b0ea, type: 3}
+  aimSound: {fileID: 8300000, guid: 2232c96c1ea3a5544a81e47b480301e7, type: 3}
+  fireSound: {fileID: 8300000, guid: b1f1446a47472f14daac800518666a74, type: 3}
 --- !u!114 &1085825675543425844
 MonoBehaviour:
   m_ObjectHideFlags: 0
