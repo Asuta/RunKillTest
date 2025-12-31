@@ -1298,6 +1298,12 @@ namespace YouYouTest.VRMove2
         // 处理转向逻辑
         private void HandleRotation()
         {
+            // 如果处于编辑器模式（!IsPlayMode），禁用手柄转向操作
+            if (GameManager.Instance != null && !GameManager.Instance.IsPlayMode)
+            {
+                return;
+            }
+
             // 读取右手柄摇杆输入
             Vector2 rightStickInput = InputActionsManager.Actions.XRIRightLocomotion.Move.ReadValue<Vector2>();
 
