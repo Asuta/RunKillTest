@@ -144,8 +144,9 @@ public class NewVRMove : MonoBehaviour
     private bool wasRotatingLeft = false;
     private bool wasRotatingRight = false;
 
-
-
+    // 用于记录初始的 cameraOffset 本地变换，以便在重置时恢复
+    private Vector3 initialCameraOffsetLocalPos;
+    private Quaternion initialCameraOffsetLocalRot;
 
 
     //test
@@ -159,12 +160,56 @@ public class NewVRMove : MonoBehaviour
     // Start is called once before the first execution of Update after the MonoBehaviour is created
     void Start()
     {
+        // 记录 cameraOffset 的初始本地变换
+        if (cameraOffset != null)
+        {
+            initialCameraOffsetLocalPos = cameraOffset.localPosition;
+            initialCameraOffsetLocalRot = cameraOffset.localRotation;
+        }
+
+        // 订阅检查点重置事件
+        GlobalEvent.CheckPointReset.AddListener(OnCheckPointReset);
+
         // 初始化grip状态
         lastLeftGripPressed = false;
         lastRightGripPressed = false;
 
         // 初始化状态机，默认进入地面状态
         ChangeState(new GroundedState(this));
+    }
+
+    void OnDestroy()
+    {
+        // 取消订阅检查点重置事件
+        GlobalEvent.CheckPointReset.RemoveListener(OnCheckPointReset);
+    }
+
+    private void OnCheckPointReset()
+    {
+        // 当检查点重置时，我们需要确保玩家的真实视角（Head）对准 CheckPoint 的前方
+        if (cameraOffset != null && playerHead != null)
+        {
+            // 获取头部在 Y 轴上的本地旋转
+            float headLocalY = playerHead.localEulerAngles.y;
+            // 设置 cameraOffset 的旋转为抵消头部的旋转，使最终世界旋转与 Rigidbody 一致
+            cameraOffset.localRotation = Quaternion.Euler(0, -headLocalY, 0);
+
+            // 获取头部相对于 cameraOffset 的本地位置
+            Vector3 headLocalPos = playerHead.localPosition;
+            // 计算偏移位置，使头部在水平方向上位于 Rigidbody 中心
+            Vector3 targetOffsetPos = -(cameraOffset.localRotation * headLocalPos);
+            
+            // 应用新的本地位置，保留 Y 轴（高度）不变，只纠正 XZ 平面的偏移
+            cameraOffset.localPosition = new Vector3(targetOffsetPos.x, cameraOffset.localPosition.y, targetOffsetPos.z);
+
+            Debug.Log($"NewVRMove: 检查点重置纠正。相机本地偏角: {headLocalY}, 纠正位移: {cameraOffset.localPosition}");
+        }
+        else if (cameraOffset != null)
+        {
+            // 兜底逻辑：恢复初始变换
+            cameraOffset.localPosition = initialCameraOffsetLocalPos;
+            cameraOffset.localRotation = initialCameraOffsetLocalRot;
+        }
     }
 
     // Update is called once per frame
