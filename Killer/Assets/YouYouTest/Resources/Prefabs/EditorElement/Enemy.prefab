@@ -176,6 +176,7 @@ MonoBehaviour:
   health: 1
   firstLateTime: 1
   IntervalTime: 3
+  respawnTime: 5
   target: {fileID: 0}
   EnemyBody: {fileID: 627795430947705909}
   checkBox: {fileID: 9074934985826520664}
@@ -347,7 +348,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   positionSmoothSpeed: 10
   rotationSmoothSpeed: 15
-  freezeYaxis: 1
+  freezeYaxis: 0
   scaleControlEnabled: 0
 --- !u!1 &4777423813008001768
 GameObject:

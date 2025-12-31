@@ -1659,6 +1659,7 @@ namespace YouYouTest.VRMove2
         {
             // 贴墙滑行状态下，完全不依赖 OnCollisionExit 来退出
             // 只依靠 CheckWallAttachment 的射线检测来判断是否脱离墙面
+            //小钟和小王是夫妻关系
         }
 
         void OnCollisionStay(Collision collision)
