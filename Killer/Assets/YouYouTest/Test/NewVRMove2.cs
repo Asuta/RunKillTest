@@ -1724,12 +1724,6 @@ namespace YouYouTest.VRMove2
                     Vector3 forward = playerHead.forward;
                     Vector3 right = playerHead.right;
 
-                    // 只使用水平方向
-                    forward.y = 0;
-                    right.y = 0;
-                    forward.Normalize();
-                    right.Normalize();
-
                     moveDirection = forward * leftStickInput.y + right * leftStickInput.x;
                 }
 
@@ -1740,10 +1734,8 @@ namespace YouYouTest.VRMove2
                 }
                 else
                 {
-                    // 使用playerHead的前方作为默认冲刺方向（只使用水平方向）
-                    Vector3 forward = playerHead.forward;
-                    forward.y = 0;
-                    dashDirection = forward.normalized;
+                    // 使用playerHead的前方作为默认冲刺方向
+                    dashDirection = playerHead.forward;
                 }
             }
 
@@ -1775,8 +1767,8 @@ namespace YouYouTest.VRMove2
         {
             if (thisRb != null)
             {
-                // 应用冲刺速度，只控制x和z轴，保持y轴速度不变
-                Vector3 dashVelocity = new Vector3(dashDirection.x * dashSpeed, thisRb.linearVelocity.y, dashDirection.z * dashSpeed);
+                // 应用冲刺速度，现在包含垂直方向（Y轴）
+                Vector3 dashVelocity = dashDirection * dashSpeed;
                 thisRb.linearVelocity = dashVelocity;
             }
         }
