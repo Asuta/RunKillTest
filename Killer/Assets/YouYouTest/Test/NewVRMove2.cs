@@ -469,7 +469,8 @@ namespace YouYouTest.VRMove2
         // 二段跳（空中位移跳跃）状态
         private bool canAirDoubleJump = true;
         private float airborneMoveJumpTimer = 0f;
-        private bool lastIs3DMovementMode = false;
+        private bool lastLeftIs3DMode = false;
+        private bool lastRightIs3DMode = false;
         private Vector3 prevLeftHandLocalPosForAirJump;
         private Vector3 prevRightHandLocalPosForAirJump;
 
@@ -635,14 +636,23 @@ namespace YouYouTest.VRMove2
             }
         }
 
-        private bool GetIs3DMovementMode()
+        private bool GetLeftIs3DMode()
         {
             bool leftGripPressed = InputActionsManager.Actions.XRILeftInteraction.Select.IsPressed();
-            bool rightGripPressed = InputActionsManager.Actions.XRIRightInteraction.Select.IsPressed();
             bool leftTriggerPressed = InputActionsManager.Actions.XRILeftInteraction.Activate.IsPressed();
-            bool rightTriggerPressed = InputActionsManager.Actions.XRIRightInteraction.Activate.IsPressed();
+            return leftGripPressed && leftTriggerPressed;
+        }
 
-            return (leftGripPressed && leftTriggerPressed) || (rightGripPressed && rightTriggerPressed);
+        private bool GetRightIs3DMode()
+        {
+            bool rightGripPressed = InputActionsManager.Actions.XRIRightInteraction.Select.IsPressed();
+            bool rightTriggerPressed = InputActionsManager.Actions.XRIRightInteraction.Activate.IsPressed();
+            return rightGripPressed && rightTriggerPressed;
+        }
+
+        private bool GetIs3DMovementMode()
+        {
+            return GetLeftIs3DMode() || GetRightIs3DMode();
         }
 
         /// <summary>
@@ -650,9 +660,14 @@ namespace YouYouTest.VRMove2
         /// </summary>
         private void HandleAirborneMoveJump()
         {
-            bool is3DMode = GetIs3DMovementMode();
-            bool risingEdge = is3DMode && !lastIs3DMovementMode;
-            lastIs3DMovementMode = is3DMode;
+            bool leftIs3D = GetLeftIs3DMode();
+            bool rightIs3D = GetRightIs3DMode();
+
+            // 只要有一只手触发了 Rising Edge，就视为触发了跳跃
+            bool risingEdge = (leftIs3D && !lastLeftIs3DMode) || (rightIs3D && !lastRightIs3DMode);
+
+            lastLeftIs3DMode = leftIs3D;
+            lastRightIs3DMode = rightIs3D;
 
             if (!enableDoubleJump)
                 return;
@@ -747,17 +762,28 @@ namespace YouYouTest.VRMove2
             Vector3 localDeltaSum = Vector3.zero;
             Transform deltaReference = null;
 
+            bool leftIs3D = GetLeftIs3DMode();
+            bool rightIs3D = GetRightIs3DMode();
+
             if (leftSphereTarget != null)
             {
                 Vector3 current = leftSphereTarget.localPosition;
-                localDeltaSum += (current - prevLeftHandLocalPosForAirJump);
+                // 只有当左手处于 3D 模式时，才计入位移贡献
+                if (leftIs3D)
+                {
+                    localDeltaSum += (current - prevLeftHandLocalPosForAirJump);
+                }
                 prevLeftHandLocalPosForAirJump = current;
                 if (deltaReference == null) deltaReference = leftSphereTarget.parent;
             }
             if (rightSphereTarget != null)
             {
                 Vector3 current = rightSphereTarget.localPosition;
-                localDeltaSum += (current - prevRightHandLocalPosForAirJump);
+                // 只有当右手处于 3D 模式时，才计入位移贡献
+                if (rightIs3D)
+                {
+                    localDeltaSum += (current - prevRightHandLocalPosForAirJump);
+                }
                 prevRightHandLocalPosForAirJump = current;
                 if (deltaReference == null) deltaReference = rightSphereTarget.parent;
             }
@@ -817,17 +843,28 @@ namespace YouYouTest.VRMove2
             Vector3 localDeltaSum = Vector3.zero;
             Transform deltaReference = null;
 
+            bool leftIs3D = GetLeftIs3DMode();
+            bool rightIs3D = GetRightIs3DMode();
+
             if (leftSphereTarget != null)
             {
                 Vector3 current = leftSphereTarget.localPosition;
-                localDeltaSum += (current - prevLeftHandLocalPosForWallJump);
+                // 只有当左手处于 3D 模式时，才计入位移贡献
+                if (leftIs3D)
+                {
+                    localDeltaSum += (current - prevLeftHandLocalPosForWallJump);
+                }
                 prevLeftHandLocalPosForWallJump = current;
                 if (deltaReference == null) deltaReference = leftSphereTarget.parent;
             }
             if (rightSphereTarget != null)
             {
                 Vector3 current = rightSphereTarget.localPosition;
-                localDeltaSum += (current - prevRightHandLocalPosForWallJump);
+                // 只有当右手处于 3D 模式时，才计入位移贡献
+                if (rightIs3D)
+                {
+                    localDeltaSum += (current - prevRightHandLocalPosForWallJump);
+                }
                 prevRightHandLocalPosForWallJump = current;
                 if (deltaReference == null) deltaReference = rightSphereTarget.parent;
             }
