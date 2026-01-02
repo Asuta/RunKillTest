@@ -446,6 +446,9 @@ namespace YouYouTest.VRMove2
         [Tooltip("空中位移跳跃 Y 轴倍率（用于让上抬更明显/更弱）")]
         public float airborneMoveJumpYMultiplier = 1f;
 
+        [Tooltip("空中位移跳跃水平方向（X/Z 轴）倍率")]
+        public float airborneMoveJumpHorizontalMultiplier = 1f;
+
         [Tooltip("单次 FixedUpdate 允许施加的最大速度变化（米/秒），防止瞬间过大")]
         public float airborneMoveJumpMaxVelocityChangePerStep = 8f;
 
@@ -796,7 +799,7 @@ namespace YouYouTest.VRMove2
 
             // 手往某方向移动，一般希望角色往相反方向加速，所以取反
             Vector3 deltaV = -worldDelta * airborneMoveJumpVelocityChangeMultiplier;
-            deltaV = new Vector3(deltaV.x, deltaV.y * airborneMoveJumpYMultiplier, deltaV.z);
+            deltaV = new Vector3(deltaV.x * airborneMoveJumpHorizontalMultiplier, deltaV.y * airborneMoveJumpYMultiplier, deltaV.z * airborneMoveJumpHorizontalMultiplier);
 
             // 关键：分离限幅，避免 Y 分量过大时把 XZ 挤没（导致“看起来只能竖直跳”）
             if (airborneMoveJumpMaxVelocityChangePerStep > 0f)
@@ -875,7 +878,7 @@ namespace YouYouTest.VRMove2
             Vector3 worldDelta = deltaReference.TransformVector(localDeltaSum);
 
             Vector3 deltaV = -worldDelta * airborneMoveJumpVelocityChangeMultiplier;
-            deltaV = new Vector3(deltaV.x, deltaV.y * airborneMoveJumpYMultiplier, deltaV.z);
+            deltaV = new Vector3(deltaV.x * airborneMoveJumpHorizontalMultiplier, deltaV.y * airborneMoveJumpYMultiplier, deltaV.z * airborneMoveJumpHorizontalMultiplier);
 
             if (airborneMoveJumpMaxVelocityChangePerStep > 0f)
             {
