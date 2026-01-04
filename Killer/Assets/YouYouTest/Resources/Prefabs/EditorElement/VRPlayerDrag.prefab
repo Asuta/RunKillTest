@@ -20457,7 +20457,7 @@ MonoBehaviour:
   dashCooldown: 1
   handMoveSpeedThreshold: 5
   hookDashSpeed: 70
-  hookDashDuration: 0.15
+  hookDashDuration: 3
   AddMoveSpeed: 0
   AddMoveSpeedMultiplier: 1
   wallNormal: {x: 0, y: 0, z: 1}
@@ -20480,6 +20480,7 @@ MonoBehaviour:
   airborneMoveJumpSustainDuration: 0.2
   airborneMoveJumpVelocityChangeMultiplier: 15
   airborneMoveJumpYMultiplier: 1
+  airborneMoveJumpHorizontalMultiplier: 1
   airborneMoveJumpMaxVelocityChangePerStep: 8
 --- !u!114 &5364758977895391900
 MonoBehaviour:
