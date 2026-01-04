@@ -131,6 +131,12 @@ public class EnemyBullet : MonoBehaviour
 
     void OnTriggerEnter(Collider other)
     {
+        // 检查是否碰撞到 Building 层
+        if (other.gameObject.layer == LayerMask.NameToLayer("Building"))
+        {
+            ExplodeAndDestroy();
+            return;
+        }
 
         if (isBack)
         {
