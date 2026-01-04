@@ -160,7 +160,7 @@ public class GameManager : MonoBehaviour
             if (_vrEditorRig != null)
             {
                 _vrEditorRig.gameObject.SetActive(false);
-                CustomLog.Log(needLog, "VR Editor Rig 已禁用");
+                CustomLog.Log(needLog, "VR Editor Rig 已经禁用");
             }
         }
         else
