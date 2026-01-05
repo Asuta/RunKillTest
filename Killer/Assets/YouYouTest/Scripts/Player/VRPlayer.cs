@@ -1,3 +1,5 @@
+using System;
+using System.Collections;
 using UnityEngine;
 using UnityEngine.SceneManagement;
 using VInspector;
@@ -17,14 +19,16 @@ public class VRPlayer : MonoBehaviour, ICanBeHit
 
     public int health = 1;
     public GameObject deathRed;
+    public GameObject endUI;
     private Vector3 initialPosition; // 存储初始位置
     private Vector3 initialRotation; // 存储初始旋转
     private bool isDead = false; // 标记玩家是否处于死亡状态
     public GameObject grabBody;
-    
+
     // 菜单键和左手扳机键组合检测
     private bool menuButtonPressed = false;
     private bool leftTriggerPressed = false;
+    private Coroutine endUITimer;
 
     // Start is called once before the first execution of Update after the MonoBehaviour is created
     void Start()
@@ -39,15 +43,47 @@ public class VRPlayer : MonoBehaviour, ICanBeHit
         // 订阅游戏模式变化事件
         GlobalEvent.IsPlayChange.AddListener(OnGameModeChange);
 
+        // 订阅游戏结束事件
+        GlobalEvent.CheckPointEndActivate.AddListener(OnGameEnd);
+        
         // 订阅GameManager就绪事件
         GameManager.OnGameManagerReady += OnGameManagerReady;
-        
+
         // 主动获取GameManager的playmode并设置一次OnGameModeChange
         if (GameManager.Instance != null)
         {
             OnGameModeChange(GameManager.Instance.IsPlayMode);
             Debug.Log($"VRPlayer主动获取GameManager模式，当前模式: {(GameManager.Instance.IsPlayMode ? "游戏模式" : "编辑模式")}");
         }
+    }
+
+    private void OnGameEnd(CheckPointEnd arg0)
+    {
+        // 2. 如果这里面没有这个对象（或者是 null 对象），那就直接结束，不用继续执行后续代码了
+        if (arg0 == null || endUI == null) return;
+
+        // 刷新显示时间：触发时始终重新计时 5 秒
+        float duration = 5f;
+
+        // 打开 "end UI"
+        endUI.SetActive(true);
+
+        // 管理显示时间：如果已经在计时则停止旧的，开始新的 5 秒计时
+        if (endUITimer != null)
+        {
+            StopCoroutine(endUITimer);
+        }
+        endUITimer = StartCoroutine(CloseEndUIAfterDelay(duration));
+    }
+
+    private IEnumerator CloseEndUIAfterDelay(float delay)
+    {
+        yield return new WaitForSeconds(delay);
+        if (endUI != null)
+        {
+            endUI.SetActive(false);
+        }
+        endUITimer = null;
     }
 
     void OnDestroy()
@@ -76,20 +112,20 @@ public class VRPlayer : MonoBehaviour, ICanBeHit
         {
             GlobalEvent.CheckPointReset.Invoke();
         }
-        
+
         // 检测菜单键和左手扳机键的组合按下
         bool menuCurrentlyPressed = InputActionsManager.Actions.XRILeftInteraction.Menu.IsPressed();
         // float leftTriggerValue = InputActionsManager.Actions.XRILeftInteraction.ActivateValue.ReadValue<float>();
         // bool leftTriggerCurrentlyPressed = leftTriggerValue > 0.1f;
         bool leftTriggerCurrentlyPressed = InputActionsManager.Actions.XRILeftInteraction.Activate.IsPressed();
-        
+
         // 检测菜单键短按（用于开启UI）
         if (InputActionsManager.Actions.XRILeftInteraction.Menu.WasPressedThisFrame())
         {
             // 这里可以添加开启UI的逻辑
             Debug.Log("菜单键短按 - 开启UI");
         }
-        
+
         // 检测菜单键和左手扳机键同时按下（用于reset功能）
         if (menuCurrentlyPressed && leftTriggerCurrentlyPressed)
         {
@@ -100,7 +136,7 @@ public class VRPlayer : MonoBehaviour, ICanBeHit
                 Debug.Log("菜单键+左手扳机键同时按下 - 触发Reset");
             }
         }
-        
+
         // 更新按键状态
         menuButtonPressed = menuCurrentlyPressed;
         leftTriggerPressed = leftTriggerCurrentlyPressed;
@@ -181,7 +217,7 @@ public class VRPlayer : MonoBehaviour, ICanBeHit
         }
 
         this.GetComponent<Rigidbody>().isKinematic = !isPlayMode;
-        
+
         // 当进入游戏模式时，重新记录当前位置为初始位置
         if (isPlayMode)
         {

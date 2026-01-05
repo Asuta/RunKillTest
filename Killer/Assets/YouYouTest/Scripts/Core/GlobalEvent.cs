@@ -47,6 +47,14 @@ public static class GlobalEvent
     public static readonly UnityEvent<CheckPoint> CheckPointActivate = new UnityEvent<CheckPoint>();
 
 
+    /// <summary>
+    /// 结束检查点激活事件
+    /// </summary>
+    public static readonly UnityEvent<CheckPointEnd> CheckPointEndActivate = new UnityEvent<CheckPointEnd>();
+
+
+
+
     // /// <summary>
     // /// 强制死亡事件
     // /// </summary>
