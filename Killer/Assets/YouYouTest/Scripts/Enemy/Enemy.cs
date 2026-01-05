@@ -176,6 +176,14 @@ public class Enemy : MonoBehaviour, ICanBeHit, IConfigurable
         // 如果target不为null，绘制线和球
         if (target != null && EnemyBody != null)
         {
+            // 让 EnemyBody 朝向目标（仅 Y 轴变化）
+            Vector3 direction = target.position - EnemyBody.position;
+            direction.y = 0; // 忽略垂直方向的差异，只保留水平方向的朝向
+            if (direction != Vector3.zero)
+            {
+                EnemyBody.rotation = Quaternion.LookRotation(direction);
+            }
+
             DrawTargetVisualization();
 
             // 瞄准计时和射击逻辑
