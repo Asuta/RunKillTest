@@ -118,24 +118,32 @@ public class KeyboardManager : MonoBehaviour, IPointerDownHandler, IPointerUpHan
         if (Application.isPlaying == false)
             return;
 
+        GameObject currentSelection = EventSystem.current.currentSelectedGameObject;
+
         if (isSelectedInputField) {
-            if (EventSystem.current.currentSelectedGameObject == null) {
-                DeselectInput();
-            } else {
-                var currentSelection = EventSystem.current.currentSelectedGameObject;
-                if (currentSelection.GetComponent<InputFieldScript>()) {
-                    currentSelection.GetComponent<InputFieldScript>().targetKeyboard = this;
-                    SelectInput(currentSelection.GetComponent<InputFieldScript>());
-                } else {
+            if (currentSelection == null) {
+                if (!isPressKeyboard) {
                     DeselectInput();
+                }
+            } else {
+                if (currentSelection.GetComponent<InputFieldScript>()) {
+                    var inputScript = currentSelection.GetComponent<InputFieldScript>();
+                    inputScript.targetKeyboard = this;
+                    SelectInput(inputScript);
+                } else if (currentSelection.GetComponentInParent<KeyboardManager>() == this) {
+                    // If we clicked on the keyboard itself (like a button), do nothing and wait for focus to return
+                } else {
+                    if (!isPressKeyboard) {
+                        DeselectInput();
+                    }
                 }
             }
         } else {
-            if (EventSystem.current.currentSelectedGameObject != null) {
-                var currentSelection = EventSystem.current.currentSelectedGameObject;
+            if (currentSelection != null) {
                 if (currentSelection.GetComponent<InputFieldScript>()) {
-                    currentSelection.GetComponent<InputFieldScript>().targetKeyboard = this;
-                    SelectInput(currentSelection.GetComponent<InputFieldScript>());
+                    var inputScript = currentSelection.GetComponent<InputFieldScript>();
+                    inputScript.targetKeyboard = this;
+                    SelectInput(inputScript);
                 }
             }
         }
