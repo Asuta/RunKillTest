@@ -244,6 +244,31 @@ public class HandOutlineController : MonoBehaviour
         return null;
     }
 
+    /// <summary>
+    /// 验证并清理已失效（被删除）的描边对象引用
+    /// </summary>
+    public void ValidateSelection()
+    {
+        // 验证最后选中的对象
+        if (lastSelectedReceiver != null && (lastSelectedReceiver == null || !lastSelectedReceiver.gameObject.activeInHierarchy))
+        {
+            lastSelectedReceiver = null;
+        }
+
+        // 清理失效的多选对象
+        multiSelectedReceivers.RemoveWhere(r => r == null || !r.gameObject.activeInHierarchy);
+        
+        // 清理失效的 hover 状态
+        if (hoveredReceiverLeft != null && (hoveredReceiverLeft == null || !hoveredReceiverLeft.gameObject.activeInHierarchy))
+        {
+            hoveredReceiverLeft = null;
+        }
+        if (hoveredReceiverRight != null && (hoveredReceiverRight == null || !hoveredReceiverRight.gameObject.activeInHierarchy))
+        {
+            hoveredReceiverRight = null;
+        }
+    }
+
     private void OnDisable()
     {
         if (hoveredReceiverLeft != null)

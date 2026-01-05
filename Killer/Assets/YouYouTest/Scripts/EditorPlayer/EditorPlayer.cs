@@ -99,6 +99,9 @@ public class EditorPlayer : MonoBehaviour
     // Update is called once per frame
     void Update()
     {
+        // 验证当前抓取的对象是否依然有效（处理对象被删除的情况）
+        ValidateGrabbedObjects();
+
         // 检测左右手附近的可抓取对象
         CheckForGrabableObjects();
 
@@ -1229,6 +1232,101 @@ public class EditorPlayer : MonoBehaviour
     #endregion
 
     #region 多抓取中心点跟随方法
+    /// <summary>
+    /// 验证当前抓取的对象是否依然有效，如果无效则清理状态
+    /// </summary>
+    private void ValidateGrabbedObjects()
+    {
+        // 验证描边系统的状态
+        handOutlineController?.ValidateSelection();
+
+        // 验证左手单抓取
+        if (!IsGrabableValid(leftGrabbedObject))
+        {
+            if (leftGrabbedObject != null)
+            {
+                Debug.Log("检测到左手抓取的物体已失效（可能已被删除），清理左手抓取状态");
+                leftGrabbedObject = null;
+                leftCurrentGrabCommand = null;
+                handOutlineController?.UpdateTarget(true, leftHoldObject, leftHoldObject, null);
+            }
+        }
+
+        // 验证右手单抓取
+        if (!IsGrabableValid(rightGrabbedObject))
+        {
+            if (rightGrabbedObject != null)
+            {
+                Debug.Log("检测到右手抓取的物体已失效（可能已被删除），清理右手抓取状态");
+                rightGrabbedObject = null;
+                rightCurrentGrabCommand = null;
+                handOutlineController?.UpdateTarget(false, rightHoldObject, rightHoldObject, null);
+            }
+        }
+
+        // 验证左手多抓取列表
+        ValidateMultiGrabList(leftMultiGrabbedObjects, true);
+
+        // 验证右手多抓取列表
+        ValidateMultiGrabList(rightMultiGrabbedObjects, false);
+    }
+
+    /// <summary>
+    /// 验证多抓取列表中的对象是否有效
+    /// </summary>
+    private void ValidateMultiGrabList(System.Collections.Generic.List<IGrabable> grabList, bool isLeft)
+    {
+        bool changed = false;
+        for (int i = grabList.Count - 1; i >= 0; i--)
+        {
+            if (!IsGrabableValid(grabList[i]))
+            {
+                Debug.Log($"检测到{(isLeft ? "左手" : "右手")}多抓取列表中的对象已失效，移除索引 {i}");
+                grabList.RemoveAt(i);
+                changed = true;
+            }
+        }
+
+        if (changed && grabList.Count <= 1 && isUsingCenterObject)
+        {
+            // 如果多抓取对象少于等于1个，且正在使用中心点，则停止中心点跟随
+            // 这里逻辑简单处理，如果当前手已经没有多抓取了，就尝试销毁中心点
+            if (leftMultiGrabbedObjects.Count <= 1 && rightMultiGrabbedObjects.Count <= 1)
+            {
+                isUsingCenterObject = false;
+                DestroyCenterObject();
+            }
+        }
+    }
+
+    /// <summary>
+    /// 检查 IGrabable 对象是否有效（未被销毁且处于激活状态）
+    /// </summary>
+    private bool IsGrabableValid(IGrabable grabable)
+    {
+        if (grabable == null) return false;
+
+        // 处理 Unity 对象的 null 检查（接口引用可能指向已销毁的 MonoBehaviour）
+        if (grabable is Object obj && obj == null) return false;
+
+        try
+        {
+            // 检查 GameObject 是否存在且在场景中激活
+            GameObject go = grabable.ObjectGameObject;
+            if (go == null || !go.activeInHierarchy) return false;
+            
+            // 检查 Transform 是否仍然存在
+            if (grabable.ObjectTransform == null) return false;
+        }
+        catch
+        {
+            // 如果访问属性报错，说明对象极大概率已失效
+            return false;
+        }
+
+        return true;
+    }
+
     /// <summary>
     /// 创建中心点对象（隐形的空GameObject）
     /// </summary>
