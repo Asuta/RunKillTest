@@ -29,16 +29,82 @@ namespace YouYouTest
             if (checkSphere == null) return null;
             float radius = Mathf.Max(checkSphere.lossyScale.x, checkSphere.lossyScale.y, checkSphere.lossyScale.z);
             int hitCount = Physics.OverlapSphereNonAlloc(checkSphere.position, radius, hitColliders);
+            
+            IGrabable smallestGrabable = null;
+            float minVolume = float.MaxValue;
+
             for (int i = 0; i < hitCount; i++)
             {
                 var rb = hitColliders[i].attachedRigidbody;
                 if (rb != null)
                 {
                     var g = rb.GetComponent<IGrabable>();
-                    if (g != null) return g;
+                    if (g != null)
+                    {
+                        float volume = CalculateVolume(g.ObjectGameObject);
+                        if (volume < minVolume)
+                        {
+                            minVolume = volume;
+                            smallestGrabable = g;
+                        }
+                    }
                 }
             }
-            return null;
+            return smallestGrabable;
+        }
+
+        /// <summary>
+        /// 计算物体的估算体积，通过合并所有子物体的 Renderer 包围盒来获得完整大小
+        /// </summary>
+        private static float CalculateVolume(GameObject go)
+        {
+            if (go == null) return float.MaxValue;
+
+            Bounds combinedBounds = new Bounds();
+            bool hasBounds = false;
+
+            // 1. 尝试合并所有子物体的 Renderer 包围盒
+            Renderer[] renderers = go.GetComponentsInChildren<Renderer>();
+            foreach (var renderer in renderers)
+            {
+                if (!hasBounds)
+                {
+                    combinedBounds = renderer.bounds;
+                    hasBounds = true;
+                }
+                else
+                {
+                    combinedBounds.Encapsulate(renderer.bounds);
+                }
+            }
+
+            // 2. 如果没有 Renderer，尝试合并所有子物体的 Collider 包围盒
+            if (!hasBounds)
+            {
+                Collider[] colliders = go.GetComponentsInChildren<Collider>();
+                foreach (var collider in colliders)
+                {
+                    if (!hasBounds)
+                    {
+                        combinedBounds = collider.bounds;
+                        hasBounds = true;
+                    }
+                    else
+                    {
+                        combinedBounds.Encapsulate(collider.bounds);
+                    }
+                }
+            }
+
+            if (hasBounds)
+            {
+                Vector3 size = combinedBounds.size;
+                return size.x * size.y * size.z;
+            }
+
+            // 3. 最后退而求其次使用自身的 lossyScale
+            Vector3 scale = go.transform.lossyScale;
+            return scale.x * scale.y * scale.z;
         }
 
         public static void ExecuteDelete(IGrabable holdObject, ref IGrabable grabbedObject, ref GrabCommand currentGrabCommand, Transform hand, bool isLeftHand, HandOutlineController handOutline)

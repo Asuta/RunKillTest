@@ -582,10 +582,10 @@ public class EditorPlayer : MonoBehaviour
     }
 
     /// <summary>
-    /// 在指定Transform位置检测可抓取对象
+    /// 在指定Transform位置检测可抓取对象，如果检测到多个，则选择体积最小的一个
     /// </summary>
     /// <param name="checkSphere">检测球体的Transform</param>
-    /// <returns>检测到的第一个IGrabable对象，如果没有则返回null</returns>
+    /// <returns>检测到的体积最小的IGrabable对象，如果没有则返回null</returns>
     private IGrabable DetectGrabableObject(Transform checkSphere)
     {
         // 重构：使用工具类实现检测逻辑，减少重复代码并共享 hitColliders 缓冲区
