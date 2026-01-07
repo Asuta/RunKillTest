@@ -206,77 +206,10 @@ public class LobbySaveUI : MonoBehaviour
     /// <summary>
     /// 加载按钮点击事件
     /// </summary>
-    /// <param name="slotName">档位名称</param>
+    /// <param name="slotInfo">存档档位信息</param>
     private void OnLoadButtonClicked(SaveSlotInfo slotInfo)
     {
-        if (slotInfo == null) return;
-
-        string slotName = slotInfo.slotName;
-        Debug.Log($"加载存档(精确): {slotInfo.subFolder}/{slotInfo.fileName}");
-
-        // 先把要加载的存档槽名写入 GameManager，后续场景/加载逻辑会读取它
-        if (GameManager.Instance != null)
-        {
-            GameManager.Instance.nowLoadSaveSlot = slotName;
-        }
-        else
-        {
-            Debug.LogWarning("GameManager 实例不存在，无法设置 nowLoadSaveSlot");
-        }
-
-        // 如果已经在目标场景，直接加载存档并触发相关状态
-        if (SceneManager.GetActiveScene().name == "KillScene")
-        {
-            if (SaveLoadManager.Instance != null)
-            {
-                SaveLoadManager.Instance.LoadSceneObjectsByFileName(slotInfo.fileName, slotInfo.subFolder);
-                if (GameManager.Instance != null)
-                {
-                    GameManager.Instance.SetCanSwitchMode(true);
-                }
-                // 通知其他监听者已切换/加载存档
-                GlobalEvent.OnLoadSaveChange.Invoke(SaveLoadManager.ComposeSaveKey(slotInfo.subFolder, slotInfo.slotName));
-            }
-            else
-            {
-                Debug.LogWarning("SaveLoadManager 实例不存在，无法立即加载存档，已设置 nowLoadSaveSlot 等待初始化。");
-            }
-
-            return;
-        }
-
-        // 不在 KillScene 时：在场景加载完成后执行加载逻辑
-        UnityAction<Scene, LoadSceneMode> onLoaded = null;
-        onLoaded = (scene, mode) =>
-        {
-            if (scene.name == "KillScene")
-            {
-                SceneManager.sceneLoaded -= onLoaded;
-
-                if (SaveLoadManager.Instance != null)
-                {
-                    SaveLoadManager.Instance.LoadSceneObjectsByFileName(slotInfo.fileName, slotInfo.subFolder);
-                    // 通知其他监听者
-                    GlobalEvent.OnLoadSaveChange.Invoke(SaveLoadManager.ComposeSaveKey(slotInfo.subFolder, slotInfo.slotName));
-                }
-                else
-                {
-                    Debug.LogWarning("场景已切换到 KillScene，但 SaveLoadManager 实例尚不可用。");
-                }
-
-                if (GameManager.Instance != null)
-                {
-                    GameManager.Instance.SetCanSwitchMode(true);
-                    // 设置为非PlayMode（保持与 Button3 行为一致）
-                    GameManager.Instance.SetPlayMode(false);
-                }
-            }
-        };
-
-        SceneManager.sceneLoaded += onLoaded;
-
-        // 切换到 KillScene
-        SceneManager.LoadScene("KillScene");
+        SaveLoadUtils.LoadSaveSlot(slotInfo);
     }
 
     /// <summary>

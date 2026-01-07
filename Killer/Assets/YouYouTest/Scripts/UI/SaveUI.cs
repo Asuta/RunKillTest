@@ -5,6 +5,8 @@ using VInspector;
 using TMPro;
 using UnityEngine.Networking;
 using System.Collections;
+using UnityEngine.SceneManagement;
+using UnityEngine.Events;
 
 public class SaveUI : AutoCleanupBehaviour
 {
@@ -400,14 +402,10 @@ public class SaveUI : AutoCleanupBehaviour
     /// <summary>
     /// 加载按钮点击事件
     /// </summary>
-    /// <param name="slotName">档位名称</param>
+    /// <param name="slotInfo">存档档位信息</param>
     private void OnLoadButtonClicked(SaveSlotInfo slotInfo)
     {
-        if (slotInfo == null) return;
-
-        Debug.Log($"加载存档(精确): {slotInfo.subFolder}/{slotInfo.fileName}");
-        SaveLoadManager.Instance.LoadSceneObjectsByFileName(slotInfo.fileName, slotInfo.subFolder);
-        GlobalEvent.OnLoadSaveChange.Invoke(SaveLoadManager.ComposeSaveKey(slotInfo.subFolder, slotInfo.slotName));
+        SaveLoadUtils.LoadSaveSlot(slotInfo);
     }
 
     /// <summary>
