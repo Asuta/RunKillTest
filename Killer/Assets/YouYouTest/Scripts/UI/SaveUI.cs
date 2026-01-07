@@ -85,6 +85,13 @@ public class SaveUI : AutoCleanupBehaviour
     private void OnLoadSaveChangeInternal(string saveKey)
     {
         Debug.Log($"收到存档加载变更事件: {saveKey}，刷新UI列表以更新高亮状态");
+        
+        // 显式更新 GameManager 中的状态，确保后续逻辑一致
+        if (GameManager.Instance != null)
+        {
+            GameManager.Instance.nowLoadSaveSlot = saveKey;
+        }
+
         // 刷新存档列表显示以更新高亮
         OnEnable();
     }
