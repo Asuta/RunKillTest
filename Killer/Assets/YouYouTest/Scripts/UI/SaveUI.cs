@@ -185,22 +185,13 @@ public class SaveUI : AutoCleanupBehaviour
             }
         }
 
-        // 设置外描边高亮（如果当前是加载的关卡）
-        UnityEngine.UI.Outline outline = entry.GetComponent<UnityEngine.UI.Outline>();
-        if (outline == null)
-        {
-            // 如果没有Outline组件，尝试添加一个
-            outline = entry.AddComponent<UnityEngine.UI.Outline>();
-            outline.effectDistance = new Vector2(5, -5);
-        }
-
-        if (outline != null)
+        // 设置选中高亮：直接控制预制体中自带的 "Outline" 子物体
+        Transform prefabOutline = entry.transform.Find("Outline");
+        if (prefabOutline != null)
         {
             string currentKey = SaveLoadManager.ComposeSaveKey(slotInfo.subFolder, slotInfo.slotName);
             bool isCurrent = currentKey == GameManager.Instance.nowLoadSaveSlot;
-            
-            outline.enabled = isCurrent;
-            outline.effectColor = Color.yellow; // 高亮颜色设为黄色
+            prefabOutline.gameObject.SetActive(isCurrent);
         }
 
         // 查找TextMeshPro组件来显示存档信息
