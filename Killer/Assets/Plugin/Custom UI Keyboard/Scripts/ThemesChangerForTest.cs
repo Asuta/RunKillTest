@@ -1,6 +1,7 @@
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using VInspector;
 
 /// <summary>
 /// Just test script for change themes by pressing Buttons
@@ -9,6 +10,8 @@ public class ThemesChangerForTest : MonoBehaviour
 {
     public KeyboardManager keyboardManager;
 
+    // [ContextMenu("Select Theme")] 
+    [Button]
     public void SelectTheme(int target) {
         keyboardManager.currentTheme = target;
         keyboardManager.InitKeyboard();
