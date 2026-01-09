@@ -11346,6 +11346,10 @@ PrefabInstance:
       propertyPath: m_IsActive
       value: 1
       objectReference: {fileID: 0}
+    - target: {fileID: 2878195154679488119, guid: 623706c30620a894f8c5b47692a475c8, type: 3}
+      propertyPath: m_IsActive
+      value: 0
+      objectReference: {fileID: 0}
     - target: {fileID: 3926748315660521408, guid: 623706c30620a894f8c5b47692a475c8, type: 3}
       propertyPath: m_IsActive
       value: 0
@@ -19835,6 +19839,11 @@ Transform:
   - {fileID: 531675007}
   m_Father: {fileID: 1960109958}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!1 &1166346305 stripped
+GameObject:
+  m_CorrespondingSourceObject: {fileID: 3915018907287072683, guid: 2ba73c9cdc3a0b0489f11baf9b0e4c84, type: 3}
+  m_PrefabInstance: {fileID: 2116952118}
+  m_PrefabAsset: {fileID: 0}
 --- !u!1 &1178871903
 GameObject:
   m_ObjectHideFlags: 0
@@ -35603,7 +35612,7 @@ PrefabInstance:
     - target: {fileID: 1661564739160111592, guid: 2ba73c9cdc3a0b0489f11baf9b0e4c84, type: 3}
       propertyPath: subUI
       value: 
-      objectReference: {fileID: 2031513242}
+      objectReference: {fileID: 1166346305}
     - target: {fileID: 1661564739160111592, guid: 2ba73c9cdc3a0b0489f11baf9b0e4c84, type: 3}
       propertyPath: lookTarget
       value: 
