@@ -5,9 +5,15 @@ using DG.Tweening;
 [RequireComponent(typeof(RectTransform))]
 public class SimpleFadeIn : MonoBehaviour
 {
-    public Vector3 originalPosition;
+    [Header("动画设置")]
+    public float duration = 0.2f;       // 动画持续时间
+    public float moveOffset = 100f;    // 向上弹出的偏移量
+    public Ease fadeEase = Ease.OutQuad;
+    public Ease moveEase = Ease.OutBack;
+
     private RectTransform rectTransform;
     private CanvasGroup cg;
+    private Vector3 originalPosition;
     private bool isInitialized = false;
 
     void Awake()
@@ -20,7 +26,11 @@ public class SimpleFadeIn : MonoBehaviour
         if (isInitialized) return;
         rectTransform = GetComponent<RectTransform>();
         cg = GetComponent<CanvasGroup>();
+        
+        // 强制刷新 UI 布局，确保获取到正确的原始位置
+        Canvas.ForceUpdateCanvases();
         originalPosition = rectTransform.anchoredPosition;
+        
         isInitialized = true;
     }
 
@@ -28,20 +38,21 @@ public class SimpleFadeIn : MonoBehaviour
     {
         EnsureInitialized();
 
-        // 停止之前的动画，防止冲突
+        // 1. 停止之前的动画，并强制回归初始状态
         cg.DOKill();
         rectTransform.DOKill();
+        
+        // 重置状态
+        cg.alpha = 0;
+        rectTransform.anchoredPosition = originalPosition;
 
-        cg.alpha = 0; // 设置初始透明度为0
+        // 2. 执行动画
+        // 淡入效果
+        cg.DOFade(1, duration).SetEase(fadeEase);
 
-        // 设置初始位置在下方（向下偏移100单位）
-        // 在 Unity UI 中，Vector3.down (0, -1, 0) 是向下
-        rectTransform.anchoredPosition = originalPosition + Vector3.down * 100f;
-
-        // 在0.2秒内淡入到完全显示，使用OutQuad缓动
-        cg.DOFade(1, 0.2f).SetEase(Ease.OutQuad);
-
-        // 在0.2秒内从下到上移动到原始位置，使用OutBack缓动
-        rectTransform.DOAnchorPos(originalPosition, 0.2f).SetEase(Ease.OutBack);
+        // 位移效果：使用 From() 让它从“偏移位置”运动回“当前位置(originalPosition)”
+        rectTransform.DOAnchorPos(originalPosition, duration)
+            .From(originalPosition + Vector3.down * moveOffset)
+            .SetEase(moveEase);
     }
 }
