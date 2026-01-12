@@ -17758,7 +17758,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 7723584735198109974, guid: 9cc6d4d92fa23a744bb27b4f4211143f, type: 3}
       propertyPath: duration
-      value: 0.2
+      value: 0.5
       objectReference: {fileID: 0}
     - target: {fileID: 7881742640830299201, guid: 9cc6d4d92fa23a744bb27b4f4211143f, type: 3}
       propertyPath: m_IsActive
@@ -19701,7 +19701,7 @@ MonoBehaviour:
   m_Content: {fileID: 8265663980761519438}
   m_Horizontal: 0
   m_Vertical: 1
-  m_MovementType: 1
+  m_MovementType: 2
   m_Elasticity: 0.1
   m_Inertia: 1
   m_DecelerationRate: 0.135
@@ -60534,7 +60534,10 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: a7eaab9b23e76b54bac1783442441dc6, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  originalPosition: {x: 0, y: 0, z: 0}
+  duration: 0.2
+  moveOffset: 100
+  fadeEase: 6
+  moveEase: 27
 --- !u!225 &7806253678738950292
 CanvasGroup:
   m_ObjectHideFlags: 0
@@ -60561,6 +60564,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   graphicRaycaster: {fileID: 2639036540326571948}
   nearFarInteractor: {fileID: 0}
+  interactorNameKeyword: Right
   hitPointMarker: {fileID: 512308211}
 --- !u!4 &7810751512828747673
 Transform:

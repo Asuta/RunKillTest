@@ -7445,7 +7445,7 @@ RectTransform:
   m_AnchorMin: {x: 0.5, y: 0.5}
   m_AnchorMax: {x: 0.5, y: 0.5}
   m_AnchoredPosition: {x: 0, y: 0}
-  m_SizeDelta: {x: 425.8, y: 153.5}
+  m_SizeDelta: {x: 425.8, y: 180.78}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!222 &8360633460297886200
 CanvasRenderer:
@@ -21427,7 +21427,7 @@ RectTransform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 3395687519682655704}
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalPosition: {x: 0, y: 0, z: -0}
   m_LocalScale: {x: 0.44847, y: 0.44847, z: 0.44847}
   m_ConstrainProportionsScale: 0
   m_Children: []
@@ -21435,7 +21435,7 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0.5, y: 0.5}
   m_AnchorMax: {x: 0.5, y: 0.5}
-  m_AnchoredPosition: {x: 7, y: -68}
+  m_AnchoredPosition: {x: 1, y: -59}
   m_SizeDelta: {x: 951.3, y: 50}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!222 &6686476536635054863
@@ -21466,7 +21466,10 @@ MonoBehaviour:
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_text: Long press the menu key to quickly switch to editor mode
+  m_text: 'Long press menu button: switch edit mode
+
+    Left trigger + menu button:
+    reset position'
   m_isRightToLeft: 0
   m_fontAsset: {fileID: 11400000, guid: 8f586378b4e144a9851e7b34d9b748ee, type: 2}
   m_sharedMaterial: {fileID: 2180264, guid: 8f586378b4e144a9851e7b34d9b748ee, type: 2}
@@ -21500,7 +21503,7 @@ MonoBehaviour:
   m_fontSizeMin: 18
   m_fontSizeMax: 72
   m_fontStyle: 0
-  m_HorizontalAlignment: 1
+  m_HorizontalAlignment: 2
   m_VerticalAlignment: 256
   m_textAlignment: 65535
   m_characterSpacing: 0
@@ -25977,6 +25980,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   graphicRaycaster: {fileID: 7670635216589301914}
   nearFarInteractor: {fileID: 0}
+  interactorNameKeyword: Right
   hitPointMarker: {fileID: 6626856749528758814}
 --- !u!1 &3943544744013479673
 GameObject:
@@ -26434,7 +26438,7 @@ RectTransform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 4021144210724044833}
   m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
-  m_LocalPosition: {x: 0, y: 0, z: 0.0012023919}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
   m_LocalScale: {x: 1.0565232, y: 1.0565228, z: 1.0565231}
   m_ConstrainProportionsScale: 0
   m_Children:
@@ -26443,7 +26447,7 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0, y: 1}
   m_AnchorMax: {x: 0, y: 1}
-  m_AnchoredPosition: {x: 83.004395, y: -76.99988}
+  m_AnchoredPosition: {x: 83, y: -68}
   m_SizeDelta: {x: 98.4, y: 100}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!222 &8430844614462075979
@@ -40509,6 +40513,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   graphicRaycaster: {fileID: 6486708957702729645}
   nearFarInteractor: {fileID: 0}
+  interactorNameKeyword: Right
   hitPointMarker: {fileID: 4783956581104858878}
 --- !u!1 &5531341375528794251
 GameObject:
@@ -51783,7 +51788,7 @@ MonoBehaviour:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 7084271306992287570}
-  m_Enabled: 1
+  m_Enabled: 0
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: fe87c0e1cc204ed48ad3b37840f39efc, type: 3}
   m_Name: 
@@ -52916,7 +52921,7 @@ RectTransform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 7212461004929247911}
   m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
-  m_LocalPosition: {x: 0, y: 0, z: -0}
+  m_LocalPosition: {x: 0, y: 0, z: -0.00027036972}
   m_LocalScale: {x: 1.0565232, y: 1.0565228, z: 1.0565231}
   m_ConstrainProportionsScale: 0
   m_Children:
@@ -52925,7 +52930,7 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0, y: 1}
   m_AnchorMax: {x: 0, y: 1}
-  m_AnchoredPosition: {x: 212, y: -77}
+  m_AnchoredPosition: {x: 211.99707, y: -68.00035}
   m_SizeDelta: {x: 98.4, y: 100}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!222 &5107789610022860543
@@ -57609,6 +57614,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   graphicRaycaster: {fileID: 4410916133187439222}
   nearFarInteractor: {fileID: 0}
+  interactorNameKeyword: Right
   hitPointMarker: {fileID: 1824143874890992133}
 --- !u!1 &7594325798753023455
 GameObject:
@@ -60183,6 +60189,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   graphicRaycaster: {fileID: 6236711229699902112}
   nearFarInteractor: {fileID: 0}
+  interactorNameKeyword: Right
   hitPointMarker: {fileID: 3865695665614023920}
 --- !u!1 &7917271295544719966
 GameObject:
@@ -69952,6 +69959,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   graphicRaycaster: {fileID: 4105999428922543028}
   nearFarInteractor: {fileID: 0}
+  interactorNameKeyword: Right
   hitPointMarker: {fileID: 407798459642132615}
 --- !u!1 &8983499002343837601
 GameObject:
@@ -72648,7 +72656,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 4318923317145030917, guid: 9cc6d4d92fa23a744bb27b4f4211143f, type: 3}
       propertyPath: m_LocalPosition.z
-      value: -0
+      value: -0.00027036972
       objectReference: {fileID: 0}
     - target: {fileID: 4318923317145030917, guid: 9cc6d4d92fa23a744bb27b4f4211143f, type: 3}
       propertyPath: m_LocalRotation.w
@@ -72668,11 +72676,11 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 4318923317145030917, guid: 9cc6d4d92fa23a744bb27b4f4211143f, type: 3}
       propertyPath: m_AnchoredPosition.x
-      value: 350
+      value: 349.99707
       objectReference: {fileID: 0}
     - target: {fileID: 4318923317145030917, guid: 9cc6d4d92fa23a744bb27b4f4211143f, type: 3}
       propertyPath: m_AnchoredPosition.y
-      value: -77
+      value: -68.00035
       objectReference: {fileID: 0}
     - target: {fileID: 4318923317145030917, guid: 9cc6d4d92fa23a744bb27b4f4211143f, type: 3}
       propertyPath: m_LocalEulerAnglesHint.x

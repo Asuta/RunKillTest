@@ -92,13 +92,13 @@ public class UIRaycastPointer : MonoBehaviour
     private void ValidateInteractor()
     {
         // 如果当前交互器不匹配关键词，或者为空，则重新寻找
-        if (nearFarInteractor == null || !nearFarInteractor.gameObject.name.Contains(interactorNameKeyword))
+        if (nearFarInteractor == null || !CheckNameMatch(nearFarInteractor))
         {
             NearFarInteractor[] interactors = Object.FindObjectsByType<NearFarInteractor>(FindObjectsSortMode.None);
             bool foundMatch = false;
             foreach (var inter in interactors)
             {
-                if (inter.gameObject.name.Contains(interactorNameKeyword))
+                if (CheckNameMatch(inter))
                 {
                     nearFarInteractor = inter;
                     foundMatch = true;
@@ -114,12 +114,25 @@ public class UIRaycastPointer : MonoBehaviour
         }
     }
 
+    private bool CheckNameMatch(NearFarInteractor inter)
+    {
+        if (inter == null) return false;
+        
+        // 检查自身名称
+        if (inter.gameObject.name.Contains(interactorNameKeyword)) return true;
+        
+        // 检查父物体名称（解决关键词在父物体上的情况）
+        if (inter.transform.parent != null && inter.transform.parent.name.Contains(interactorNameKeyword)) return true;
+        
+        return false;
+    }
+
     private bool hasHit = false;
 
     void Update()
     {
         // 自动恢复引用
-        if (graphicRaycaster == null || eventSystem == null || nearFarInteractor == null || !nearFarInteractor.gameObject.name.Contains(interactorNameKeyword))
+        if (graphicRaycaster == null || eventSystem == null || nearFarInteractor == null || !CheckNameMatch(nearFarInteractor))
         {
             Initialize();
             if (graphicRaycaster == null || hitPointMarker == null) return;
