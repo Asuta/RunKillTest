@@ -3,6 +3,7 @@ using UnityEngine.UI;
 using UnityEngine.EventSystems;
 using System.Collections.Generic;
 using UnityEngine.XR.Interaction.Toolkit.Interactors;
+using UnityEngine.SceneManagement;
 
 public class UIRaycastPointer : MonoBehaviour
 {
@@ -13,6 +14,8 @@ public class UIRaycastPointer : MonoBehaviour
     [Header("XR射线检测")]
     [Tooltip("XR射线交互器，用于获取射线位置")]
     public NearFarInteractor nearFarInteractor;
+    [Tooltip("目标交互器的物体名称关键词（例如 'Right' 或 'Left'）")]
+    public string interactorNameKeyword = "Right";
 
     [Header("提示点")]
     [Tooltip("用于显示射线落点的小红点UI")]
@@ -22,236 +25,192 @@ public class UIRaycastPointer : MonoBehaviour
     private EventSystem eventSystem;
     private Canvas targetCanvas;
 
+    void OnEnable()
+    {
+        SceneManager.sceneLoaded += OnSceneLoaded;
+    }
+
+    void OnDisable()
+    {
+        SceneManager.sceneLoaded -= OnSceneLoaded;
+    }
+
+    private void OnSceneLoaded(Scene scene, LoadSceneMode mode)
+    {
+        // 场景切换时强制重置引用，确保重新寻找
+        nearFarInteractor = null;
+        graphicRaycaster = null;
+        eventSystem = null;
+        Initialize();
+    }
+
     void Start()
     {
-        // 获取场景中的EventSystem
-        eventSystem = FindObjectOfType<EventSystem>();
+        Initialize();
+    }
+
+    private void Initialize()
+    {
+        // 1. 获取场景中的EventSystem
         if (eventSystem == null)
         {
-            Debug.LogError("UIRaycastPointer: No EventSystem found in scene! Please add one.");
-            return;
+            eventSystem = Object.FindFirstObjectByType<EventSystem>();
         }
-
-        // 如果没有在Inspector中指定GraphicRaycaster，就尝试在Canvas上找
+        
+        // 2. 获取 GraphicRaycaster
         if (graphicRaycaster == null)
         {
-            graphicRaycaster = FindObjectOfType<GraphicRaycaster>();
+            graphicRaycaster = Object.FindFirstObjectByType<GraphicRaycaster>();
         }
 
-        if (graphicRaycaster == null)
+        if (graphicRaycaster != null)
         {
-            Debug.LogError("UIRaycastPointer: No GraphicRaycaster found! Please add one to your Canvas.");
-            return;
+            targetCanvas = graphicRaycaster.GetComponent<Canvas>();
+            // WorldSpace 下自动修复相机
+            if (targetCanvas != null && targetCanvas.renderMode == RenderMode.WorldSpace && targetCanvas.worldCamera == null)
+            {
+                targetCanvas.worldCamera = Camera.main;
+            }
         }
 
-        // 如果没有指定XR射线交互器，尝试在场景中找
-        if (nearFarInteractor == null)
+        // 3. 核心修复：强制重新验证交互器
+        ValidateInteractor();
+
+        // 4. 初始化 PointerEventData
+        if (eventSystem != null && pointerEventData == null)
         {
-            nearFarInteractor = FindObjectOfType<NearFarInteractor>();
+            pointerEventData = new PointerEventData(eventSystem);
         }
 
-        if (nearFarInteractor == null)
-        {
-            Debug.LogWarning("UIRaycastPointer: No NearFarInteractor found. Will fall back to mouse input.");
-        }
-
-        // 初始化PointerEventData，这是射线检测所必需的
-        pointerEventData = new PointerEventData(eventSystem);
-
-        // 获取Canvas信息用于调试
-        targetCanvas = graphicRaycaster.GetComponent<Canvas>();
-        if (targetCanvas != null)
-        {
-            Debug.Log("UIRaycastPointer: Found Canvas with render mode: " + targetCanvas.renderMode);
-        }
-
-        // 初始时隐藏小红点
-        if (hitPointMarker != null)
+        // 5. 初始时隐藏小红点
+        if (hitPointMarker != null && !hasHit)
         {
             hitPointMarker.gameObject.SetActive(false);
         }
     }
 
+    private void ValidateInteractor()
+    {
+        // 如果当前交互器不匹配关键词，或者为空，则重新寻找
+        if (nearFarInteractor == null || !nearFarInteractor.gameObject.name.Contains(interactorNameKeyword))
+        {
+            NearFarInteractor[] interactors = Object.FindObjectsByType<NearFarInteractor>(FindObjectsSortMode.None);
+            bool foundMatch = false;
+            foreach (var inter in interactors)
+            {
+                if (inter.gameObject.name.Contains(interactorNameKeyword))
+                {
+                    nearFarInteractor = inter;
+                    foundMatch = true;
+                    break;
+                }
+            }
+            
+            if (!foundMatch && nearFarInteractor == null)
+            {
+                // 只有在完全找不到匹配项且当前为空时，才尝试保底
+                nearFarInteractor = Object.FindFirstObjectByType<NearFarInteractor>();
+            }
+        }
+    }
+
+    private bool hasHit = false;
+
     void Update()
     {
-        // 如果没有指定GraphicRaycaster或小红点，则不执行任何操作
-        if (graphicRaycaster == null || hitPointMarker == null)
+        // 自动恢复引用
+        if (graphicRaycaster == null || eventSystem == null || nearFarInteractor == null || !nearFarInteractor.gameObject.name.Contains(interactorNameKeyword))
         {
-            Debug.LogWarning("UIRaycastPointer: Missing graphicRaycaster or hitPointMarker");
-            return;
+            Initialize();
+            if (graphicRaycaster == null || hitPointMarker == null) return;
+        }
+
+        // 确保 WorldSpace Canvas 相机实时有效
+        if (targetCanvas != null && targetCanvas.renderMode == RenderMode.WorldSpace && targetCanvas.worldCamera == null)
+        {
+            targetCanvas.worldCamera = Camera.main;
         }
 
         // --- 核心逻辑 ---
 
-        // 1. 设置射线检测的屏幕位置
-        Vector2 screenPosition;
-        
+        bool hasHit = false;
+        Vector3 hitWorldPos = Vector3.zero;
+        Vector2 hitScreenPos = Vector2.zero;
+
+        // 1. 优先使用指定的 XR 射线交互器
         if (nearFarInteractor != null)
         {
-            // 使用NearFarInteractor的UI射线检测结果
             if (nearFarInteractor.TryGetCurrentUIRaycastResult(out RaycastResult uiRaycastResult))
             {
-                Debug.Log("UIRaycastPointer: XR UI ray hit on UI element: " + uiRaycastResult.gameObject.name);
-                
-                // World Space Canvas：使用 worldPosition 直接放置到世界坐标上（hitPointMarker为该 Canvas 的子物体）
-                if (targetCanvas != null && targetCanvas.renderMode == RenderMode.WorldSpace)
+                if (uiRaycastResult.gameObject != null)
                 {
-                    if (hitPointMarker != null)
-                    {
-                        hitPointMarker.gameObject.SetActive(true);
-                        // 使用射线结果的 worldPosition（NearFarInteractor 提供）
-                        hitPointMarker.position = uiRaycastResult.worldPosition;
-                        // 可选：让 marker 面向摄像机（如果需要朝向调整）
-                        // hitPointMarker.rotation = Quaternion.LookRotation(-uiRaycastResult.worldNormal, targetCanvas.transform.up);
-                        hitPointMarker.SetAsLastSibling();
-                    }
+                    hasHit = true;
+                    hitWorldPos = uiRaycastResult.worldPosition;
+                    hitScreenPos = uiRaycastResult.screenPosition;
                 }
-                else
-                {
-                    // Screen Space 模式：使用 screenPosition -> 转换为 Canvas 本地坐标
-                    Vector2 screenPos = uiRaycastResult.screenPosition;
-                    if (hitPointMarker != null)
-                    {
-                        hitPointMarker.gameObject.SetActive(true);
-                        RectTransform canvasRectTransform = hitPointMarker.parent as RectTransform;
-                        if (canvasRectTransform != null)
-                        {
-                            Camera cam = (targetCanvas != null && targetCanvas.renderMode == RenderMode.ScreenSpaceCamera) ? targetCanvas.worldCamera : null;
-                            Vector2 localPoint;
-                            RectTransformUtility.ScreenPointToLocalPointInRectangle(
-                                canvasRectTransform,
-                                screenPos,
-                                cam,
-                                out localPoint
-                            );
-                            hitPointMarker.anchoredPosition = localPoint;
-                        }
-                        else
-                        {
-                            hitPointMarker.position = screenPos;
-                        }
-                        hitPointMarker.SetAsLastSibling();
-                    }
-                }
-
-                return; // 直接返回，不需要执行后续的GraphicRaycaster检测
             }
-            else
+        }
+
+        // 2. 如果 XR 没检测到，回退到鼠标/中心点
+        if (!hasHit)
+        {
+            Vector2 screenPos = Input.mousePosition;
+            if (screenPos == Vector2.zero) screenPos = new Vector2(Screen.width / 2, Screen.height / 2);
+            
+            if (pointerEventData == null && eventSystem != null) pointerEventData = new PointerEventData(eventSystem);
+            
+            if (pointerEventData != null)
             {
-                // 如果没有UI射线检测结果，隐藏小红点并返回
-                // 之前这里回退到了屏幕中心，导致了类似Gaze的效果，现在移除这个回退
-                if (hitPointMarker != null)
+                pointerEventData.position = screenPos;
+                List<RaycastResult> results = new List<RaycastResult>();
+                graphicRaycaster.Raycast(pointerEventData, results);
+
+                if (results.Count > 0)
                 {
-                    hitPointMarker.gameObject.SetActive(false);
+                    hasHit = true;
+                    hitScreenPos = results[0].screenPosition;
+                    hitWorldPos = results[0].worldPosition;
                 }
-                return;
-            }
-        }
-        else
-        {
-            // 回退到鼠标位置
-            screenPosition = Input.mousePosition;
-            Debug.Log("UIRaycastPointer: Using mouse position: " + screenPosition);
-        }
-        
-        pointerEventData.position = screenPosition;
-
-        // 2. 创建一个列表来存储射线检测的结果
-        List<RaycastResult> results = new List<RaycastResult>();
-
-        // 3. 执行射线检测
-        graphicRaycaster.Raycast(pointerEventData, results);
-
-        // 调试信息：输出射线检测结果数量
-        Debug.Log("UIRaycastPointer: Found " + results.Count + " UI elements at mouse position " + Input.mousePosition);
-        
-        // 如果没有检测到UI元素，尝试使用物理射线检测作为备选方案
-        if (results.Count == 0)
-        {
-            // 尝试使用Physics.Raycast检测3D物体上的UI
-            Ray ray = Camera.main.ScreenPointToRay(Input.mousePosition);
-            RaycastHit hit;
-            if (Physics.Raycast(ray, out hit))
-            {
-                Debug.Log("UIRaycastPointer: Physics raycast hit: " + hit.collider.gameObject.name);
-                
-                // 将3D世界坐标转换为屏幕坐标
-                Vector3 screenPos = Camera.main.WorldToScreenPoint(hit.point);
-                Debug.Log("UIRaycastPointer: Converted to screen position: " + screenPos);
-                
-                // 创建一个假的RaycastResult
-                RaycastResult fakeResult = new RaycastResult();
-                fakeResult.screenPosition = screenPos;
-                fakeResult.gameObject = hit.collider.gameObject;
-                results.Add(fakeResult);
             }
         }
 
-        // 4. 处理检测结果
-        if (results.Count > 0)
+        // 3. 处理显示
+        if (hasHit)
         {
-            // results[0]是离屏幕最近（最顶层）的UI元素
-            RaycastResult firstHit = results[0];
-
-            // 调试信息：输出击中的UI元素名称
-            Debug.Log("UIRaycastPointer: Hit UI element: " + firstHit.gameObject.name + " at screen position " + firstHit.screenPosition);
-
-            // 激活小红点
             hitPointMarker.gameObject.SetActive(true);
 
-            // 将小红点的位置设置到射线的落点处
-            // 根据 Canvas 类型选择不同的坐标转换方式
             if (targetCanvas != null && targetCanvas.renderMode == RenderMode.WorldSpace)
             {
-                // World Space Canvas：使用 worldPosition（NearFarInteractor 或 GraphicRaycaster 的 RaycastResult 可能包含 worldPosition）
-                // 如果 firstHit 提供了 worldPosition，优先使用；否则尝试把 screenPosition 投影回世界（不常见）
-                Vector3 worldPos = firstHit.worldPosition;
-                if (worldPos != Vector3.zero)
+                if (hitWorldPos == Vector3.zero)
                 {
-                    hitPointMarker.position = worldPos;
+                    Camera cam = targetCanvas.worldCamera != null ? targetCanvas.worldCamera : Camera.main;
+                    if (cam != null)
+                    {
+                        float dist = Vector3.ProjectOnPlane(targetCanvas.transform.position - cam.transform.position, targetCanvas.transform.forward).magnitude;
+                        hitWorldPos = cam.ScreenToWorldPoint(new Vector3(hitScreenPos.x, hitScreenPos.y, dist));
+                    }
                 }
-                else
-                {
-                    // 作为保护：将屏幕点转换为世界点（需要摄像机）
-                    Vector3 screenPoint = firstHit.screenPosition;
-                    Camera cam = Camera.main;
-                    Vector3 wp = cam.ScreenToWorldPoint(new Vector3(screenPoint.x, screenPoint.y, cam.nearClipPlane + 0.5f));
-                    hitPointMarker.position = wp;
-                }
+                if (hitWorldPos != Vector3.zero) hitPointMarker.position = hitWorldPos;
             }
             else
             {
-                // Screen Space（Overlay / Camera）：使用 ScreenPointToLocalPointInRectangle，传入合适的 camera
                 RectTransform canvasRectTransform = hitPointMarker.parent as RectTransform;
                 if (canvasRectTransform != null)
                 {
                     Camera cam = (targetCanvas != null && targetCanvas.renderMode == RenderMode.ScreenSpaceCamera) ? targetCanvas.worldCamera : null;
                     Vector2 localPoint;
-                    RectTransformUtility.ScreenPointToLocalPointInRectangle(
-                        canvasRectTransform,
-                        firstHit.screenPosition,
-                        cam,
-                        out localPoint
-                    );
+                    RectTransformUtility.ScreenPointToLocalPointInRectangle(canvasRectTransform, hitScreenPos, cam, out localPoint);
                     hitPointMarker.anchoredPosition = localPoint;
                 }
-                else
-                {
-                    hitPointMarker.position = firstHit.screenPosition;
-                }
             }
-            
-            // 为了确保小红点显示在所有其他UI之上，可以把它在Hierarchy中设置为最后一个子物体
             hitPointMarker.SetAsLastSibling();
-
-            // (可选) 在Console中打印出击中的UI物体名称，方便调试
-            // Debug.Log("Hit UI: " + firstHit.gameObject.name);
         }
         else
         {
-            // 如果没有检测到任何UI元素，则隐藏小红点
-            Debug.Log("UIRaycastPointer: No UI elements detected at mouse position");
-            hitPointMarker.gameObject.SetActive(false);
+            if (hitPointMarker.gameObject.activeSelf)
+            {
+                hitPointMarker.gameObject.SetActive(false);
+            }
         }
     }
 }
