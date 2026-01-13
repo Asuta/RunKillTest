@@ -7762,6 +7762,10 @@ PrefabInstance:
       propertyPath: m_AnchoredPosition.y
       value: 59.3
       objectReference: {fileID: 0}
+    - target: {fileID: 6422278057553884413, guid: bc0155a13853fc8419232c25bf05f6ba, type: 3}
+      propertyPath: m_IsActive
+      value: 1
+      objectReference: {fileID: 0}
     - target: {fileID: 6882466730588209075, guid: bc0155a13853fc8419232c25bf05f6ba, type: 3}
       propertyPath: m_LocalPosition.z
       value: -0
@@ -27780,6 +27784,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   graphicRaycaster: {fileID: 1617553943}
   nearFarInteractor: {fileID: 0}
+  interactorNameKeyword: Right
   hitPointMarker: {fileID: 662584580}
 --- !u!114 &1617553936
 MonoBehaviour:
@@ -33942,6 +33947,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   graphicRaycaster: {fileID: 2031513251}
   nearFarInteractor: {fileID: 0}
+  interactorNameKeyword: Right
   hitPointMarker: {fileID: 176272657}
 --- !u!1 &2047022186
 GameObject:
