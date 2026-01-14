@@ -6051,7 +6051,7 @@ MeshRenderer:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 892331928852440114}
-  m_Enabled: 1
+  m_Enabled: 0
   m_CastShadows: 1
   m_ReceiveShadows: 1
   m_DynamicOccludee: 1
@@ -7514,14 +7514,14 @@ Transform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1117368646568186433}
   serializedVersion: 2
-  m_LocalRotation: {x: -0.36213467, y: -0.00000008940696, z: -0.0000001490116, w: 0.9321258}
-  m_LocalPosition: {x: 0.017, y: 0.477, z: 1.26}
+  m_LocalRotation: {x: 0.18016267, y: 0.6678313, z: -0.23238006, w: 0.6837706}
+  m_LocalPosition: {x: -0.062, y: 1.046, z: -0.279}
   m_LocalScale: {x: 0.056521095, y: 0.056521095, z: 0.96634114}
   m_ConstrainProportionsScale: 0
   m_Children:
   - {fileID: 3852645540205339248}
   m_Father: {fileID: 3372574247741230406}
-  m_LocalEulerAnglesHint: {x: -42.463, y: 0, z: 0}
+  m_LocalEulerAnglesHint: {x: 33.832, y: 87.027, z: -5.329}
 --- !u!33 &1796318037709790714
 MeshFilter:
   m_ObjectHideFlags: 0
@@ -17339,6 +17339,7 @@ Transform:
   m_ConstrainProportionsScale: 0
   m_Children:
   - {fileID: 7808485029704362953}
+  - {fileID: 4103570901676840237}
   m_Father: {fileID: 6506961581752954803}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!33 &4811046119338167566
@@ -17356,7 +17357,7 @@ MeshRenderer:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 2817671864271476372}
-  m_Enabled: 1
+  m_Enabled: 0
   m_CastShadows: 1
   m_ReceiveShadows: 1
   m_DynamicOccludee: 1
@@ -18212,7 +18213,7 @@ MonoBehaviour:
   health: 1
   deathRed: {fileID: 5719372322411676396}
   endUI: {fileID: 8126256189163402278}
-  grabBody: {fileID: 2817671864271476372}
+  grabBody: {fileID: 3231881091938683542}
 --- !u!114 &3055948514670794303
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -36373,7 +36374,7 @@ MeshRenderer:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 4998216769676440575}
-  m_Enabled: 1
+  m_Enabled: 0
   m_CastShadows: 1
   m_ReceiveShadows: 1
   m_DynamicOccludee: 1
@@ -72590,6 +72591,81 @@ MonoBehaviour:
   m_hasFontAssetChanged: 0
   m_baseMaterial: {fileID: 0}
   m_maskOffset: {x: 0, y: 0, z: 0, w: 0}
+--- !u!1001 &4208619180146971097
+PrefabInstance:
+  m_ObjectHideFlags: 0
+  serializedVersion: 2
+  m_Modification:
+    serializedVersion: 3
+    m_TransformParent: {fileID: 5391349371002895592}
+    m_Modifications:
+    - target: {fileID: 187685701957813492, guid: 85ff16c701b34b545a2484fea0d98d16, type: 3}
+      propertyPath: m_LocalScale.y
+      value: 0.4111673
+      objectReference: {fileID: 0}
+    - target: {fileID: 187685701957813492, guid: 85ff16c701b34b545a2484fea0d98d16, type: 3}
+      propertyPath: m_LocalPosition.x
+      value: -0.079998605
+      objectReference: {fileID: 0}
+    - target: {fileID: 187685701957813492, guid: 85ff16c701b34b545a2484fea0d98d16, type: 3}
+      propertyPath: m_LocalPosition.y
+      value: -0.44817242
+      objectReference: {fileID: 0}
+    - target: {fileID: 187685701957813492, guid: 85ff16c701b34b545a2484fea0d98d16, type: 3}
+      propertyPath: m_LocalPosition.z
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 187685701957813492, guid: 85ff16c701b34b545a2484fea0d98d16, type: 3}
+      propertyPath: m_LocalRotation.w
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 187685701957813492, guid: 85ff16c701b34b545a2484fea0d98d16, type: 3}
+      propertyPath: m_LocalRotation.x
+      value: -0
+      objectReference: {fileID: 0}
+    - target: {fileID: 187685701957813492, guid: 85ff16c701b34b545a2484fea0d98d16, type: 3}
+      propertyPath: m_LocalRotation.y
+      value: -0
+      objectReference: {fileID: 0}
+    - target: {fileID: 187685701957813492, guid: 85ff16c701b34b545a2484fea0d98d16, type: 3}
+      propertyPath: m_LocalRotation.z
+      value: -0
+      objectReference: {fileID: 0}
+    - target: {fileID: 187685701957813492, guid: 85ff16c701b34b545a2484fea0d98d16, type: 3}
+      propertyPath: m_LocalEulerAnglesHint.x
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 187685701957813492, guid: 85ff16c701b34b545a2484fea0d98d16, type: 3}
+      propertyPath: m_LocalEulerAnglesHint.y
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 187685701957813492, guid: 85ff16c701b34b545a2484fea0d98d16, type: 3}
+      propertyPath: m_LocalEulerAnglesHint.z
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 1635359041599363919, guid: 85ff16c701b34b545a2484fea0d98d16, type: 3}
+      propertyPath: m_Name
+      value: Stickman Medieval Pack
+      objectReference: {fileID: 0}
+    - target: {fileID: 8395597189522762286, guid: 85ff16c701b34b545a2484fea0d98d16, type: 3}
+      propertyPath: m_Enabled
+      value: 1
+      objectReference: {fileID: 0}
+    m_RemovedComponents: []
+    m_RemovedGameObjects: []
+    m_AddedGameObjects: []
+    m_AddedComponents: []
+  m_SourcePrefab: {fileID: 100100000, guid: 85ff16c701b34b545a2484fea0d98d16, type: 3}
+--- !u!1 &3231881091938683542 stripped
+GameObject:
+  m_CorrespondingSourceObject: {fileID: 1635359041599363919, guid: 85ff16c701b34b545a2484fea0d98d16, type: 3}
+  m_PrefabInstance: {fileID: 4208619180146971097}
+  m_PrefabAsset: {fileID: 0}
+--- !u!4 &4103570901676840237 stripped
+Transform:
+  m_CorrespondingSourceObject: {fileID: 187685701957813492, guid: 85ff16c701b34b545a2484fea0d98d16, type: 3}
+  m_PrefabInstance: {fileID: 4208619180146971097}
+  m_PrefabAsset: {fileID: 0}
 --- !u!1001 &4281718595503105675
 PrefabInstance:
   m_ObjectHideFlags: 0
