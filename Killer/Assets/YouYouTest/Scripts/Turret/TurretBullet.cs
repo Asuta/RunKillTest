@@ -42,6 +42,12 @@ public class TurretBullet : MonoBehaviour
             Vector3 B = target.position;
             Vector3 AB = B - A;
             float currentDistance = AB.magnitude;
+
+            if (currentDistance > Mathf.Epsilon)
+            {
+                transform.forward = AB.normalized;
+            }
+
             if (currentDistance <= Mathf.Epsilon)
             {
                 transform.position = B;
