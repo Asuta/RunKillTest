@@ -18,12 +18,51 @@ public class CheckPoint : MonoBehaviour
 
     // 当前状态
     private CheckPointState currentState = CheckPointState.Inactive;
+
+    private MeshRenderer meshRenderer;
     
     // 在MonoBehaviour创建后，Update第一次执行前调用一次
     void Start()
     {
+        meshRenderer = GetComponent<MeshRenderer>();
+
         // 初始化颜色为未激活状态（黄色）
         UpdateParticleColors();
+
+        // 订阅游戏模式变化事件
+        GlobalEvent.IsPlayChange.AddListener(OnGameModeChange);
+
+        // 订阅GameManager就绪事件
+        GameManager.OnGameManagerReady += OnGameManagerReady;
+
+        // 主动获取GameManager的playmode并设置一次OnGameModeChange
+        if (GameManager.Instance != null)
+        {
+            OnGameModeChange(GameManager.Instance.IsPlayMode);
+        }
+    }
+
+    void OnDestroy()
+    {
+        // 取消订阅游戏模式变化事件
+        GlobalEvent.IsPlayChange.RemoveListener(OnGameModeChange);
+
+        // 取消订阅GameManager就绪事件
+        GameManager.OnGameManagerReady -= OnGameManagerReady;
+    }
+
+    private void OnGameModeChange(bool isPlayMode)
+    {
+        // 切换成player模式的时候，隐藏自己的meshrender，editor模式再显示出来
+        if (meshRenderer != null)
+        {
+            meshRenderer.enabled = !isPlayMode;
+        }
+    }
+
+    private void OnGameManagerReady(bool initialMode)
+    {
+        OnGameModeChange(initialMode);
     }
 
     // 每帧调用一次
