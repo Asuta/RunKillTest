@@ -13,23 +13,17 @@ public class CheckPoint : MonoBehaviour
     }
 
     // 状态对应的颜色
-    [SerializeField] private Color inactiveColor = Color.gray;
+    [SerializeField] private Color inactiveColor = Color.yellow;
     [SerializeField] private Color activatedColor = Color.green;
 
     // 当前状态
     private CheckPointState currentState = CheckPointState.Inactive;
     
-    // 材质引用
-    private Material material;
-
-
     // 在MonoBehaviour创建后，Update第一次执行前调用一次
     void Start()
     {
-        // 获取材质组件
-        material = GetComponent<Renderer>().material;
-        // 初始化颜色
-        UpdateMaterialColor();
+        // 初始化颜色为未激活状态（黄色）
+        UpdateParticleColors();
     }
 
     // 每帧调用一次
@@ -50,25 +44,33 @@ public class CheckPoint : MonoBehaviour
         }
     }
 
-    // 更新材质颜色
-    private void UpdateMaterialColor()
+    /// <summary>
+    /// 统一设置所有粒子系统的颜色
+    /// </summary>
+    private void SetAllParticleColors(Color color)
     {
-        switch (currentState)
+        // 获取自身及所有子物体中的 ParticleSystem 组件（包括未激活的，支持多级嵌套）
+        ParticleSystem[] particleSystems = GetComponentsInChildren<ParticleSystem>(true);
+
+        foreach (var ps in particleSystems)
         {
-            case CheckPointState.Inactive:
-                material.color = inactiveColor;
-                break;
-            case CheckPointState.Activated:
-                material.color = activatedColor;
-                break;
+            var main = ps.main;
+            main.startColor = color;
         }
+    }
+
+    // 更新粒子系统颜色
+    private void UpdateParticleColors()
+    {
+        Color targetColor = currentState == CheckPointState.Inactive ? inactiveColor : activatedColor;
+        SetAllParticleColors(targetColor);
     }
 
     // 设置状态
     public void SetState(CheckPointState newState)
     {
         currentState = newState;
-        UpdateMaterialColor();
+        UpdateParticleColors();
     }
 
     // 获取当前状态
