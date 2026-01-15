@@ -213,13 +213,13 @@ public class SaveUI : AutoCleanupBehaviour
                         levelNameInput.levelJsonName = slotInfo.fileName;
                         levelNameInput.subFolder = slotInfo.subFolder;
                     }
-                    Debug.LogError("找到InputField啦，通过InputField设置文本: " + inputField.name);
+                    // Debug.LogError("找到InputField啦，通过InputField设置文本: " + inputField.name);
                 }
                 else
                 {
                     // 如果是普通的Text组件，直接设置
                     text.text = slotInfo.LevelName;
-                    Debug.LogError("找到普通Text啦，名字是: " + text.name);
+                    // Debug.LogError("找到普通Text啦，名字是: " + text.name);
                 }
             }
             else if (text.name.ToLower().Contains("time") || text.name.ToLower().Contains("date"))

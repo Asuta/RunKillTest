@@ -63891,7 +63891,10 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: a7eaab9b23e76b54bac1783442441dc6, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  originalPosition: {x: 0, y: 0, z: 0}
+  duration: 0.2
+  moveOffset: 100
+  fadeEase: 6
+  moveEase: 27
 --- !u!225 &7806253678738950292
 CanvasGroup:
   m_ObjectHideFlags: 0
@@ -63918,6 +63921,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   graphicRaycaster: {fileID: 2639036540326571948}
   nearFarInteractor: {fileID: 0}
+  interactorNameKeyword: Right
   hitPointMarker: {fileID: 512308211}
 --- !u!4 &7810751512828747673
 Transform:
