@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.Rendering;
@@ -74,8 +74,8 @@ namespace EPOOutline
         private static Material LoadMaterial(string shaderName)
         {
             var material = new Material(Resources.Load<Shader>(string.Format("Easy performant outline/Shaders/{0}", shaderName)));
-            if (SystemInfo.supportsInstancing)
-                material.enableInstancing = true;
+            // if (SystemInfo.supportsInstancing)
+            //     material.enableInstancing = true;
 
             return material;
         }

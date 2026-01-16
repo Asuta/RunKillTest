@@ -1,4 +1,4 @@
-﻿using UnityEngine;
+using UnityEngine;
 using UnityEngine.Rendering;
 using System;
 
@@ -54,11 +54,12 @@ namespace EPOOutline
         {
             get
             {
-                if (supportsInstancing.HasValue)
-                    return supportsInstancing.Value;
+                return false;
+                // if (supportsInstancing.HasValue)
+                //     return supportsInstancing.Value;
 
-                supportsInstancing = SystemInfo.supportsInstancing;
-                return supportsInstancing.Value;
+                // supportsInstancing = SystemInfo.supportsInstancing;
+                // return supportsInstancing.Value;
             }
         }
 
