@@ -156,6 +156,7 @@ MonoBehaviour:
   positionSmoothSpeed: 10
   rotationSmoothSpeed: 15
   freezeYaxis: 1
+  scaleControlEnabled: 1
 --- !u!114 &3582698401767280928
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -181,6 +182,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: b93df8ee4136a2b408e146d0e9cf73e9, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  hoverColor: {r: 1, g: 0.92156863, b: 0.015686275, a: 1}
+  selectedColor: {r: 0, g: 1, b: 1, a: 1}
 --- !u!114 &4209836471840017528
 MonoBehaviour:
   m_ObjectHideFlags: 0
