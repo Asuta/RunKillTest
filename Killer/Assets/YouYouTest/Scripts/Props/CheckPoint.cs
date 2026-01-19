@@ -20,7 +20,7 @@ public class CheckPoint : MonoBehaviour
     private CheckPointState currentState = CheckPointState.Inactive;
 
     private MeshRenderer meshRenderer;
-    
+
     // 在MonoBehaviour创建后，Update第一次执行前调用一次
     void Start()
     {
@@ -28,6 +28,7 @@ public class CheckPoint : MonoBehaviour
 
         // 初始化颜色为未激活状态（黄色）
         UpdateParticleColors();
+
 
         // 订阅游戏模式变化事件
         GlobalEvent.IsPlayChange.AddListener(OnGameModeChange);
@@ -56,7 +57,8 @@ public class CheckPoint : MonoBehaviour
         // 切换成player模式的时候，隐藏自己的meshrender，editor模式再显示出来
         if (meshRenderer != null)
         {
-            meshRenderer.enabled = !isPlayMode;
+            // meshRenderer.enabled = !isPlayMode;
+            meshRenderer.enabled = false;
         }
     }
 
@@ -68,7 +70,7 @@ public class CheckPoint : MonoBehaviour
     // 每帧调用一次
     void Update()
     {
-        
+
     }
 
     // 触发器检测 - 当玩家进入触发器时
