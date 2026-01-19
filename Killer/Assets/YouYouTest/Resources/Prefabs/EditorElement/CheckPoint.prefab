@@ -358,17 +358,6 @@ MonoBehaviour:
     CullMode: 2
     cutoutTextureName: 
     cutoutTextureIndex: 0
-  - CutoutMask: 8
-    renderer: {fileID: 0}
-    SubmeshIndex: 0
-    BoundsMode: 0
-    Bounds:
-      m_Center: {x: 0, y: 0, z: 0}
-      m_Extent: {x: 0.5, y: 0.5, z: 0.5}
-    CutoutThreshold: 0.5
-    CullMode: 2
-    cutoutTextureName: 
-    cutoutTextureIndex: 0
   renderStyle: 1
   outlineParameters:
     enabled: 1
@@ -506,6 +495,26 @@ PrefabInstance:
     - target: {fileID: 457352, guid: c4df91fb1add148458b81e4ea3c8c049, type: 3}
       propertyPath: m_LocalEulerAnglesHint.z
       value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 19803840, guid: c4df91fb1add148458b81e4ea3c8c049, type: 3}
+      propertyPath: InitialModule.startColor.maxColor.r
+      value: 0.8633568
+      objectReference: {fileID: 0}
+    - target: {fileID: 19805732, guid: c4df91fb1add148458b81e4ea3c8c049, type: 3}
+      propertyPath: InitialModule.startColor.maxColor.r
+      value: 0.8192065
+      objectReference: {fileID: 0}
+    - target: {fileID: 19888488, guid: c4df91fb1add148458b81e4ea3c8c049, type: 3}
+      propertyPath: InitialModule.startColor.maxColor.b
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 19888488, guid: c4df91fb1add148458b81e4ea3c8c049, type: 3}
+      propertyPath: InitialModule.startColor.maxColor.g
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 19888488, guid: c4df91fb1add148458b81e4ea3c8c049, type: 3}
+      propertyPath: InitialModule.startColor.maxColor.r
+      value: 0.8437866
       objectReference: {fileID: 0}
     m_RemovedComponents:
     - {fileID: 3177743526734544620, guid: c4df91fb1add148458b81e4ea3c8c049, type: 3}
