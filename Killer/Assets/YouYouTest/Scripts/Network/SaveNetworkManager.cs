@@ -121,8 +121,8 @@ public class SaveNetworkManager : MonoBehaviour
         string uid = DeviceIDManager.GetDeviceID();
         int pLength = imageBytes.Length;
         int jLength = jsonBytes.Length;
-        string encodedName = UnityWebRequest.EscapeURL(levelName);
-        string encodedDesc = UnityWebRequest.EscapeURL(description);
+        string encodedName = UnityWebRequest.EscapeURL(levelName).Replace("+", "%20");
+        string encodedDesc = UnityWebRequest.EscapeURL(description).Replace("+", "%20");
 
         // 接口格式: /up?uid=%s&PLength=%d&JLength=%d&Name=%s&ObNum=%d&Desc=%s
         string url = string.Format("{0}/up?uid={1}&PLength={2}&JLength={3}&Name={4}&ObNum={5}&Desc={6}",

@@ -44,7 +44,8 @@ public class WebLevelSlot : MonoBehaviour
 
         if (levelButton != null) levelButton.interactable = true;
         levelID = data.level_id;
-        levelText.text = string.IsNullOrEmpty(data.name) ? "未命名关卡" : data.name;
+        string displayName = string.IsNullOrEmpty(data.name) ? "未命名关卡" : data.name;
+        levelText.text = UnityWebRequest.UnEscapeURL(displayName);
         
         if (levelImage != null)
         {
