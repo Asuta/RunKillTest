@@ -7586,6 +7586,10 @@ PrefabInstance:
     serializedVersion: 3
     m_TransformParent: {fileID: 2116952119}
     m_Modifications:
+    - target: {fileID: 373460693574776707, guid: bc0155a13853fc8419232c25bf05f6ba, type: 3}
+      propertyPath: serverUrl
+      value: http://192.168.5.236:8080
+      objectReference: {fileID: 0}
     - target: {fileID: 490244850749621306, guid: bc0155a13853fc8419232c25bf05f6ba, type: 3}
       propertyPath: m_IsActive
       value: 0
@@ -35878,6 +35882,10 @@ PrefabInstance:
     - target: {fileID: 2860270136672695413, guid: 2ba73c9cdc3a0b0489f11baf9b0e4c84, type: 3}
       propertyPath: m_Colors.m_NormalColor.r
       value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 3026200369642541859, guid: 2ba73c9cdc3a0b0489f11baf9b0e4c84, type: 3}
+      propertyPath: serverUrl
+      value: http://192.168.5.236:8080
       objectReference: {fileID: 0}
     - target: {fileID: 3405530633968540289, guid: 2ba73c9cdc3a0b0489f11baf9b0e4c84, type: 3}
       propertyPath: m_Pivot.x

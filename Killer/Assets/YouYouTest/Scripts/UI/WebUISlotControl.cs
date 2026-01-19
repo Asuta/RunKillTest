@@ -6,7 +6,8 @@ using UnityEngine.UI;
 
 public class WebUISlotControl : MonoBehaviour
 {
-    public string serverUrl = "http://127.0.0.1:8000";
+    [Header("服务器设置")]
+    public string serverUrl = "http://192.168.5.236:8080";
     public GameObject sampleSlotPrefab;
     public Transform slotContainer;
 
@@ -53,37 +54,9 @@ public class WebUISlotControl : MonoBehaviour
         }
         spawnedSlots.Clear();
 
-        StartCoroutine(GetListRoutine());
-    }
-
-    IEnumerator GetListRoutine()
-    {
-        string url = $"{serverUrl.TrimEnd('/')}/get_levels/?page={currentPage}&page_size={PageSize}";
-        using (UnityWebRequest www = UnityWebRequest.Get(url))
-        {
-            yield return www.SendWebRequest();
-
-            LevelItem[] levels = null;
-
-            if (www.result != UnityWebRequest.Result.Success)
-            {
-                Debug.LogError("获取列表失败: " + www.error);
-                // 即使失败也生成空槽位，或者保持旧的？
-                // 根据要求，我们应该尝试解析或处理
-            }
-            else
-            {
-                string jsonString = www.downloadHandler.text;
-                try
-                {
-                    // 使用 NetworkTest.cs 中定义的 JsonHelper
-                    levels = JsonHelper.FromJson<LevelItem>(jsonString);
-                }
-                catch (System.Exception e)
-                {
-                    Debug.LogError("JSON解析出错: " + e.Message);
-                }
-            }
+        // 使用统一的 SaveNetworkManager 获取列表
+        SaveNetworkManager.Instance.GetLevelList(serverUrl, currentPage, PageSize, (response) => {
+            LevelItem[] levels = response != null ? response.tasks : null;
 
             // 无论成功与否，都确保生成 9 个槽位
             for (int i = 0; i < PageSize; i++)
@@ -97,7 +70,7 @@ public class WebUISlotControl : MonoBehaviour
                     CreateSlot(null); // 生成空槽位
                 }
             }
-        }
+        });
     }
 
     void CreateSlot(LevelItem data)
@@ -111,7 +84,7 @@ public class WebUISlotControl : MonoBehaviour
         WebLevelSlot slot = go.GetComponent<WebLevelSlot>();
         if (slot != null)
         {
-            // 如果 data 为 null，Setup 内部应该处理空数据的情况（比如隐藏 UI 元素）
+            // 如果 data 为 null，Setup 内部应该处理空数据的情况
             slot.Setup(data, serverUrl);
         }
     }

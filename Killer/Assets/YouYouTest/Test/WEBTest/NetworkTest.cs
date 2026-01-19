@@ -53,6 +53,8 @@ public class NetworkTest : MonoBehaviour
             "thumb.png", 
             imageBytes, 
             serverUrl, 
+            0, // 测试数据默认传 0
+            "这是通过 NetworkTest 发送的测试描述", 
             (success, message) => {
                 if (success) Debug.Log("上传成功! 服务器返回: " + message);
                 else Debug.LogError("上传失败: " + message);
@@ -69,20 +71,20 @@ public class NetworkTest : MonoBehaviour
     [ContextMenu("2.1 Test Get List (获取指定页)")]
     public void TestGetListWithParams()
     {
-        SaveNetworkManager.Instance.GetLevelList(serverUrl, currentPage, pageSize, (levels) => {
-            if (levels == null || levels.Length == 0)
+        SaveNetworkManager.Instance.GetLevelList(serverUrl, currentPage, pageSize, (response) => {
+            if (response == null || response.tasks == null || response.tasks.Length == 0)
             {
                 Debug.LogWarning("列表是空的，请先上传一个关卡。");
                 return;
             }
 
-            Debug.Log($"解析成功! 找到了 {levels.Length} 个关卡。");
-            Debug.Log($"<color=green>建议测试用的 ID: {levels[0].level_id}</color> (已为你自动填入Inspector)");
+            Debug.Log($"解析成功! 找到了 {response.total_num} 个关卡 (当前页: {response.tasks.Length})。");
+            Debug.Log($"<color=green>建议测试用的 ID: {response.tasks[0].tid}</color> (已为你自动填入Inspector)");
             
-            testDownloadId = levels[0].level_id;
+            testDownloadId = response.tasks[0].tid;
             
             // 开始批量下载缩略图
-            StartCoroutine(DownloadThumbnailsRoutine(levels));
+            StartCoroutine(DownloadThumbnailsRoutine(response.tasks));
         });
     }
 
@@ -117,7 +119,7 @@ public class NetworkTest : MonoBehaviour
         }
         
         SaveNetworkManager.Instance.DownloadLevel(serverUrl, testDownloadId, (success) => {
-            if (success) Debug.Log("<color=green>下载并保存成功!</color>");
+            if (success) Debug.Log("<color=green>下载并保存成功! 请查看上述日志中的文件路径。</color>");
             else Debug.LogError("下载失败");
         });
     }
