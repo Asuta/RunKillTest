@@ -5,6 +5,10 @@ using System.Linq; // 引入Linq以便于查找
 
 public class TabController : MonoBehaviour
 {
+    [Header("颜色设置")]
+    public Color activeTabColor = Color.white;
+    public Color inactiveTabColor = Color.gray;
+
     // 这两个列表将由脚本在运行时自动填充
     public List<Button> tabButtons;
     public List<GameObject> pages;
@@ -29,9 +33,15 @@ public class TabController : MonoBehaviour
             tabButtons[i].onClick.RemoveAllListeners(); // 清理旧监听器
             tabButtons[i].onClick.AddListener(() => OnTabClick(index));
         }
+    }
 
-        // 4. 默认显示第一个Tab
-        OnTabClick(0);
+    void Start()
+    {
+        // 4. 默认显示并选中第一个Tab
+        if (tabButtons != null && tabButtons.Count > 0)
+        {
+            OnTabClick(0);
+        }
     }
 
     private void FindAndAssignUIElements()
@@ -77,7 +87,11 @@ public class TabController : MonoBehaviour
             if (tabButtons.Count > i && tabButtons[i] != null)
             {
                 // 改变Tab按钮的颜色以示选中状态
-                tabButtons[i].GetComponent<Image>().color = isActive ? Color.white : new Color(0.9f, 0.9f, 0.9f);
+                Image buttonImage = tabButtons[i].GetComponent<Image>();
+                if (buttonImage != null)
+                {
+                    buttonImage.color = isActive ? activeTabColor : inactiveTabColor;
+                }
             }
         }
     }

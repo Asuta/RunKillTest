@@ -9820,11 +9820,11 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 2329346382923249789, guid: bc0155a13853fc8419232c25bf05f6ba, type: 3}
       propertyPath: m_AnchorMax.x
-      value: 1
+      value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 2329346382923249789, guid: bc0155a13853fc8419232c25bf05f6ba, type: 3}
       propertyPath: m_AnchorMax.y
-      value: 1
+      value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 3398844212183336450, guid: bc0155a13853fc8419232c25bf05f6ba, type: 3}
       propertyPath: m_Pivot.x
@@ -9905,6 +9905,70 @@ PrefabInstance:
     - target: {fileID: 3398844212183336450, guid: bc0155a13853fc8419232c25bf05f6ba, type: 3}
       propertyPath: m_LocalEulerAnglesHint.z
       value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 3575580788731185126, guid: bc0155a13853fc8419232c25bf05f6ba, type: 3}
+      propertyPath: m_Colors.m_NormalColor.b
+      value: 0.5999999
+      objectReference: {fileID: 0}
+    - target: {fileID: 3575580788731185126, guid: bc0155a13853fc8419232c25bf05f6ba, type: 3}
+      propertyPath: m_Colors.m_NormalColor.g
+      value: 0.5999999
+      objectReference: {fileID: 0}
+    - target: {fileID: 3575580788731185126, guid: bc0155a13853fc8419232c25bf05f6ba, type: 3}
+      propertyPath: m_Colors.m_NormalColor.r
+      value: 0.5999999
+      objectReference: {fileID: 0}
+    - target: {fileID: 3575580788731185126, guid: bc0155a13853fc8419232c25bf05f6ba, type: 3}
+      propertyPath: m_Colors.m_PressedColor.b
+      value: 0.83396226
+      objectReference: {fileID: 0}
+    - target: {fileID: 3575580788731185126, guid: bc0155a13853fc8419232c25bf05f6ba, type: 3}
+      propertyPath: m_Colors.m_PressedColor.g
+      value: 0.83396226
+      objectReference: {fileID: 0}
+    - target: {fileID: 3575580788731185126, guid: bc0155a13853fc8419232c25bf05f6ba, type: 3}
+      propertyPath: m_Colors.m_PressedColor.r
+      value: 0.83396226
+      objectReference: {fileID: 0}
+    - target: {fileID: 3575580788731185126, guid: bc0155a13853fc8419232c25bf05f6ba, type: 3}
+      propertyPath: m_Colors.m_DisabledColor.b
+      value: 0.6
+      objectReference: {fileID: 0}
+    - target: {fileID: 3575580788731185126, guid: bc0155a13853fc8419232c25bf05f6ba, type: 3}
+      propertyPath: m_Colors.m_DisabledColor.g
+      value: 0.6
+      objectReference: {fileID: 0}
+    - target: {fileID: 3575580788731185126, guid: bc0155a13853fc8419232c25bf05f6ba, type: 3}
+      propertyPath: m_Colors.m_DisabledColor.r
+      value: 0.6
+      objectReference: {fileID: 0}
+    - target: {fileID: 3575580788731185126, guid: bc0155a13853fc8419232c25bf05f6ba, type: 3}
+      propertyPath: m_Colors.m_SelectedColor.b
+      value: 0.8352942
+      objectReference: {fileID: 0}
+    - target: {fileID: 3575580788731185126, guid: bc0155a13853fc8419232c25bf05f6ba, type: 3}
+      propertyPath: m_Colors.m_SelectedColor.g
+      value: 0.8352942
+      objectReference: {fileID: 0}
+    - target: {fileID: 3575580788731185126, guid: bc0155a13853fc8419232c25bf05f6ba, type: 3}
+      propertyPath: m_Colors.m_SelectedColor.r
+      value: 0.8352942
+      objectReference: {fileID: 0}
+    - target: {fileID: 3575580788731185126, guid: bc0155a13853fc8419232c25bf05f6ba, type: 3}
+      propertyPath: m_Colors.m_HighlightedColor.b
+      value: 0.78867924
+      objectReference: {fileID: 0}
+    - target: {fileID: 3575580788731185126, guid: bc0155a13853fc8419232c25bf05f6ba, type: 3}
+      propertyPath: m_Colors.m_HighlightedColor.g
+      value: 0.78867924
+      objectReference: {fileID: 0}
+    - target: {fileID: 3575580788731185126, guid: bc0155a13853fc8419232c25bf05f6ba, type: 3}
+      propertyPath: m_Colors.m_HighlightedColor.r
+      value: 0.78867924
+      objectReference: {fileID: 0}
+    - target: {fileID: 6422278057553884413, guid: bc0155a13853fc8419232c25bf05f6ba, type: 3}
+      propertyPath: m_IsActive
+      value: 1
       objectReference: {fileID: 0}
     - target: {fileID: 7996209517111199810, guid: bc0155a13853fc8419232c25bf05f6ba, type: 3}
       propertyPath: m_AnchorMax.x
