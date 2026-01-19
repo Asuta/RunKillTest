@@ -22,7 +22,10 @@ public class WebUISlotControl : MonoBehaviour
     {
         if (nextButton != null) nextButton.onClick.AddListener(OnNextPage);
         if (prevButton != null) prevButton.onClick.AddListener(OnPrevPage);
+    }
 
+    void OnEnable()
+    {
         RefreshList();
     }
 
