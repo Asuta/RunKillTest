@@ -253,29 +253,64 @@ public class SaveNetworkManager : MonoBehaviour
         callback?.Invoke(true);
     }
 
+    private Dictionary<string, Sprite> spriteCache = new Dictionary<string, Sprite>();
+    private Dictionary<string, List<UnityAction<Sprite>>> pendingRequests = new Dictionary<string, List<UnityAction<Sprite>>>();
+
     /// <summary>
     /// 下载缩略图
     /// </summary>
     public void DownloadThumbnail(string url, UnityAction<Sprite> callback)
     {
-        StartCoroutine(DownloadThumbnailRoutine(url, callback));
+        if (spriteCache.ContainsKey(url))
+        {
+            callback?.Invoke(spriteCache[url]);
+            return;
+        }
+
+        if (pendingRequests.ContainsKey(url))
+        {
+            pendingRequests[url].Add(callback);
+            return;
+        }
+
+        pendingRequests[url] = new List<UnityAction<Sprite>> { callback };
+        StartCoroutine(DownloadThumbnailRoutine(url));
     }
 
-    private IEnumerator DownloadThumbnailRoutine(string url, UnityAction<Sprite> callback)
+    private IEnumerator DownloadThumbnailRoutine(string url)
     {
         using (UnityWebRequest www = UnityWebRequestTexture.GetTexture(url))
         {
+            www.timeout = 5; // 增加到 5 秒超时
             yield return www.SendWebRequest();
 
+            Sprite resultSprite = null;
             if (www.result == UnityWebRequest.Result.Success)
             {
                 Texture2D texture = DownloadHandlerTexture.GetContent(www);
-                Sprite sprite = Sprite.Create(texture, new Rect(0, 0, texture.width, texture.height), new Vector2(0.5f, 0.5f));
-                callback?.Invoke(sprite);
+                if (texture != null && texture.width > 2 && texture.height > 2)
+                {
+                    resultSprite = Sprite.Create(texture, new Rect(0, 0, texture.width, texture.height), new Vector2(0.5f, 0.5f));
+                    spriteCache[url] = resultSprite;
+                }
+                else
+                {
+                    Debug.LogError($"下载成功但纹理无效: {url}");
+                }
             }
             else
             {
-                callback?.Invoke(null);
+                // 详细记录错误类型和状态码
+                Debug.LogError($"下载缩略图失败! URL: {url}, Result: {www.result}, HttpCode: {www.responseCode}, Error: {www.error}");
+            }
+
+            if (pendingRequests.TryGetValue(url, out var callbacks))
+            {
+                foreach (var cb in callbacks)
+                {
+                    cb?.Invoke(resultSprite);
+                }
+                pendingRequests.Remove(url);
             }
         }
     }

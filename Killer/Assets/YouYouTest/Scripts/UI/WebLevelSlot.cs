@@ -57,7 +57,14 @@ public class WebLevelSlot : MonoBehaviour
                 fullUrl = SaveNetworkManager.Instance.ServerUrl.TrimEnd('/') + (fullUrl.StartsWith("/") ? "" : "/") + fullUrl;
             }
             SaveNetworkManager.Instance.DownloadThumbnail(fullUrl, (sprite) => {
-                if (levelImage != null) levelImage.sprite = sprite;
+                if (levelImage != null)
+                {
+                    levelImage.sprite = sprite;
+                    if (sprite == null)
+                    {
+                        Debug.LogWarning($"关卡 {levelID} ({displayName}) 的缩略图加载失败，请检查服务器资源。");
+                    }
+                }
             });
         }
 
