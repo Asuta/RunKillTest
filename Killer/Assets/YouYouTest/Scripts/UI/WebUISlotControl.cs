@@ -6,8 +6,6 @@ using UnityEngine.UI;
 
 public class WebUISlotControl : MonoBehaviour
 {
-    [Header("服务器设置")]
-    public string serverUrl = "http://192.168.5.236:8080";
     public GameObject sampleSlotPrefab;
     public Transform slotContainer;
 
@@ -58,7 +56,7 @@ public class WebUISlotControl : MonoBehaviour
         spawnedSlots.Clear();
 
         // 使用统一的 SaveNetworkManager 获取列表
-        SaveNetworkManager.Instance.GetLevelList(serverUrl, currentPage, PageSize, (response) => {
+        SaveNetworkManager.Instance.GetLevelList(currentPage, PageSize, (response) => {
             LevelItem[] levels = response != null ? response.tasks : null;
 
             // 无论成功与否，都确保生成 9 个槽位
@@ -88,7 +86,7 @@ public class WebUISlotControl : MonoBehaviour
         if (slot != null)
         {
             // 如果 data 为 null，Setup 内部应该处理空数据的情况
-            slot.Setup(data, serverUrl);
+            slot.Setup(data);
         }
     }
 }

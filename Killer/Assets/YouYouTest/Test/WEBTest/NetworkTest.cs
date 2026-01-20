@@ -7,9 +7,6 @@ using VInspector;
 
 public class NetworkTest : MonoBehaviour
 {
-    [Header("1. 服务器设置")]
-    public string serverUrl = "http://127.0.0.1:8000";
-
     [Header("2. 上传测试数据")]
     public string levelName = "我的测试关卡";
     public TextAsset uploadJson; // 拖入你的JSON文件
@@ -52,7 +49,6 @@ public class NetworkTest : MonoBehaviour
             uploadJson.bytes, 
             "thumb.png", 
             imageBytes, 
-            serverUrl, 
             0, // 测试数据默认传 0
             "这是通过 NetworkTest 发送的测试描述", 
             (success, message) => {
@@ -71,7 +67,7 @@ public class NetworkTest : MonoBehaviour
     [ContextMenu("2.1 Test Get List (获取指定页)")]
     public void TestGetListWithParams()
     {
-        SaveNetworkManager.Instance.GetLevelList(serverUrl, currentPage, pageSize, (response) => {
+        SaveNetworkManager.Instance.GetLevelList(currentPage, pageSize, (response) => {
             if (response == null || response.tasks == null || response.tasks.Length == 0)
             {
                 Debug.LogWarning("列表是空的，请先上传一个关卡。");
@@ -109,18 +105,18 @@ public class NetworkTest : MonoBehaviour
         TestGetListWithParams();
     }
 
-    [ContextMenu("3. Test Download (下载指定ID)")]
+    [ContextMenu("3. Test Download (下载)")]
     public void TestDownload()
     {
         if (string.IsNullOrEmpty(testDownloadId))
         {
-            Debug.LogError("请先在Inspector里填入 testDownloadId");
+            Debug.LogError("请先填入 testDownloadId！");
             return;
         }
-        
-        SaveNetworkManager.Instance.DownloadLevel(serverUrl, testDownloadId, (success) => {
-            if (success) Debug.Log("<color=green>下载并保存成功! 请查看上述日志中的文件路径。</color>");
-            else Debug.LogError("下载失败");
+
+        SaveNetworkManager.Instance.DownloadLevel(testDownloadId, (success) => {
+            if (success) Debug.Log("下载成功! 请查看 UserSaveData/WebSaveData 文件夹。");
+            else Debug.LogError("下载失败!");
         });
     }
 
@@ -145,7 +141,7 @@ public class NetworkTest : MonoBehaviour
 
             if (!thumbnailUrl.StartsWith("http"))
             {
-                thumbnailUrl = serverUrl.TrimEnd('/') + (thumbnailUrl.StartsWith("/") ? "" : "/") + thumbnailUrl;
+                thumbnailUrl = SaveNetworkManager.Instance.ServerUrl.TrimEnd('/') + (thumbnailUrl.StartsWith("/") ? "" : "/") + thumbnailUrl;
             }
 
             int index = i;

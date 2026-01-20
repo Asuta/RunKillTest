@@ -16,10 +16,6 @@ public class SaveUI : AutoCleanupBehaviour
     public Transform addButton;
     public Transform setDeleteButton;
 
-    [Header("服务器设置")]
-    public string serverUrl = "http://192.168.5.236:8080";
-
-    
     [Header("删除按钮控制")]
     public bool deleteButtonsActive = true;
 
@@ -98,8 +94,9 @@ public class SaveUI : AutoCleanupBehaviour
         OnEnable();
     }
 
-    private void OnDestroy()
+    protected override void OnDestroy()
     {
+        base.OnDestroy();
         GlobalEvent.OnLoadSaveChange.RemoveListener(OnLoadSaveChangeInternal);
     }
 
@@ -436,7 +433,7 @@ public class SaveUI : AutoCleanupBehaviour
     {
         if (slotInfo == null) return;
         Debug.Log($"开始上传存档: {slotInfo.LevelName}");
-        SaveNetworkManager.Instance.UploadLevel(slotInfo, serverUrl, "", (success, message) => {
+        SaveNetworkManager.Instance.UploadLevel(slotInfo, "", (success, message) => {
             if (success)
             {
                 Debug.Log($"<color=green>上传成功!</color> {message}");

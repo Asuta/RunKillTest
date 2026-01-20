@@ -12,12 +12,9 @@ public class WebLevelSlot : MonoBehaviour
     public TMPro.TextMeshProUGUI levelText;
     public Button levelButton;
     public string levelID;
-    private string serverUrl;
 
-    public void Setup(LevelItem data, string serverUrl)
+    public void Setup(LevelItem data)
     {
-        this.serverUrl = serverUrl;
-
         // 处理空数据情况
         if (data == null)
         {
@@ -57,7 +54,7 @@ public class WebLevelSlot : MonoBehaviour
             string fullUrl = data.thumbnail_url;
             if (!fullUrl.StartsWith("http"))
             {
-                fullUrl = serverUrl.TrimEnd('/') + (fullUrl.StartsWith("/") ? "" : "/") + fullUrl;
+                fullUrl = SaveNetworkManager.Instance.ServerUrl.TrimEnd('/') + (fullUrl.StartsWith("/") ? "" : "/") + fullUrl;
             }
             SaveNetworkManager.Instance.DownloadThumbnail(fullUrl, (sprite) => {
                 if (levelImage != null) levelImage.sprite = sprite;
@@ -83,7 +80,7 @@ public class WebLevelSlot : MonoBehaviour
 
             levelButton.onClick.AddListener(() => {
                 Debug.Log($"点击了关卡: {levelID}，开始下载...");
-                SaveNetworkManager.Instance.DownloadLevel(serverUrl, levelID, (success) => {
+                SaveNetworkManager.Instance.DownloadLevel(levelID, (success) => {
                     if (success)
                     {
                         UpdateToPlayState();

@@ -49,6 +49,8 @@ public static class JsonHelper
 public class SaveNetworkManager : MonoBehaviour
 {
     private static SaveNetworkManager _instance;
+    public string ServerUrl = "http://192.168.5.236:8080";
+
     public static SaveNetworkManager Instance
     {
         get
@@ -66,7 +68,7 @@ public class SaveNetworkManager : MonoBehaviour
     /// <summary>
     /// 上传存档到服务器
     /// </summary>
-    public void UploadLevel(SaveSlotInfo slotInfo, string serverUrl, string description = "", UnityAction<bool, string> callback = null)
+    public void UploadLevel(SaveSlotInfo slotInfo, string description = "", UnityAction<bool, string> callback = null)
     {
         string userFolderPath = SaveLoadManager.Instance.GetUserFolderPath();
         
@@ -104,18 +106,18 @@ public class SaveNetworkManager : MonoBehaviour
         }
         byte[] imageBytes = File.ReadAllBytes(imagePath);
 
-        UploadLevelRaw(slotInfo.LevelName, slotInfo.fileName, jsonBytes, Path.GetFileName(imagePath), imageBytes, serverUrl, slotInfo.objectCount, description, callback);
+        UploadLevelRaw(slotInfo.LevelName, slotInfo.fileName, jsonBytes, Path.GetFileName(imagePath), imageBytes, slotInfo.objectCount, description, callback);
     }
 
     /// <summary>
     /// 通用上传接口
     /// </summary>
-    public void UploadLevelRaw(string levelName, string jsonFileName, byte[] jsonBytes, string imageFileName, byte[] imageBytes, string serverUrl, int objectCount, string description, UnityAction<bool, string> callback = null)
+    public void UploadLevelRaw(string levelName, string jsonFileName, byte[] jsonBytes, string imageFileName, byte[] imageBytes, int objectCount, string description, UnityAction<bool, string> callback = null)
     {
-        StartCoroutine(UploadRawRoutine(levelName, jsonFileName, jsonBytes, imageFileName, imageBytes, serverUrl, objectCount, description, callback));
+        StartCoroutine(UploadRawRoutine(levelName, jsonFileName, jsonBytes, imageFileName, imageBytes, objectCount, description, callback));
     }
 
-    private IEnumerator UploadRawRoutine(string levelName, string jsonFileName, byte[] jsonBytes, string imageFileName, byte[] imageBytes, string serverUrl, int objectCount, string description, UnityAction<bool, string> callback)
+    private IEnumerator UploadRawRoutine(string levelName, string jsonFileName, byte[] jsonBytes, string imageFileName, byte[] imageBytes, int objectCount, string description, UnityAction<bool, string> callback)
     {
         // 1. 构建 URL 和参数
         string uid = DeviceIDManager.GetDeviceID();
@@ -126,7 +128,7 @@ public class SaveNetworkManager : MonoBehaviour
 
         // 接口格式: /up?uid=%s&PLength=%d&JLength=%d&Name=%s&ObNum=%d&Desc=%s
         string url = string.Format("{0}/up?uid={1}&PLength={2}&JLength={3}&Name={4}&ObNum={5}&Desc={6}",
-            serverUrl.TrimEnd('/'), uid, pLength, jLength, encodedName, objectCount, encodedDesc);
+            ServerUrl.TrimEnd('/'), uid, pLength, jLength, encodedName, objectCount, encodedDesc);
 
         // 2. 构建二进制包体：Json 字节流 + 图片字节流
         byte[] bodyData = new byte[jsonBytes.Length + imageBytes.Length];
@@ -158,14 +160,14 @@ public class SaveNetworkManager : MonoBehaviour
     /// <summary>
     /// 获取服务器关卡列表
     /// </summary>
-    public void GetLevelList(string serverUrl, int page, int pageSize, UnityAction<LevelListResponse> callback)
+    public void GetLevelList(int page, int pageSize, UnityAction<LevelListResponse> callback)
     {
-        StartCoroutine(GetListRoutine(serverUrl, page, pageSize, callback));
+        StartCoroutine(GetListRoutine(page, pageSize, callback));
     }
 
-    private IEnumerator GetListRoutine(string serverUrl, int page, int pageSize, UnityAction<LevelListResponse> callback)
+    private IEnumerator GetListRoutine(int page, int pageSize, UnityAction<LevelListResponse> callback)
     {
-        string url = $"{serverUrl.TrimEnd('/')}/get_all_tasks/?page={page}&size={pageSize}";
+        string url = $"{ServerUrl.TrimEnd('/')}/get_all_tasks/?page={page}&size={pageSize}";
         using (UnityWebRequest www = UnityWebRequest.Get(url))
         {
             yield return www.SendWebRequest();
@@ -194,12 +196,12 @@ public class SaveNetworkManager : MonoBehaviour
     /// <summary>
     /// 下载关卡到本地
     /// </summary>
-    public void DownloadLevel(string serverUrl, string levelId, UnityAction<bool> callback = null)
+    public void DownloadLevel(string levelId, UnityAction<bool> callback = null)
     {
-        StartCoroutine(DownloadLevelRoutine(serverUrl, levelId, callback));
+        StartCoroutine(DownloadLevelRoutine(levelId, callback));
     }
 
-    private IEnumerator DownloadLevelRoutine(string serverUrl, string id, UnityAction<bool> callback)
+    private IEnumerator DownloadLevelRoutine(string id, UnityAction<bool> callback)
     {
         string saveFolder = Path.Combine(Application.dataPath, "..", "UserSaveData", "WebSaveData");
         if (!Directory.Exists(saveFolder))
@@ -209,7 +211,7 @@ public class SaveNetworkManager : MonoBehaviour
 
         bool jsonSuccess = false;
         // 1. 下载 JSON
-        string jsonUrl = $"{serverUrl.TrimEnd('/')}/get_json?id={id}";
+        string jsonUrl = $"{ServerUrl.TrimEnd('/')}/get_json?id={id}";
         using (UnityWebRequest wwwJson = UnityWebRequest.Get(jsonUrl))
         {
             yield return wwwJson.SendWebRequest();
@@ -234,7 +236,7 @@ public class SaveNetworkManager : MonoBehaviour
         }
 
         // 2. 下载 图片
-        string imgUrl = $"{serverUrl.TrimEnd('/')}/get_image?id={id}";
+        string imgUrl = $"{ServerUrl.TrimEnd('/')}/get_image?id={id}";
         using (UnityWebRequest wwwImg = UnityWebRequestTexture.GetTexture(imgUrl))
         {
             yield return wwwImg.SendWebRequest();
