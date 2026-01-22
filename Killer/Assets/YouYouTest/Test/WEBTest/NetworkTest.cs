@@ -115,7 +115,7 @@ public class NetworkTest : MonoBehaviour
         }
 
         SaveNetworkManager.Instance.DownloadLevel(testDownloadId, (success) => {
-            if (success) Debug.Log("下载成功! 请查看 UserSaveData/WebSaveData 文件夹。");
+            if (success) Debug.Log($"下载成功! 请查看 {Application.persistentDataPath}/WebSaveData 文件夹。");
             else Debug.LogError("下载失败!");
         });
     }

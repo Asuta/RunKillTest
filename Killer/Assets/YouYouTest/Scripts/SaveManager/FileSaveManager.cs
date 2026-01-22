@@ -19,18 +19,7 @@ public class FileSaveManager
     /// <returns>用户文件夹路径</returns>
     public string GetUserFolderPath()
     {
-        // 在不同平台上使用不同的用户文件夹
-        #if UNITY_EDITOR
-            return Path.Combine(Application.dataPath, "..", "UserSaveData");
-        #elif UNITY_STANDALONE_WIN
-            return Path.Combine(System.Environment.GetFolderPath(System.Environment.SpecialFolder.ApplicationData), "YourGameName");
-        #elif UNITY_STANDALONE_OSX
-            return Path.Combine(System.Environment.GetFolderPath(System.Environment.SpecialFolder.Personal), "Library", "Application Support", "YourGameName");
-        #elif UNITY_STANDALONE_LINUX
-            return Path.Combine(System.Environment.GetFolderPath(System.Environment.SpecialFolder.Personal), ".yourgamename");
-        #else
-            return Application.persistentDataPath;
-        #endif
+        return Application.persistentDataPath;
     }
     
     /// <summary>

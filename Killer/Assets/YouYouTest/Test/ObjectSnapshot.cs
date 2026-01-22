@@ -92,8 +92,8 @@ public static class ObjectSnapshot
                 }
                 else
                 {
-                    // 关卡截图统一存放在 UserSaveData 目录下
-                    directoryPath = Path.Combine(Application.dataPath, "..", "UserSaveData");
+                    // 关卡截图统一存放在 persistentDataPath 目录下
+                    directoryPath = Application.persistentDataPath;
                 }
 
                 // 确保目录存在

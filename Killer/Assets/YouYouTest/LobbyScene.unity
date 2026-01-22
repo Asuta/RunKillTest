@@ -5987,7 +5987,6 @@ MonoBehaviour:
   entryParent: {fileID: 1210998741}
   addButton: {fileID: 1620942173}
   setDeleteButton: {fileID: 282711814}
-  serverUrl: http://127.0.0.1:8000
   deleteButtonsActive: 0
 --- !u!114 &336206255
 MonoBehaviour:
@@ -25673,6 +25672,10 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   handT: {fileID: 204575470}
+  hookAudioSource: {fileID: 0}
+  HookGetClip: {fileID: 0}
+  HeadAudioSource: {fileID: 0}
+  HookGoClip: {fileID: 0}
 --- !u!114 &1525856506
 MonoBehaviour:
   m_ObjectHideFlags: 0

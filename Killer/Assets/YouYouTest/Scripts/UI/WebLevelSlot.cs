@@ -69,7 +69,7 @@ public class WebLevelSlot : MonoBehaviour
         }
 
         // 检查本地是否已经下载过该关卡 (网络关卡存放在 WebSaveData)
-        string saveFolder = Path.Combine(Application.dataPath, "..", "UserSaveData", "WebSaveData");
+        string saveFolder = Path.Combine(SaveLoadManager.Instance.GetUserFolderPath(), "WebSaveData");
         string jsonPath = Path.Combine(saveFolder, $"{levelID}_SceneObjects.json");
 
         if (File.Exists(jsonPath))

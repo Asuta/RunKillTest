@@ -203,7 +203,7 @@ public class SaveNetworkManager : MonoBehaviour
 
     private IEnumerator DownloadLevelRoutine(string id, UnityAction<bool> callback)
     {
-        string saveFolder = Path.Combine(Application.dataPath, "..", "UserSaveData", "WebSaveData");
+        string saveFolder = Path.Combine(SaveLoadManager.Instance.GetUserFolderPath(), "WebSaveData");
         if (!Directory.Exists(saveFolder))
         {
             Directory.CreateDirectory(saveFolder);

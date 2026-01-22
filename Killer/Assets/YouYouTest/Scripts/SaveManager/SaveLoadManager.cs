@@ -1653,18 +1653,7 @@ public class SaveLoadManager : MonoBehaviour
     /// <returns>选中对象存档文件夹路径</returns>
     private string GetSelectedObjectsFolderPath()
     {
-        // 在不同平台上使用不同的用户文件夹
-#if UNITY_EDITOR
-        return Path.Combine(Application.dataPath, "..", "UserSaveData", "SelectedObjects");
-#elif UNITY_STANDALONE_WIN
-            return Path.Combine(System.Environment.GetFolderPath(System.Environment.SpecialFolder.ApplicationData), "YourGameName", "SelectedObjects");
-#elif UNITY_STANDALONE_OSX
-            return Path.Combine(System.Environment.GetFolderPath(System.Environment.SpecialFolder.Personal), "Library", "Application Support", "YourGameName", "SelectedObjects");
-#elif UNITY_STANDALONE_LINUX
-            return Path.Combine(System.Environment.GetFolderPath(System.Environment.SpecialFolder.Personal), ".yourgamename", "SelectedObjects");
-#else
-            return Path.Combine(Application.persistentDataPath, "SelectedObjects");
-#endif
+        return Path.Combine(Application.persistentDataPath, "SelectedObjects");
     }
     
     /// <summary>
