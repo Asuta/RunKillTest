@@ -9,8 +9,12 @@ public class VRHandPullHook : MonoBehaviour
     private bool isRecording = false;
     private Vector3 recordedPosition;
     private bool hasTriggered = false; // 标记是否已经触发过距离条件
-    
+
     private bool shouldDrawLine = false;
+    public AudioSource hookAudioSource;
+    public AudioClip HookGetClip;
+    public AudioSource HeadAudioSource;
+    public AudioClip HookGoClip;
 
     // Start is called once before the first execution of Update after the MonoBehaviour is created
     void Start()
@@ -44,6 +48,10 @@ public class VRHandPullHook : MonoBehaviour
                 isRecording = false;
                 hasTriggered = true; // 标记已触发
                 Debug.Log("hahaha");
+                if (HeadAudioSource != null && HookGoClip != null)
+                {
+                    HeadAudioSource.PlayOneShot(HookGoClip);
+                }
                 hookDashProvider.OutHandleHookDash();
             }
         }
@@ -62,25 +70,33 @@ public class VRHandPullHook : MonoBehaviour
                 Debug.Log("重置触发状态");
             }
         }
-        
+
         // 检查是否需要画线
         UpdateLineDrawing();
     }
-    
+
     void UpdateLineDrawing()
     {
         // 检测左手扳机键
         float leftTrigger = InputActionsManager.Actions.XRILeftInteraction.ActivateValue.ReadValue<float>();
-        
+
         // 当按下按键时，检查GameManager中的closestAngleHook
         if (leftTrigger > 0.1f)
         {
             // 获取GameManager实例
             GameManager gameManager = GameManager.Instance;
-            
+
             // 检查是否有最近的钩子
             if (gameManager != null && gameManager.ClosestAngleHook != null)
             {
+                if (!shouldDrawLine)
+                {
+                    Debug.Log("hahaha");
+                    if (hookAudioSource != null && HookGetClip != null)
+                    {
+                        hookAudioSource.PlayOneShot(HookGetClip);
+                    }
+                }
                 shouldDrawLine = true;
                 DrawLineBetweenHandAndHook();
             }
@@ -94,15 +110,15 @@ public class VRHandPullHook : MonoBehaviour
             shouldDrawLine = false;
         }
     }
-    
+
     void DrawLineBetweenHandAndHook()
     {
         if (!shouldDrawLine || handT == null || GameManager.Instance?.ClosestAngleHook == null)
             return;
-            
+
         Vector3 handPosition = handT.position;
         Vector3 hookPosition = GameManager.Instance.ClosestAngleHook.position;
-        
+
         // 使用MeshDrawUtility绘制黄色线条（使用新的简单线条方法）
         MeshDrawUtility.DrawYellowLine(handPosition, hookPosition);
     }
