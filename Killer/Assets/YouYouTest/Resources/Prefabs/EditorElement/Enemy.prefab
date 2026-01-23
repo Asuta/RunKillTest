@@ -185,6 +185,7 @@ MonoBehaviour:
   sphereMaterial: {fileID: 2100001, guid: 2ec66658b9de135428647d5bb59c198f, type: 2}
   bulletPrefab: {fileID: 2151867230420632495, guid: e3dba13aa9f886149b125c3506185898, type: 3}
   deathEffect: {fileID: 1890581295539120, guid: 0e1c7fb597c927a41893518fb7dc7472, type: 3}
+  deathClip: {fileID: 8300000, guid: 82a21a1c360828344a6c101f47053efc, type: 3}
 --- !u!54 &7439479123347375779
 Rigidbody:
   m_ObjectHideFlags: 0

@@ -97,6 +97,9 @@ public class Enemy : MonoBehaviour, ICanBeHit, IConfigurable
 
     //特效
     public GameObject deathEffect;
+
+    //音效
+    public AudioClip deathClip;
     #endregion
 
     #region 伤害处理
@@ -124,6 +127,11 @@ public class Enemy : MonoBehaviour, ICanBeHit, IConfigurable
             // 可选：设置特效的旋转与敌人一致
             effect.transform.rotation = transform.rotation;
             effect.transform.localScale *= 2;
+            // 播放死亡音效
+            if (deathClip != null)
+            {
+                AudioSource.PlayClipAtPoint(deathClip, spawnPosition);
+            }
             // 播放特效（如果特效有自带的粒子系统或动画，会自动播放）
         }
         else
