@@ -18511,6 +18511,8 @@ MonoBehaviour:
   airborneMoveJumpYMultiplier: 1
   airborneMoveJumpHorizontalMultiplier: 1
   airborneMoveJumpMaxVelocityChangePerStep: 8
+  audioSource: {fileID: 3376312976320357867}
+  wallDashSound: {fileID: 8300000, guid: 41bbaf68a88470447b2ab5a118f09ad8, type: 3}
 --- !u!114 &5364758977895391900
 MonoBehaviour:
   m_ObjectHideFlags: 0

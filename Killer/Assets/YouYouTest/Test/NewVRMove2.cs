@@ -123,7 +123,7 @@ namespace YouYouTest.VRMove2
             if (controller.thisRb != null)
             {
                 controller.thisRb.useGravity = false;
-                
+
                 // 立即重置速度，防止原来的高速度导致被挤出墙面
                 float actualMoveSpeed = controller.finalVelocityMultiplier * controller.wallSlideSpeedMultiplier;
                 Vector3 wallSlideVelocity = new Vector3(
@@ -133,32 +133,40 @@ namespace YouYouTest.VRMove2
                 );
                 controller.thisRb.linearVelocity = wallSlideVelocity;
             }
-            
+
             // 启动贴墙保护计时器
             controller.StartWallSlideProtection();
 
             // 触发进入贴墙滑行事件
             controller.InvokeOnEnterWallSliding(controller.wallNormal);
+
+            // 播放贴墙滑行音效
+            if (controller.audioSource != null && controller.wallDashSound != null)
+            {
+                controller.audioSource.clip = controller.wallDashSound;
+                controller.audioSource.loop = true;
+                controller.audioSource.Play();
+            }
         }
 
         public override void Update()
         {
             // 更新贴墙计时器
             controller.wallSlideTimer += Time.deltaTime;
-            
+
             // 更新贴墙保护计时器
             controller.UpdateWallSlideProtection();
 
             // 持续检测是否还贴在墙上
             controller.CheckWallAttachment();
-            
+
             // 检查状态是否仍然是贴墙状态
             if (controller.CurrentStateType != MovementState.WallSliding)
                 return;
 
             // 检测贴墙状态下的跳跃
             controller.WallSlidingJumpCheck();
-            
+
             if (controller.CurrentStateType != MovementState.WallSliding)
                 return;
 
@@ -169,6 +177,12 @@ namespace YouYouTest.VRMove2
         public override void Exit()
         {
             Debug.Log("离开贴墙滑行状态");
+
+            // 停止播放音效
+            if (controller.audioSource != null && controller.audioSource.isPlaying)
+            {
+                controller.audioSource.Stop();
+            }
 
             // 恢复body跟随玩家相机
             if (controller.vrBody != null)
@@ -452,6 +466,14 @@ namespace YouYouTest.VRMove2
         [Tooltip("单次 FixedUpdate 允许施加的最大速度变化（米/秒），防止瞬间过大")]
         public float airborneMoveJumpMaxVelocityChangePerStep = 8f;
 
+        [Header("移动音效相关")]
+        [Tooltip("贴墙滑行音效")]
+        public AudioSource audioSource;
+        public AudioClip wallDashSound;
+
+        
+        
+
 
         #region 私有变量
 
@@ -540,7 +562,7 @@ namespace YouYouTest.VRMove2
                 Vector3 headLocalPos = playerHead.localPosition;
                 // 计算偏移位置，使头部在水平方向上位于 Rigidbody 中心
                 Vector3 targetOffsetPos = -(cameraOffset.localRotation * headLocalPos);
-                
+
                 // 应用新的本地位置，保留 Y 轴（高度）不变，只纠正 XZ 平面的偏移
                 cameraOffset.localPosition = new Vector3(targetOffsetPos.x, cameraOffset.localPosition.y, targetOffsetPos.z);
 
@@ -620,7 +642,7 @@ namespace YouYouTest.VRMove2
                 newStateType = MovementState.Dashing;
             else if (newState is HookDashingState)
                 newStateType = MovementState.HookDashing;
-            
+
             currentState?.Exit();
             currentState = newState;
             CurrentStateType = newStateType;
