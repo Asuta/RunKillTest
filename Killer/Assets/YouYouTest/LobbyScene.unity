@@ -25556,6 +25556,7 @@ MonoBehaviour:
   airborneMoveJumpMaxVelocityChangePerStep: 8
   audioSource: {fileID: 0}
   wallDashSound: {fileID: 0}
+  playerLandSound: {fileID: 0}
 --- !u!114 &1525856501
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -36256,6 +36257,10 @@ PrefabInstance:
       propertyPath: m_Camera
       value: 
       objectReference: {fileID: 0}
+    - target: {fileID: 8956978054520162752, guid: 2ba73c9cdc3a0b0489f11baf9b0e4c84, type: 3}
+      propertyPath: tabSwitchSound
+      value: 
+      objectReference: {fileID: 8300000, guid: a468baed7738cdd46a2c711366dbc6dd, type: 3}
     - target: {fileID: 8956978054520162752, guid: 2ba73c9cdc3a0b0489f11baf9b0e4c84, type: 3}
       propertyPath: tabButtons.Array.size
       value: 0

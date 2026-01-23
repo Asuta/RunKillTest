@@ -13,6 +13,9 @@ public class TabController : MonoBehaviour
     public List<Button> tabButtons;
     public List<GameObject> pages;
 
+    // tab切换音效
+    public AudioClip tabSwitchSound;
+
     // 使用 Awake 以确保在其他脚本的 Start 之前完成初始化
     void Awake()
     {
@@ -68,6 +71,8 @@ public class TabController : MonoBehaviour
         }
     }
 
+    private int currentTabIndex = -1;
+
     /// <summary>
     /// 处理Tab按钮点击事件
     /// </summary>
@@ -75,6 +80,9 @@ public class TabController : MonoBehaviour
     public void OnTabClick(int activeIndex)
     {
         if (pages == null || tabButtons == null) return;
+
+        // 如果点击的是当前已选中的Tab，则不执行任何操作（或者根据需求决定是否重复播放音效）
+        if (currentTabIndex == activeIndex) return;
 
         for (int i = 0; i < pages.Count; i++)
         {
@@ -92,7 +100,19 @@ public class TabController : MonoBehaviour
                 {
                     buttonImage.color = isActive ? activeTabColor : inactiveTabColor;
                 }
+
+                // 如果是新选中的Tab，在按钮位置播放音效
+                if (isActive && tabSwitchSound != null)
+                {
+                    // 只有在不是初始化（Start中的调用）时才播放音效，或者如果用户希望初始化也播放，可以去掉 currentTabIndex != -1 的判断
+                    if (currentTabIndex != -1)
+                    {
+                        AudioSource.PlayClipAtPoint(tabSwitchSound, tabButtons[i].transform.position);
+                    }
+                }
             }
         }
+
+        currentTabIndex = activeIndex;
     }
 }
