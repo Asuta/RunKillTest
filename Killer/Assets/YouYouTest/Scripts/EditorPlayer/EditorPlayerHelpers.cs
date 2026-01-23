@@ -276,10 +276,12 @@ namespace YouYouTest
         /// <param name="checkSphere">检测球体</param>
         /// <param name="hitColliders">Overlap 用的缓冲区</param>
         /// <param name="handOutlineController">描边控制器</param>
+        /// <param name="onItemAdded">当有新物体被添加到多选列表时的回调</param>
         public static void PerformMultiSelectionCheck(
             Transform checkSphere,
             Collider[] hitColliders,
-            HandOutlineController handOutlineController)
+            HandOutlineController handOutlineController,
+            System.Action onItemAdded = null)
         {
             if (checkSphere == null)
             {
@@ -313,7 +315,10 @@ namespace YouYouTest
                 OutlineReceiver receiver = targetObject.GetComponentInParent<OutlineReceiver>();
                 if (receiver == null) continue;
 
-                handOutlineController.AddToMultiSelection(receiver);
+                if (handOutlineController.AddToMultiSelection(receiver))
+                {
+                    onItemAdded?.Invoke();
+                }
             }
         }
 

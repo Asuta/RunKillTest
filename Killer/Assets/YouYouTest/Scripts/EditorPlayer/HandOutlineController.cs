@@ -150,14 +150,17 @@ public class HandOutlineController : MonoBehaviour
     /// <summary>
     /// 添加对象到多选列表（用于范围多选功能）
     /// </summary>
-    public void AddToMultiSelection(OutlineReceiver receiver)
+    /// <returns>如果对象是新添加的则返回 true，否则返回 false</returns>
+    public bool AddToMultiSelection(OutlineReceiver receiver)
     {
         if (receiver != null && !multiSelectedReceivers.Contains(receiver))
         {
             multiSelectedReceivers.Add(receiver);
             receiver.SetState(OutlineState.Selected);
             Debug.Log($"添加到多选列表：{receiver.gameObject.name}，当前多选数量：{multiSelectedReceivers.Count}");
+            return true;
         }
+        return false;
     }
 
     /// <summary>

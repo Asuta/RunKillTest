@@ -16,10 +16,18 @@ public class SelectUI : AutoCleanupBehaviour
     public Button saveConfirmButton;
     public Button saveCancelButton;
     public TMPro.TMP_InputField saveInputField;
+    public AudioClip createSound; // 创建音效
 
     // Start is called once before the first execution of Update after the MonoBehaviour is created
     void Start()
     {
+        // 播放创建音效
+        if (createSound != null)
+        {
+            AudioSource.PlayClipAtPoint(createSound, transform.position);
+            Debug.Log($"SelectUI: 在 {transform.position} 位置播放创建音效");
+        }
+
         // 为按钮注册点击事件
         if (buttonDelete != null)
         {
@@ -74,6 +82,13 @@ public class SelectUI : AutoCleanupBehaviour
     {
         if (delectObjects != null && delectObjects.Length > 0)
         {
+            // 播放删除音效（在 UI 位置播放一次）
+            var editorPlayer = FindFirstObjectByType<EditorPlayer>();
+            if (editorPlayer != null)
+            {
+                editorPlayer.PlayDeleteSound(transform.position);
+            }
+
             // 作为一条命令进入历史，支持撤销/重做
             var deleteCommand = new BatchDeleteObjectCommand(delectObjects);
             CommandHistory.Instance.ExecuteCommand(deleteCommand);

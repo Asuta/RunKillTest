@@ -55,23 +55,23 @@ public class EditorPlayer : MonoBehaviour
     private float rightALongPressStartTime = 0f;
     private Transform centerObject; // 动态生成的中心点对象
     private const float RIGHT_A_LONG_PRESS_THRESHOLD = 0.2f; // A键长按阈值（秒）
-    
+
     // 多抓取中心点相关变量
     private Vector3 centerOffset; // 中心点相对于手的偏移
     private Quaternion initialRotationOffset; // 初始旋转偏移
     private bool isUsingCenterObject = false; // 是否正在使用中心点跟随模式
-    
+
     // 平滑设置（参考BeGrabobject）
     [SerializeField] private float centerPositionSmoothSpeed = 10f; // 位置平滑速度
     [SerializeField] private float centerRotationSmoothSpeed = 15f; // 旋转平滑速度
     [SerializeField] private bool centerFreezeYaxis = false; // 是否锁定中心点的Y轴旋转
-    
+
     // 持续范围选择时显示的青色球相关变量
     private Material selectionSphereMaterial;
     private Mesh dynamicSelectionSphereMesh; // 用于动态半径的球体网格
     private float lastSelectionSphereRadius = -1f; // 上次使用的球体半径
     private static readonly Color SELECTION_SPHERE_COLOR = Color.cyan; // 选择球体的颜色（青色）
-    
+
     // 检测球体颜色控制相关变量
     private Renderer leftCheckSphereRenderer;
     private Color originalLeftCheckSphereColor;
@@ -79,6 +79,20 @@ public class EditorPlayer : MonoBehaviour
     private Color originalRightCheckSphereColor;
     private static readonly Color CYAN_COLOR = Color.cyan; // 青色
     private static readonly Color YELLOW_COLOR = Color.yellow; // 黄色
+
+    //音效相关
+    public AudioSource audioSource;
+    public AudioClip copySound; // 复制音效
+    public AudioClip selectSound; // 选择音效
+    public AudioClip deleteSound; // 删除音效
+
+    // public AudioClip selectCompleteSound; // 选择完成音效（这个还是和UI一起出现吧，不在这里控制了）
+
+
+
+
+
+
     #endregion
 
     #region Unity 生命周期方法
@@ -87,10 +101,10 @@ public class EditorPlayer : MonoBehaviour
     {
         // 初始化选择球体的网格和材质
         InitializeSelectionSphere();
-        
+
         // 初始化检测球体的渲染器和原始颜色
         InitializeCheckSpheres();
-        
+
         // 注册全局事件监听
         GlobalEvent.OnLoadObjectsSetSelected.AddListener(SetObjectsAsSelected);
         GlobalEvent.OnSaveSelectedObjects.AddListener(SaveSelectedObjects);
@@ -249,10 +263,10 @@ public class EditorPlayer : MonoBehaviour
             rightAKeyPressTime = Time.time;
             rightALongPressStartTime = Time.time;
             rightALongPressActive = false;
-            
+
             // 将右手检测球体颜色变为青色
             SetRightCheckSphereColor(CYAN_COLOR);
-            
+
             Debug.Log("右手A键按下，开始计时");
         }
 
@@ -262,7 +276,7 @@ public class EditorPlayer : MonoBehaviour
             float pressDuration = Time.time - rightAKeyPressTime;
             rightAKeyPressed = false;
             rightALongPressActive = false;
-            
+
             // 将右手检测球体颜色恢复为黄色
             SetRightCheckSphereColor(YELLOW_COLOR);
 
@@ -275,6 +289,9 @@ public class EditorPlayer : MonoBehaviour
                 {
                     handOutlineController?.SetSelectedForCurrentHold(false, rightHoldObject);
                     Debug.Log($"右手A键快速点击，设置 Selected：{rightHoldObject.ObjectGameObject.name}");
+
+                    // 播放选择音效
+                    PlaySelectSound(rightHand);
 
                     // 触发选择成功事件
                     GlobalEvent.OnSelect.Invoke();
@@ -330,8 +347,8 @@ public class EditorPlayer : MonoBehaviour
         // 长按多选模式下的持续检测（每帧执行）
         if (rightALongPressActive)
         {
-            EditorPlayerHelpers.PerformMultiSelectionCheck(rightCheckSphere, hitColliders, handOutlineController);
-            
+            EditorPlayerHelpers.PerformMultiSelectionCheck(rightCheckSphere, hitColliders, handOutlineController, () => PlaySelectSound(rightHand));
+
             // 在持续范围选择期间绘制青色球
             if (rightCheckSphere != null)
             {
@@ -351,14 +368,14 @@ public class EditorPlayer : MonoBehaviour
         if (InputActionsManager.Actions.XRIRightInteraction.SecondaryButton.WasReleasedThisFrame())
         {
             ReleaseRightCopiedObject();
-            
+
             // B键抬起时重新生成selectUI，确保注入最新的选中对象
             if (currentSelectUIInstance != null)
             {
                 // 销毁之前的selectUI
                 Destroy(currentSelectUIInstance);
                 currentSelectUIInstance = null;
-                
+
                 // 重新生成selectUI
                 ShowSelectUI();
                 Debug.Log("B键抬起：重新生成selectUI以更新注入的对象");
@@ -369,6 +386,42 @@ public class EditorPlayer : MonoBehaviour
         UpdateCenterObjectFollow();
     }
     #endregion
+
+    /// <summary>
+    /// 在指定手的位置播放复制音效
+    /// </summary>
+    private void PlayCopySound(Transform hand)
+    {
+        if (copySound != null && hand != null)
+        {
+            AudioSource.PlayClipAtPoint(copySound, hand.position);
+            Debug.Log($"在 {hand.name} 位置播放复制音效");
+        }
+    }
+
+    /// <summary>
+    /// 在指定手的位置播放选择音效
+    /// </summary>
+    private void PlaySelectSound(Transform hand)
+    {
+        if (selectSound != null && hand != null)
+        {
+            AudioSource.PlayClipAtPoint(selectSound, hand.position);
+            Debug.Log($"在 {hand.name} 位置播放选择音效");
+        }
+    }
+
+    /// <summary>
+    /// 在指定位置播放删除音效
+    /// </summary>
+    public void PlayDeleteSound(Vector3 position)
+    {
+        if (deleteSound != null)
+        {
+            AudioSource.PlayClipAtPoint(deleteSound, position);
+            Debug.Log($"在 {position} 位置播放删除音效");
+        }
+    }
 
     #region 左手操作方法
     /// <summary>
@@ -543,13 +596,13 @@ public class EditorPlayer : MonoBehaviour
             Debug.LogWarning($"{(isLeftHand ? "左手" : "右手")}多选抓取失败，未找到有效对象");
             if (!isLeftHand) currentBatchMoveCommand = null; // 清理失败的批量移动命令
         }
-        
+
         // 如果是多抓取，创建中心点对象并初始化中心点跟随
         if (grabbedAny && targetMultiGrabbedObjects.Count > 1)
         {
             CreateCenterObject();
             InitializeCenterObjectFollow(hand, targetMultiGrabbedObjects);
-            
+
             // 对所有被抓取的对象使用批量间接抓取，让它们跟随centerObject移动
             foreach (var grabable in targetMultiGrabbedObjects)
             {
@@ -606,6 +659,10 @@ public class EditorPlayer : MonoBehaviour
     /// </summary>
     private void DeleteLeftHandObject()
     {
+        if (leftHoldObject != null)
+        {
+            PlayDeleteSound(leftHand.position);
+        }
         // 使用工具方法执行删除逻辑并清理抓取状态
         EditorPlayerHelpers.ExecuteDelete(leftHoldObject, ref leftGrabbedObject, ref leftCurrentGrabCommand, leftHand, true, handOutlineController);
         leftHoldObject = null;
@@ -634,6 +691,7 @@ public class EditorPlayer : MonoBehaviour
             {
                 if (leftGrabbedObject != null) LeftHandRelease();
                 LeftHandGrab(duplicatedObject);
+                PlayCopySound(leftHand);
             }
             else
             {
@@ -661,6 +719,10 @@ public class EditorPlayer : MonoBehaviour
     /// </summary>
     private void DeleteRightHandObject()
     {
+        if (rightHoldObject != null)
+        {
+            PlayDeleteSound(rightHand.position);
+        }
         EditorPlayerHelpers.ExecuteDelete(rightHoldObject, ref rightGrabbedObject, ref rightCurrentGrabCommand, rightHand, false, handOutlineController);
         rightHoldObject = null;
     }
@@ -694,6 +756,7 @@ public class EditorPlayer : MonoBehaviour
             {
                 if (rightGrabbedObject != null) RightHandRelease();
                 RightHandGrab(duplicatedObject);
+                PlayCopySound(rightHand);
             }
             else
             {
@@ -748,7 +811,7 @@ public class EditorPlayer : MonoBehaviour
 
         // 使用新的批量复制命令
         currentBatchDuplicateCommand = EditorPlayerHelpers.CreateBatchDuplicateAndGrab(sourceObjects);
-        
+
         if (currentBatchDuplicateCommand == null)
         {
             Debug.LogWarning("批量复制失败：无法创建批量复制命令");
@@ -757,7 +820,7 @@ public class EditorPlayer : MonoBehaviour
 
         // 执行命令以创建对象
         CommandHistory.Instance.ExecuteCommand(currentBatchDuplicateCommand);
-        
+
         var duplicatedGameObjects = currentBatchDuplicateCommand.GetCreatedObjects();
         if (duplicatedGameObjects.Count == 0)
         {
@@ -825,6 +888,8 @@ public class EditorPlayer : MonoBehaviour
             handOutlineController?.UpdateTarget(false, rightHoldObject, rightHoldObject, rightGrabbedObject);
         }
 
+        PlayCopySound(rightHand);
+
         Debug.Log($"批量复制并切换选中目标完成：复制 {duplicatedGameObjects.Count} 个对象，抓取 {rightMultiGrabbedObjects.Count} 个对象");
     }
     #endregion
@@ -851,14 +916,14 @@ public class EditorPlayer : MonoBehaviour
             currentSelectUIInstance.transform.position += new Vector3(0, offsetYdistance * scaleOffset, 0);
             // 根据scaleOffset调整UI缩放
             currentSelectUIInstance.transform.localScale *= scaleOffset;
-            
+
             // 获取SelectUI组件并注入选中的对象
             var selectUIComponent = currentSelectUIInstance.GetComponent<SelectUI>();
             if (selectUIComponent != null)
             {
                 // 获取当前选中的对象（支持单选和多选）
                 var selectedObjects = GetSelectedObjects();
-                
+
                 // 尝试获取 IConfigurable 接口（仅在单选时）
                 IConfigurable configurable = null;
                 if (selectedObjects.Length == 1 && selectedObjects[0] != null)
@@ -873,21 +938,21 @@ public class EditorPlayer : MonoBehaviour
             {
                 Debug.LogWarning("生成的selectUI实例上没有找到SelectUI组件");
             }
-            
+
             // 让UI只在Y轴朝向相机
             Transform EditorCamera = GameManager.Instance.VrEditorCameraT;
             if (EditorCamera != null)
             {
                 Vector3 lookAtPosition = EditorCamera.position;
                 lookAtPosition.y = currentSelectUIInstance.transform.position.y; // 保持Y轴高度不变
-                currentSelectUIInstance.transform.LookAt(lookAtPosition); 
-                Debug.Log($"selectUI已朝向相机，只调整Y轴方向"); 
+                currentSelectUIInstance.transform.LookAt(lookAtPosition);
+                Debug.Log($"selectUI已朝向相机，只调整Y轴方向");
             }
             else
             {
                 Debug.LogWarning("无法获取玩家相机，selectUI将保持默认朝向");
             }
-            
+
             Debug.Log($"在右手检测球体位置生成selectUI: {rightCheckSphere.position}");
         }
         else
@@ -916,7 +981,7 @@ public class EditorPlayer : MonoBehaviour
     public GameObject[] GetSelectedObjects()
     {
         var selectedObjects = new System.Collections.Generic.List<GameObject>();
-        
+
         // 优先获取多选对象
         var multiSelectedGrabables = handOutlineController?.GetAllMultiSelectedGrabables();
         if (multiSelectedGrabables != null && multiSelectedGrabables.Count > 0)
@@ -934,7 +999,7 @@ public class EditorPlayer : MonoBehaviour
         {
             selectedObjects.Add(rightHoldObject.ObjectGameObject);
         }
-        
+
         return selectedObjects.ToArray();
     }
 
@@ -959,12 +1024,12 @@ public class EditorPlayer : MonoBehaviour
         // 创建青色材质
         selectionSphereMaterial = new Material(Shader.Find("Sprites/Default"));
         selectionSphereMaterial.color = SELECTION_SPHERE_COLOR;
-        
+
         // 初始化动态网格为null，将在需要时创建
         dynamicSelectionSphereMesh = null;
         lastSelectionSphereRadius = -1f;
     }
-    
+
     /// <summary>
     /// 绘制选择球体
     /// </summary>
@@ -973,7 +1038,7 @@ public class EditorPlayer : MonoBehaviour
     private void DrawSelectionSphere(Vector3 position, float radius)
     {
         if (selectionSphereMaterial == null) return;
-        
+
         // 检查是否需要重新创建网格（半径变化）
         if (Mathf.Abs(radius - lastSelectionSphereRadius) > 0.001f)
         {
@@ -982,19 +1047,19 @@ public class EditorPlayer : MonoBehaviour
             {
                 Destroy(dynamicSelectionSphereMesh);
             }
-            
+
             // 创建新的动态半径球体网格
             dynamicSelectionSphereMesh = MeshDrawUtility.CreateSphereMesh(radius);
             lastSelectionSphereRadius = radius;
         }
-        
+
         // 使用动态网格绘制球体
         if (dynamicSelectionSphereMesh != null)
         {
             MeshDrawUtility.DrawSphere(position, selectionSphereMaterial, dynamicSelectionSphereMesh);
         }
     }
-    
+
     /// <summary>
     /// 清理选择球体资源
     /// </summary>
@@ -1005,16 +1070,16 @@ public class EditorPlayer : MonoBehaviour
             Destroy(dynamicSelectionSphereMesh);
             dynamicSelectionSphereMesh = null;
         }
-        
+
         if (selectionSphereMaterial != null)
         {
             Destroy(selectionSphereMaterial);
             selectionSphereMaterial = null;
         }
-        
+
         lastSelectionSphereRadius = -1f;
     }
-    
+
     /// <summary>
     /// OnDestroy时清理资源
     /// </summary>
@@ -1022,7 +1087,7 @@ public class EditorPlayer : MonoBehaviour
     {
         CleanupSelectionSphere();
         DestroyCenterObject(); // 清理中心点对象
-        
+
         // 移除全局事件监听
         GlobalEvent.OnLoadObjectsSetSelected.RemoveListener(SetObjectsAsSelected);
         GlobalEvent.OnSaveSelectedObjects.RemoveListener(SaveSelectedObjects);
@@ -1054,7 +1119,7 @@ public class EditorPlayer : MonoBehaviour
         {
             Debug.LogWarning("左手检测球体Transform为空");
         }
-        
+
         // 初始化右手检测球体
         if (rightCheckSphere != null)
         {
@@ -1110,7 +1175,7 @@ public class EditorPlayer : MonoBehaviour
         }
     }
     #endregion
-    
+
     #region 公共访问方法
     /// <summary>
     /// 获取HandOutlineController实例
@@ -1120,7 +1185,7 @@ public class EditorPlayer : MonoBehaviour
     {
         return handOutlineController;
     }
-    
+
     /// <summary>
     /// 将指定的对象列表设置为选中状态，并设置为正在被右手抓住的状态
     /// </summary>
@@ -1132,27 +1197,27 @@ public class EditorPlayer : MonoBehaviour
             Debug.LogError("HandOutlineController为空，无法设置选中状态");
             return;
         }
-        
+
         if (objects == null || objects.Count == 0)
         {
             Debug.LogWarning("对象列表为空，无需设置选中状态");
             return;
         }
-        
+
         // 清除之前的多选状态
         handOutlineController.ClearAllMultiSelection();
-        
+
         // 清除右手当前抓取的对象
         if (rightGrabbedObject != null || rightMultiGrabbedObjects.Count > 0)
         {
             RightHandRelease();
         }
-        
+
         // 将所有对象添加到多选列表中
         foreach (var obj in objects)
         {
             if (obj == null) continue;
-            
+
             // 获取OutlineReceiver组件
             OutlineReceiver outlineReceiver = obj.GetComponentInParent<OutlineReceiver>();
             if (outlineReceiver != null)
@@ -1165,7 +1230,7 @@ public class EditorPlayer : MonoBehaviour
                 Debug.LogWarning($"对象 {obj.name} 上没有找到OutlineReceiver组件");
             }
         }
-        
+
         // 将所有选中的对象设置为正在被右手抓住的状态
         var selectedGrabables = handOutlineController.GetAllMultiSelectedGrabables();
         if (selectedGrabables != null && selectedGrabables.Count > 0)
@@ -1175,7 +1240,7 @@ public class EditorPlayer : MonoBehaviour
             {
                 CreateCenterObject();
                 InitializeCenterObjectFollow(rightHand, selectedGrabables);
-                
+
                 // 对所有选中的对象使用批量间接抓取，让它们跟随centerObject移动
                 foreach (var grabable in selectedGrabables)
                 {
@@ -1184,7 +1249,7 @@ public class EditorPlayer : MonoBehaviour
                         grabable.BatchIndirectGrab(rightHand, centerObject);
                     }
                 }
-                
+
                 // 将所有选中的对象添加到多抓取列表
                 rightMultiGrabbedObjects.Clear();
                 foreach (var grabable in selectedGrabables)
@@ -1207,10 +1272,10 @@ public class EditorPlayer : MonoBehaviour
             }
             Debug.Log($"已将 {selectedGrabables?.Count ?? 0} 个选中的对象设置为正在被右手抓住的状态");
         }
-        
+
         Debug.Log($"已将 {objects.Count} 个对象设置为选中状态并抓取");
     }
-    
+
     /// <summary>
     /// 保存当前选中的对象到专门的选中对象存档文件夹
     /// </summary>
@@ -1219,13 +1284,13 @@ public class EditorPlayer : MonoBehaviour
     {
         // 获取当前选中的对象
         var selectedObjects = GetSelectedObjects();
-        
+
         if (selectedObjects == null || selectedObjects.Length == 0)
         {
             Debug.LogWarning("没有选中的对象可以保存");
             return;
         }
-        
+
         // 调用SaveLoadManager保存选中对象
         SaveLoadManager.Instance.SaveSelectedObjects(selectedObjects, saveName);
     }
@@ -1314,7 +1379,7 @@ public class EditorPlayer : MonoBehaviour
             // 检查 GameObject 是否存在且在场景中激活
             GameObject go = grabable.ObjectGameObject;
             if (go == null || !go.activeInHierarchy) return false;
-            
+
             // 检查 Transform 是否仍然存在
             if (grabable.ObjectTransform == null) return false;
         }
@@ -1336,13 +1401,13 @@ public class EditorPlayer : MonoBehaviour
         {
             DestroyCenterObject(); // 销毁已存在的中心点对象
         }
-        
+
         GameObject centerGO = new GameObject("DynamicCenterObject");
         centerObject = centerGO.transform;
         centerGO.hideFlags = HideFlags.HideInHierarchy; // 在Hierarchy中隐藏
         Debug.Log("创建了动态中心点对象");
     }
-    
+
     /// <summary>
     /// 销毁中心点对象
     /// </summary>
@@ -1358,7 +1423,7 @@ public class EditorPlayer : MonoBehaviour
             Debug.Log("销毁了动态中心点对象");
         }
     }
-    
+
     /// <summary>
     /// 初始化中心点跟随模式
     /// </summary>
@@ -1408,7 +1473,7 @@ public class EditorPlayer : MonoBehaviour
         // 计算并记录中心点相对于手的偏移（用于子物体式跟随）
         // 注意：这里使用手部的当前旋转来计算正确的偏移
         centerOffset = Quaternion.Inverse(hand.rotation) * (centerObject.position - hand.position);
-        
+
         // 计算初始旋转偏移（保持当前旋转）
         initialRotationOffset = Quaternion.Inverse(hand.rotation) * centerObject.rotation;
 
@@ -1450,7 +1515,7 @@ public class EditorPlayer : MonoBehaviour
         // 计算目标位置和旋转
         Vector3 targetPosition = activeHand.position + activeHand.rotation * centerOffset;
         Quaternion targetRotation = activeHand.rotation * initialRotationOffset;
-        
+
         if (centerFreezeYaxis)
         {
             // 只保留目标的Y轴旋转，与BeGrabobject保持一致
@@ -1458,7 +1523,7 @@ public class EditorPlayer : MonoBehaviour
             Vector3 targetEuler = targetRotation.eulerAngles;
             targetRotation = Quaternion.Euler(currentEuler.x, targetEuler.y, currentEuler.z);
         }
-        
+
         // 使用Lerp进行平滑移动（完全复制BeGrabobject的逻辑）
         centerObject.position = Vector3.Lerp(centerObject.position, targetPosition, centerPositionSmoothSpeed * Time.deltaTime);
         centerObject.rotation = Quaternion.Slerp(centerObject.rotation, targetRotation, centerRotationSmoothSpeed * Time.deltaTime);
