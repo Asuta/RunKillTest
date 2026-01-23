@@ -25736,6 +25736,8 @@ MonoBehaviour:
   deathRed: {fileID: 1526937245}
   endUI: {fileID: 0}
   grabBody: {fileID: 267102242}
+  audioSource: {fileID: 0}
+  deathSound: {fileID: 0}
 --- !u!114 &1525856510
 MonoBehaviour:
   m_ObjectHideFlags: 0

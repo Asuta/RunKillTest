@@ -42,6 +42,12 @@ namespace YouYouTest.VRMove2
         public override void Enter()
         {
             Debug.Log("进入地面状态");
+
+            // 播放落地音效
+            if (controller.audioSource != null && controller.playerLandSound != null)
+            {
+                controller.audioSource.PlayOneShot(controller.playerLandSound);
+            }
         }
 
         public override void Update()
@@ -470,6 +476,7 @@ namespace YouYouTest.VRMove2
         [Tooltip("贴墙滑行音效")]
         public AudioSource audioSource;
         public AudioClip wallDashSound;
+        public AudioClip playerLandSound;// 玩家落地音效
 
         
         
