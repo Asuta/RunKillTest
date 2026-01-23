@@ -156,6 +156,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   bounceForceMultiplier: 30
+  bounceSound: {fileID: 8300000, guid: 59029e5074d756347b49136e29fefb59, type: 3}
 --- !u!114 &5145381811292569362
 MonoBehaviour:
   m_ObjectHideFlags: 0

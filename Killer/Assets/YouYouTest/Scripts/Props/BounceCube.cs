@@ -6,6 +6,7 @@ public class BounceCube : MonoBehaviour, IConfigurable
 {
     #region 变量声明
     public float bounceForceMultiplier = 10f;
+    public AudioClip bounceSound;
     #endregion
 
     #region IConfigurable 实现
@@ -73,6 +74,7 @@ public class BounceCube : MonoBehaviour, IConfigurable
                     if (bounceProvider != null)
                     {
                         bounceProvider.OutHandleBounceCube(normal * -bounceForceMultiplier);
+                        PlayBounceSound(contact.point);
                     }
                     else
                     {
@@ -81,11 +83,22 @@ public class BounceCube : MonoBehaviour, IConfigurable
                         if (bounceProvider != null)
                         {
                             bounceProvider.OutHandleBounceCube(normal * -bounceForceMultiplier);
+                            PlayBounceSound(contact.point);
                         }
                     }
-                    #endregion
                 }
             }
         }
     }
+    #endregion
+
+    #region 私有方法
+    private void PlayBounceSound(Vector3 position)
+    {
+        if (bounceSound != null)
+        {
+            AudioSource.PlayClipAtPoint(bounceSound, position);
+        }
+    }
+    #endregion
 }
