@@ -24,6 +24,9 @@ public class VRPlayer : MonoBehaviour, ICanBeHit
     private Vector3 initialRotation; // 存储初始旋转
     private bool isDead = false; // 标记玩家是否处于死亡状态
     public GameObject grabBody;
+    //音效相关
+    public AudioSource audioSource;
+    public AudioClip deathSound;
 
     // 菜单键和左手扳机键组合检测
     private bool menuButtonPressed = false;
@@ -148,6 +151,13 @@ public class VRPlayer : MonoBehaviour, ICanBeHit
 
         Debug.Log("Player died!");
         isDead = true; // 设置死亡标志
+
+        // 播放死亡音效
+        if (audioSource != null && deathSound != null)
+        {
+            audioSource.PlayOneShot(deathSound);
+        }
+
         // 显示红色面板
         deathRed.SetActive(true);
         // 2.5秒后触发检查点重置事件

@@ -18311,6 +18311,8 @@ MonoBehaviour:
   deathRed: {fileID: 5719372322411676396}
   endUI: {fileID: 8126256189163402278}
   grabBody: {fileID: 3231881091938683542}
+  audioSource: {fileID: 3376312976320357867}
+  deathSound: {fileID: 8300000, guid: e2e6edb9a6c3e4c4d9be6e005ba017a1, type: 3}
 --- !u!114 &3055948514670794303
 MonoBehaviour:
   m_ObjectHideFlags: 0
