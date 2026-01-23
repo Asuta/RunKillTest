@@ -14,12 +14,14 @@ public class EnemyBullet : MonoBehaviour
     public GameObject redEffect;
     public GameObject redExplosion;
     public GameObject changeEffect;
+    public AudioClip ricochetClip;
     [SerializeField]
     private bool isBack;
     private bool currentEffectState; // 跟踪当前效果状态
 
     // 起始点（用于基于线段的移动算法）
     private Vector3 originPos;
+    
     // Start在MonoBehaviour创建后，在第一次执行Update之前被调用一次
     void Start()
     {
@@ -149,6 +151,7 @@ public class EnemyBullet : MonoBehaviour
             if (other.gameObject.tag == "Enemy")
             {
                 other.attachedRigidbody.GetComponent<Enemy>().OnHitByBullet();
+
                 // 根据当前状态生成对应的特效
                 if (isBack && greenExplosion != null)
                 {
@@ -243,9 +246,17 @@ public class EnemyBullet : MonoBehaviour
                 greenEffect.SetActive(true);
 
                 // 当从false切换到true时，生成changeEffect特效
-                if (!currentEffectState && changeEffect != null)
+                if (!currentEffectState)
                 {
-                    Instantiate(changeEffect, transform.position, transform.rotation);
+                    if (changeEffect != null)
+                    {
+                        Instantiate(changeEffect, transform.position, transform.rotation);
+                    }
+                    // 进入反弹状态的一瞬间播放音效
+                    if (ricochetClip != null)
+                    {
+                        AudioSource.PlayClipAtPoint(ricochetClip, transform.position);
+                    }
                 }
             }
             else

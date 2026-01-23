@@ -135,6 +135,7 @@ MonoBehaviour:
   redEffect: {fileID: 1785699272862439271}
   redExplosion: {fileID: 1938031414114752, guid: d616c4de34d1bda439766b6dab9b9609, type: 3}
   changeEffect: {fileID: 1914024086683688, guid: e24939c1016afa144bce090cffb5a01b, type: 3}
+  ricochetClip: {fileID: 8300000, guid: 70238bbf5d175a2468b7efbf2231ffa5, type: 3}
   isBack: 0
 --- !u!54 &4202343395451113043
 Rigidbody:
