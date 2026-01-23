@@ -21,6 +21,9 @@ public class CheckPoint : MonoBehaviour
 
     private MeshRenderer meshRenderer;
 
+    // 检查点激活音效
+    public AudioClip activateClip;
+
     // 在MonoBehaviour创建后，Update第一次执行前调用一次
     void Start()
     {
@@ -110,6 +113,15 @@ public class CheckPoint : MonoBehaviour
     // 设置状态
     public void SetState(CheckPointState newState)
     {
+        // 如果是从未激活切换到已激活状态，播放音效
+        if (currentState == CheckPointState.Inactive && newState == CheckPointState.Activated)
+        {
+            if (activateClip != null)
+            {
+                AudioSource.PlayClipAtPoint(activateClip, transform.position);
+            }
+        }
+
         currentState = newState;
         UpdateParticleColors();
     }
