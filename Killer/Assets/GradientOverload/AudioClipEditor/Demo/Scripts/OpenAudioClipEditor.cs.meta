@@ -1,0 +1,9 @@
+fileFormatVersion: 2
+guid: bb561d037fa4373488cd342812a7c4dd
+AssetOrigin:
+  serializedVersion: 1
+  productId: 314941
+  packageName: 'AudioClip Editor: Multi-Clip Volume, Trim & Fade'
+  packageVersion: 1.2
+  assetPath: Assets/GradientOverload/AudioClipEditor/Demo/Scripts/OpenAudioClipEditor.cs
+  uploadId: 748544

@@ -1,0 +1,14 @@
+fileFormatVersion: 2
+guid: 67816a4e40817c44da7564220988f8e8
+TextScriptImporter:
+  externalObjects: {}
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 
+AssetOrigin:
+  serializedVersion: 1
+  productId: 314941
+  packageName: 'AudioClip Editor: Multi-Clip Volume, Trim & Fade'
+  packageVersion: 1.2
+  assetPath: Assets/GradientOverload/AudioClipEditor/Documentation/Documentation.md
+  uploadId: 748544

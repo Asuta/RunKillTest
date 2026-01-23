@@ -25554,6 +25554,8 @@ MonoBehaviour:
   airborneMoveJumpYMultiplier: 1
   airborneMoveJumpHorizontalMultiplier: 1
   airborneMoveJumpMaxVelocityChangePerStep: 8
+  audioSource: {fileID: 0}
+  wallDashSound: {fileID: 0}
 --- !u!114 &1525856501
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -39861,6 +39863,7 @@ MonoBehaviour:
   sphereMaterial: {fileID: 2100001, guid: 2ec66658b9de135428647d5bb59c198f, type: 2}
   bulletPrefab: {fileID: 2151867230420632495, guid: e3dba13aa9f886149b125c3506185898, type: 3}
   deathEffect: {fileID: 1890581295539120, guid: 0e1c7fb597c927a41893518fb7dc7472, type: 3}
+  deathClip: {fileID: 0}
 --- !u!114 &1085825675543425844
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -47883,6 +47886,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   inactiveColor: {r: 0.5, g: 0.5, b: 0.5, a: 0.21176471}
   activatedColor: {r: 0, g: 1, b: 0, a: 0.21176471}
+  activateClip: {fileID: 0}
 --- !u!33 &3723705088279081633
 MeshFilter:
   m_ObjectHideFlags: 0
@@ -58918,6 +58922,7 @@ MonoBehaviour:
   sphereMaterial: {fileID: 2100001, guid: 2ec66658b9de135428647d5bb59c198f, type: 2}
   bulletPrefab: {fileID: 2151867230420632495, guid: e3dba13aa9f886149b125c3506185898, type: 3}
   deathEffect: {fileID: 1890581295539120, guid: 0e1c7fb597c927a41893518fb7dc7472, type: 3}
+  deathClip: {fileID: 0}
 --- !u!1 &7535481271784202256
 GameObject:
   m_ObjectHideFlags: 0
@@ -61893,6 +61898,7 @@ MonoBehaviour:
   sphereMaterial: {fileID: 2100001, guid: 2ec66658b9de135428647d5bb59c198f, type: 2}
   bulletPrefab: {fileID: 2151867230420632495, guid: e3dba13aa9f886149b125c3506185898, type: 3}
   deathEffect: {fileID: 1890581295539120, guid: 0e1c7fb597c927a41893518fb7dc7472, type: 3}
+  deathClip: {fileID: 0}
 --- !u!1 &8464202733069888067
 GameObject:
   m_ObjectHideFlags: 0

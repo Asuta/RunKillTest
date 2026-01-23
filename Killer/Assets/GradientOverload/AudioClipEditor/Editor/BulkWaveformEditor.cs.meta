@@ -1,0 +1,9 @@
+fileFormatVersion: 2
+guid: 26c3d998c4e857347a4e76c5a72ae71f
+AssetOrigin:
+  serializedVersion: 1
+  productId: 314941
+  packageName: 'AudioClip Editor: Multi-Clip Volume, Trim & Fade'
+  packageVersion: 1.2
+  assetPath: Assets/GradientOverload/AudioClipEditor/Editor/BulkWaveformEditor.cs
+  uploadId: 748544
