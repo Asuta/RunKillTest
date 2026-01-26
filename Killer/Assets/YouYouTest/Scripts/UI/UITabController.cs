@@ -19,6 +19,8 @@ public class UITabController : MonoBehaviour
     private Button[] tabButtons;
     private GameObject[] tabContents;
     private int currentTabIndex = 0;
+    [Header("音效设置")]
+    [SerializeField] private AudioClip tabSwitchSound;
 
     void Start()
     {
@@ -100,7 +102,7 @@ public class UITabController : MonoBehaviour
         // 获取所有直接子对象（每个都是一个标签内容）
         int childCount = contentPanel.childCount;
         tabContents = new GameObject[childCount];
-        
+
         for (int i = 0; i < childCount; i++)
         {
             tabContents[i] = contentPanel.GetChild(i).gameObject;
@@ -124,13 +126,13 @@ public class UITabController : MonoBehaviour
         {
             int index = i; // 捕获索引用于闭包
             Button button = tabButtons[i];
-            
+
             // 清除现有的所有监听器
             button.onClick.RemoveAllListeners();
-            
+
             // 添加新的点击事件
             button.onClick.AddListener(() => OnTabButtonClick(index));
-            
+
             Debug.Log($"为按钮 {i} 添加了点击事件");
         }
     }
@@ -155,11 +157,17 @@ public class UITabController : MonoBehaviour
             return;
         }
 
+        // 播放切换音效
+        if (tabSwitchSound != null)
+        {
+            AudioSource.PlayClipAtPoint(tabSwitchSound, transform.position);
+        }
+
         // 隐藏当前标签内容并重置按钮颜色
         if (currentTabIndex >= 0 && currentTabIndex < tabContents.Length)
         {
             tabContents[currentTabIndex].SetActive(false);
-            
+
             if (currentTabIndex < tabButtons.Length)
             {
                 Image buttonImage = tabButtons[currentTabIndex].GetComponent<Image>();
@@ -173,7 +181,7 @@ public class UITabController : MonoBehaviour
         // 显示新标签内容并设置按钮颜色
         currentTabIndex = tabIndex;
         tabContents[currentTabIndex].SetActive(true);
-        
+
         Image activeButtonImage = tabButtons[currentTabIndex].GetComponent<Image>();
         if (activeButtonImage != null)
         {
