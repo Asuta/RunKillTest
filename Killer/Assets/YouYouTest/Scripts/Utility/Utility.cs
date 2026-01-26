@@ -14,6 +14,28 @@ public static class Utility
         Vector3 b = new Vector3(pointB.x, 0, pointB.z);
         return Vector3.Distance(a, b);
     }
+
+    /// <summary>
+    /// 播放 2D 音效（播放完后自动销毁）
+    /// </summary>
+    /// <param name="clip">音频剪辑</param>
+    /// <param name="volume">音量</param>
+    public static void PlayClip2D(AudioClip clip, float volume = 1f)
+    {
+        GameObject tempGO = new GameObject("TempAudio2D");
+        AudioSource aSource = tempGO.AddComponent<AudioSource>();
+
+        aSource.clip = clip;
+        aSource.volume = volume;
+
+        // 关键设置：将空间融合设为 0 (完全 2D) 
+        aSource.spatialBlend = 0f;
+
+        aSource.Play();
+
+        // 播放完后自动销毁 
+        Object.Destroy(tempGO, clip.length);
+    }
 }
 
 

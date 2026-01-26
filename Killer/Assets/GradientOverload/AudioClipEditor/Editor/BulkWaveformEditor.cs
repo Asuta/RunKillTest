@@ -11,6 +11,7 @@ namespace AudioClipEditor
         private List<AudioClip> audioClips;
         private static float volume = 1.0f;
         private static float silenceThreshold = 0.05f;
+        private static float playbackSpeed = 1f;
     
         private void OnEnable()
         {
@@ -82,6 +83,12 @@ namespace AudioClipEditor
                 ApplyVolumeToClips();
             }
         
+            playbackSpeed = EditorGUILayout.Slider("Playback Speed", playbackSpeed, 0.25f, 2f);
+            if (GUILayout.Button("Set Playback Speed For Selected Clips"))
+            {
+                ApplySpeedToClips();
+            }
+        
             silenceThreshold = EditorGUILayout.Slider("Silence Threshold", silenceThreshold, 0f, 0.2f);
             if (GUILayout.Button("Trim Start/End Silence"))
             {
@@ -144,6 +151,7 @@ namespace AudioClipEditor
                 EditorPrefs.DeleteKey($"{key}_Normalize");
                 EditorPrefs.DeleteKey($"{key}_FadeInCurve");
                 EditorPrefs.DeleteKey($"{key}_FadeOutCurve");
+                EditorPrefs.DeleteKey($"{key}_Speed");
             }
         }
 
@@ -207,6 +215,18 @@ namespace AudioClipEditor
                 string key = AudioProcessingUtils.GetEditorPrefKeyFromClip(clip);
                 EditorPrefs.SetInt($"{key}_Normalize",1);
 
+                AudioProcessingUtils.ApplyModificationsFromSettings(clip);
+            }
+        }
+
+        private void ApplySpeedToClips()
+        {
+            if (audioClips.Count == 0) return;
+
+            foreach (AudioClip clip in audioClips)
+            {
+                string key = AudioProcessingUtils.GetEditorPrefKeyFromClip(clip);
+                EditorPrefs.SetFloat($"{key}_Speed", playbackSpeed);
                 AudioProcessingUtils.ApplyModificationsFromSettings(clip);
             }
         }

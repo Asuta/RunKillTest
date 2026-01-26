@@ -34,6 +34,7 @@ namespace AudioClipEditor
 
             float volume = EditorPrefs.GetFloat($"{key}_Volume", 1);
             bool normalize = EditorPrefs.GetInt($"{key}_Normalize", 0) == 1;
+            float playbackSpeed = EditorPrefs.GetFloat($"{key}_Speed", 1);
             AnimationCurve fadeInCurve = LoadCurve($"{key}_FadeInCurve", AnimationCurve.Linear(0, 0, 1, 1));
             AnimationCurve fadeOutCurve = LoadCurve($"{key}_FadeOutCurve", AnimationCurve.Linear(0, 0, 1, 1));
 
@@ -41,6 +42,10 @@ namespace AudioClipEditor
             ApplyFade(modifiedSamples, modifiedSamples.Length, sampleRate, fadeInDuration, fadeOutDuration, fadeInCurve, fadeOutCurve);
             if (normalize) Normalize(modifiedSamples);
             AdjustVolume(modifiedSamples, volume);
+            if (!Mathf.Approximately(playbackSpeed, 1f))
+            {
+                modifiedSamples = ApplySpeed(modifiedSamples, playbackSpeed, channelCount);
+            }
 
             AudioClip modifiedClip = AudioClip.Create(clip.name, modifiedSamples.Length / channelCount, clip.channels, sampleRate, false);
             modifiedClip.SetData(modifiedSamples, 0);
@@ -124,6 +129,38 @@ namespace AudioClipEditor
                 samples[i] *= volume;
                 samples[i] = Mathf.Clamp(samples[i], -1f, 1f); // Prevent overflow
             }
+        }
+
+        public static float[] ApplySpeed(float[] samples, float speed, int channels)
+        {
+            if (speed <= 0f) return samples;
+            if (channels <= 0) channels = 1;
+
+            int originalFrames = samples.Length / channels;
+            if (originalFrames <= 0) return samples;
+
+            int newFrames = Mathf.Max(1, Mathf.FloorToInt(originalFrames / speed));
+            float[] result = new float[newFrames * channels];
+
+            for (int frame = 0; frame < newFrames; frame++)
+            {
+                float srcFrame = frame * speed;
+                int srcFrameIndex = Mathf.Min((int)srcFrame, originalFrames - 1);
+                int srcBaseIndex = srcFrameIndex * channels;
+                int dstBaseIndex = frame * channels;
+
+                for (int c = 0; c < channels; c++)
+                {
+                    int srcIndex = srcBaseIndex + c;
+                    int dstIndex = dstBaseIndex + c;
+                    if (srcIndex < samples.Length && dstIndex < result.Length)
+                    {
+                        result[dstIndex] = samples[srcIndex];
+                    }
+                }
+            }
+
+            return result;
         }
 
         public static void ApplyFade(float[] samples, int length, int sampleRate, float fadeInDuration, float fadeOutDuration, AnimationCurve fadeInCurve, AnimationCurve fadeOutCurve, int channels = 1)
