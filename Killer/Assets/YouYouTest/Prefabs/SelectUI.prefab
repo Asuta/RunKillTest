@@ -2400,7 +2400,7 @@ MonoBehaviour:
   saveConfirmButton: {fileID: 2695833078432020119}
   saveCancelButton: {fileID: 5889998911966457595}
   saveInputField: {fileID: 4827983404440791309}
-  createSound: {fileID: 8300000, guid: 6ea888975ba685e40b45d8b25b05da67, type: 3}
+  createSound: {fileID: 8300000, guid: d899f39386badde459066b0ab979af44, type: 3}
 --- !u!1 &7667675842962676999
 GameObject:
   m_ObjectHideFlags: 0

@@ -24,8 +24,8 @@ public class SelectUI : AutoCleanupBehaviour
         // 播放创建音效
         if (createSound != null)
         {
-            AudioSource.PlayClipAtPoint(createSound, transform.position);
-            Debug.Log($"SelectUI: 在 {transform.position} 位置播放创建音效");
+            Utility.PlayClip2D(createSound);
+            Debug.Log($"SelectUI: 播放创建音效");
         }
 
         // 为按钮注册点击事件
