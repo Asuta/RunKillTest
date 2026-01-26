@@ -152,6 +152,7 @@ namespace AudioClipEditor
                 EditorPrefs.DeleteKey($"{key}_FadeInCurve");
                 EditorPrefs.DeleteKey($"{key}_FadeOutCurve");
                 EditorPrefs.DeleteKey($"{key}_Speed");
+                EditorPrefs.DeleteKey($"{key}_PreservePitch");
             }
         }
 

@@ -35,6 +35,7 @@ namespace AudioClipEditor
             float volume = EditorPrefs.GetFloat($"{key}_Volume", 1);
             bool normalize = EditorPrefs.GetInt($"{key}_Normalize", 0) == 1;
             float playbackSpeed = EditorPrefs.GetFloat($"{key}_Speed", 1);
+            bool preservePitch = EditorPrefs.GetInt($"{key}_PreservePitch", 0) == 1;
             AnimationCurve fadeInCurve = LoadCurve($"{key}_FadeInCurve", AnimationCurve.Linear(0, 0, 1, 1));
             AnimationCurve fadeOutCurve = LoadCurve($"{key}_FadeOutCurve", AnimationCurve.Linear(0, 0, 1, 1));
 
@@ -44,7 +45,14 @@ namespace AudioClipEditor
             AdjustVolume(modifiedSamples, volume);
             if (!Mathf.Approximately(playbackSpeed, 1f))
             {
-                modifiedSamples = ApplySpeed(modifiedSamples, playbackSpeed, channelCount);
+                if (preservePitch)
+                {
+                    modifiedSamples = ApplySpeedPreservePitch(modifiedSamples, playbackSpeed, channelCount, sampleRate);
+                }
+                else
+                {
+                    modifiedSamples = ApplySpeed(modifiedSamples, playbackSpeed, channelCount);
+                }
             }
 
             AudioClip modifiedClip = AudioClip.Create(clip.name, modifiedSamples.Length / channelCount, clip.channels, sampleRate, false);
@@ -159,6 +167,95 @@ namespace AudioClipEditor
                     }
                 }
             }
+
+            return result;
+        }
+
+        public static float[] ApplySpeedPreservePitch(float[] samples, float speed, int channels, int sampleRate)
+        {
+            if (speed <= 0f) return samples;
+            if (channels <= 0) channels = 1;
+
+            int originalFrames = samples.Length / channels;
+            if (originalFrames <= 0) return samples;
+
+            float alpha = 1f / speed;
+            int grain = Mathf.Min(2048, originalFrames);
+            if (grain < 2) return samples;
+
+            int analysisHop = Mathf.Max(1, grain / 2);
+            int estimatedFrames = Mathf.Max(grain, (int)(originalFrames * alpha) + grain);
+
+            float[] outputInterleaved = new float[estimatedFrames * channels];
+            int maxOutFrames = 0;
+
+            for (int ch = 0; ch < channels; ch++)
+            {
+                float[] outChannel = new float[estimatedFrames];
+                float[] weight = new float[estimatedFrames];
+
+                int inPos = 0;
+                int outPos = 0;
+
+                while (inPos + grain < originalFrames && outPos + grain < estimatedFrames)
+                {
+                    for (int i = 0; i < grain; i++)
+                    {
+                        float w = 0.5f - 0.5f * Mathf.Cos(2f * Mathf.PI * i / (grain - 1));
+                        int inIndex = (inPos + i) * channels + ch;
+                        int outIndex = outPos + i;
+                        if (inIndex < samples.Length && outIndex < outChannel.Length)
+                        {
+                            outChannel[outIndex] += samples[inIndex] * w;
+                            weight[outIndex] += w;
+                        }
+                    }
+
+                    inPos += analysisHop;
+                    int synthesisHop = Mathf.Max(1, (int)(analysisHop * alpha));
+                    outPos += synthesisHop;
+                }
+
+                int outFrames = 0;
+                for (int i = 0; i < estimatedFrames; i++)
+                {
+                    if (weight[i] > 0f)
+                    {
+                        outChannel[i] /= weight[i];
+                        outChannel[i] = Mathf.Clamp(outChannel[i], -1f, 1f);
+                        outFrames = i + 1;
+                    }
+                }
+
+                if (outFrames > maxOutFrames)
+                {
+                    maxOutFrames = outFrames;
+                }
+
+                for (int f = 0; f < outFrames; f++)
+                {
+                    int dstIndex = f * channels + ch;
+                    if (dstIndex < outputInterleaved.Length)
+                    {
+                        outputInterleaved[dstIndex] = outChannel[f];
+                    }
+                }
+            }
+
+            int finalFrames = maxOutFrames;
+            if (finalFrames <= 0 || finalFrames > estimatedFrames)
+            {
+                finalFrames = Mathf.Min(originalFrames, estimatedFrames);
+            }
+
+            int finalLength = finalFrames * channels;
+            if (finalLength > outputInterleaved.Length)
+            {
+                finalLength = outputInterleaved.Length;
+            }
+
+            float[] result = new float[finalLength];
+            Array.Copy(outputInterleaved, result, finalLength);
 
             return result;
         }

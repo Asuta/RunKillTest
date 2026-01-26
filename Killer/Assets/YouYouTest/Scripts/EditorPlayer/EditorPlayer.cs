@@ -394,7 +394,7 @@ public class EditorPlayer : MonoBehaviour
     {
         if (copySound != null && hand != null)
         {
-            AudioSource.PlayClipAtPoint(copySound, hand.position);
+            Utility.PlayClip2D(copySound);
             Debug.Log($"在 {hand.name} 位置播放复制音效");
         }
     }
@@ -406,7 +406,7 @@ public class EditorPlayer : MonoBehaviour
     {
         if (selectSound != null && hand != null)
         {
-            AudioSource.PlayClipAtPoint(selectSound, hand.position);
+            Utility.PlayClip2D(selectSound);
             Debug.Log($"在 {hand.name} 位置播放选择音效");
         }
     }
@@ -418,7 +418,7 @@ public class EditorPlayer : MonoBehaviour
     {
         if (deleteSound != null)
         {
-            AudioSource.PlayClipAtPoint(deleteSound, position);
+            Utility.PlayClip2D(deleteSound);
             Debug.Log($"在 {position} 位置播放删除音效");
         }
     }

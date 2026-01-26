@@ -21,6 +21,7 @@ namespace AudioClipEditor
         private bool normalize = false;
         private float volume = 1f;
         private float playbackSpeed = 1f;
+        private bool preservePitch = false;
         private int sampleRate;
         private AudioSource audioSource;
         private bool isPlaying = false;
@@ -208,6 +209,8 @@ namespace AudioClipEditor
                 EditorPrefs.DeleteKey($"{key}_FadeInCurve");
                 EditorPrefs.DeleteKey($"{key}_FadeOutCurve");
                 EditorPrefs.DeleteKey($"{key}_Speed");
+                EditorPrefs.DeleteKey($"{key}_PreservePitch");
+                EditorPrefs.DeleteKey($"{key}_PreservePitch");
                 LoadSettings();
             }
 
@@ -240,6 +243,7 @@ namespace AudioClipEditor
             EditorPrefs.SetFloat($"{key}_Volume", volume);
             EditorPrefs.SetInt($"{key}_Normalize", normalize ? 1 : 0);
             EditorPrefs.SetFloat($"{key}_Speed", playbackSpeed);
+            EditorPrefs.SetInt($"{key}_PreservePitch", preservePitch ? 1 : 0);
 
             AudioProcessingUtils.SaveCurve(fadeInCurve, $"{key}_FadeInCurve");
             AudioProcessingUtils.SaveCurve(fadeOutCurve, $"{key}_FadeOutCurve");
@@ -268,6 +272,7 @@ namespace AudioClipEditor
             volume = EditorPrefs.GetFloat($"{key}_Volume", 1);
             normalize = EditorPrefs.GetInt($"{key}_Normalize", 0) == 1;
             playbackSpeed = EditorPrefs.GetFloat($"{key}_Speed", 1);
+            preservePitch = EditorPrefs.GetInt($"{key}_PreservePitch", 0) == 1;
             
             string fadeInCurveJson = EditorPrefs.GetString($"{key}_FadeInCurve", "");
             if (!string.IsNullOrEmpty(fadeInCurveJson) && fadeInCurveJson != "{}")
@@ -327,7 +332,14 @@ namespace AudioClipEditor
             AudioProcessingUtils.AdjustVolume(modifiedSamples, volume);
             if (!Mathf.Approximately(playbackSpeed, 1f))
             {
-                modifiedSamples = AudioProcessingUtils.ApplySpeed(modifiedSamples, playbackSpeed, audioClip.channels);
+                if (preservePitch)
+                {
+                    modifiedSamples = AudioProcessingUtils.ApplySpeedPreservePitch(modifiedSamples, playbackSpeed, audioClip.channels, sampleRate);
+                }
+                else
+                {
+                    modifiedSamples = AudioProcessingUtils.ApplySpeed(modifiedSamples, playbackSpeed, audioClip.channels);
+                }
             }
         }
         
@@ -590,6 +602,7 @@ namespace AudioClipEditor
             bool newNormalize = EditorGUILayout.Toggle("Normalize", normalize);
             float newVolume = EditorGUILayout.Slider("Volume", volume, 0f, 2f);
             float newPlaybackSpeed = EditorGUILayout.Slider("Playback Speed", playbackSpeed, 0.25f, 2f);
+            bool newPreservePitch = EditorGUILayout.Toggle("Preserve Pitch", preservePitch);
         
             if (!Mathf.Approximately(newVolume, volume))
             {
@@ -600,6 +613,12 @@ namespace AudioClipEditor
             if (!Mathf.Approximately(newPlaybackSpeed, playbackSpeed))
             {
                 playbackSpeed = newPlaybackSpeed;
+                madeChanges = true;
+            }
+
+            if (newPreservePitch != preservePitch)
+            {
+                preservePitch = newPreservePitch;
                 madeChanges = true;
             }
         
@@ -660,6 +679,7 @@ namespace AudioClipEditor
             normalize = false;
             volume = 1f;
             playbackSpeed = 1f;
+            preservePitch = false;
 
             string key = AudioProcessingUtils.GetEditorPrefKeyFromClip(selectedAudioClip);
         
@@ -672,6 +692,7 @@ namespace AudioClipEditor
             EditorPrefs.DeleteKey($"{key}_FadeInCurve");
             EditorPrefs.DeleteKey($"{key}_FadeOutCurve");
             EditorPrefs.DeleteKey($"{key}_Speed");
+            EditorPrefs.DeleteKey($"{key}_PreservePitch");
         
             modifiedSamples = new float[wavData.Length];
             Array.Copy(wavData, modifiedSamples, wavData.Length);
