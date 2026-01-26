@@ -5,7 +5,7 @@ using System.Collections;
 
 public class ExitTrigger : MonoBehaviour
 {
-
+    public AudioClip exitSound;
     // Start is called once before the first execution of Update after the MonoBehaviour is created
     void Start()
     {
@@ -22,6 +22,11 @@ public class ExitTrigger : MonoBehaviour
     {
         if (other.CompareTag("Player"))
         {
+            // 播放退出音效
+            if (exitSound != null)
+            {
+                AudioSource.PlayClipAtPoint(exitSound, transform.position);
+            }
             StartCoroutine(DelayedLoadLobbyScene());
         }
     }
