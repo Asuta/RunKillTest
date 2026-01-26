@@ -18516,6 +18516,7 @@ MonoBehaviour:
   audioSource: {fileID: 3376312976320357867}
   wallDashSound: {fileID: 8300000, guid: 41bbaf68a88470447b2ab5a118f09ad8, type: 3}
   playerLandSound: {fileID: 8300000, guid: f5de09743e191954e8ad5813cc78b21c, type: 3}
+  dashSound: {fileID: 8300000, guid: 2f42768deeeb9ad4993dac4178152af7, type: 3}
 --- !u!114 &5364758977895391900
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -26081,6 +26082,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   activeTabColor: {r: 1, g: 1, b: 1, a: 1}
   inactiveTabColor: {r: 0.5, g: 0.5, b: 0.5, a: 1}
+  tabSwitchSound: {fileID: 0}
 --- !u!114 &3466055945711400421
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -40712,6 +40714,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   activeTabColor: {r: 1, g: 1, b: 1, a: 1}
   inactiveTabColor: {r: 0.5, g: 0.5, b: 0.5, a: 1}
+  tabSwitchSound: {fileID: 0}
 --- !u!114 &3684590955865854077
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -57812,6 +57815,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   activeTabColor: {r: 1, g: 1, b: 1, a: 1}
   inactiveTabColor: {r: 0.5, g: 0.5, b: 0.5, a: 1}
+  tabSwitchSound: {fileID: 0}
 --- !u!114 &1703839618674542435
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -60387,6 +60391,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   activeTabColor: {r: 1, g: 1, b: 1, a: 1}
   inactiveTabColor: {r: 0.5, g: 0.5, b: 0.5, a: 1}
+  tabSwitchSound: {fileID: 0}
 --- !u!114 &4520522785358898232
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -70157,6 +70162,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   activeTabColor: {r: 1, g: 1, b: 1, a: 1}
   inactiveTabColor: {r: 0.5, g: 0.5, b: 0.5, a: 1}
+  tabSwitchSound: {fileID: 0}
 --- !u!114 &823616679004444403
 MonoBehaviour:
   m_ObjectHideFlags: 0

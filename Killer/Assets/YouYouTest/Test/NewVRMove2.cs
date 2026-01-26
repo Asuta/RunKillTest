@@ -218,6 +218,12 @@ namespace YouYouTest.VRMove2
         {
             Debug.Log("进入冲刺状态");
 
+            // 播放冲刺音效
+            if (controller.audioSource != null && controller.dashSound != null)
+            {
+                controller.audioSource.PlayOneShot(controller.dashSound);
+            }
+
             // 禁用刚体重力
             if (controller.thisRb != null)
             {
@@ -473,10 +479,10 @@ namespace YouYouTest.VRMove2
         public float airborneMoveJumpMaxVelocityChangePerStep = 8f;
 
         [Header("移动音效相关")]
-        [Tooltip("贴墙滑行音效")]
         public AudioSource audioSource;
         public AudioClip wallDashSound;
         public AudioClip playerLandSound;// 玩家落地音效
+        public AudioClip dashSound;// 玩家冲刺音效
 
         
         

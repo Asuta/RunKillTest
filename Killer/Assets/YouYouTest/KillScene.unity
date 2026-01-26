@@ -65043,6 +65043,7 @@ MonoBehaviour:
   copySound: {fileID: 8300000, guid: 7d4ac724f45c28e48a045022225d28e9, type: 3}
   selectSound: {fileID: 8300000, guid: 6ea888975ba685e40b45d8b25b05da67, type: 3}
   deleteSound: {fileID: 8300000, guid: 8c4c1d40a2f93f549a57edd019fbafe1, type: 3}
+  grabSound: {fileID: 8300000, guid: 0a4dee1271e2a814f9d00ba01d638a5a, type: 3}
 --- !u!114 &9167095900856961749
 MonoBehaviour:
   m_ObjectHideFlags: 0

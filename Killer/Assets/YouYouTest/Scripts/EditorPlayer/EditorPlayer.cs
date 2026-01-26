@@ -85,6 +85,8 @@ public class EditorPlayer : MonoBehaviour
     public AudioClip copySound; // 复制音效
     public AudioClip selectSound; // 选择音效
     public AudioClip deleteSound; // 删除音效
+    public AudioClip grabSound; // 抓取音效
+    
 
     // public AudioClip selectCompleteSound; // 选择完成音效（这个还是和UI一起出现吧，不在这里控制了）
 
@@ -412,6 +414,18 @@ public class EditorPlayer : MonoBehaviour
     }
 
     /// <summary>
+    /// 在指定手的位置播放抓取音效
+    /// </summary>
+    private void PlayGrabSound(Transform hand)
+    {
+        if (grabSound != null && hand != null)
+        {
+            Utility.PlayClip2D(grabSound);
+            Debug.Log($"在 {hand.name} 位置播放抓取音效");
+        }
+    }
+
+    /// <summary>
     /// 在指定位置播放删除音效
     /// </summary>
     public void PlayDeleteSound(Vector3 position)
@@ -470,6 +484,7 @@ public class EditorPlayer : MonoBehaviour
 
         cubeMove.OnGrabbed(leftHand);
         handOutlineController?.UpdateTarget(true, leftHoldObject, leftHoldObject, leftGrabbedObject);
+        PlayGrabSound(leftHand);
         Debug.Log($"左手抓取了物体: {targetObject.name}");
     }
 
@@ -536,6 +551,7 @@ public class EditorPlayer : MonoBehaviour
 
         cubeMove.OnGrabbed(rightHand);
         handOutlineController?.UpdateTarget(false, rightHoldObject, rightHoldObject, rightGrabbedObject);
+        PlayGrabSound(rightHand);
         Debug.Log($"右手抓取了物体: {targetObject.name}");
     }
 
@@ -595,6 +611,11 @@ public class EditorPlayer : MonoBehaviour
         {
             Debug.LogWarning($"{(isLeftHand ? "左手" : "右手")}多选抓取失败，未找到有效对象");
             if (!isLeftHand) currentBatchMoveCommand = null; // 清理失败的批量移动命令
+        }
+        else
+        {
+            // 抓取成功，播放音效
+            PlayGrabSound(hand);
         }
 
         // 如果是多抓取，创建中心点对象并初始化中心点跟随
