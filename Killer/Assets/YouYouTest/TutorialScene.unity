@@ -1363,6 +1363,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 3544affbc4abc7048b9fb44d78a2e0ea, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  exitSound: {fileID: 8300000, guid: 9141f0b2fb46f8b4a9950e78b34eb437, type: 3}
 --- !u!1 &75953501
 GameObject:
   m_ObjectHideFlags: 0
@@ -3358,6 +3359,7 @@ MonoBehaviour:
   sphereMaterial: {fileID: 2100001, guid: 2ec66658b9de135428647d5bb59c198f, type: 2}
   bulletPrefab: {fileID: 2151867230420632495, guid: e3dba13aa9f886149b125c3506185898, type: 3}
   deathEffect: {fileID: 1890581295539120, guid: 0e1c7fb597c927a41893518fb7dc7472, type: 3}
+  deathClip: {fileID: 0}
 --- !u!54 &226404094
 Rigidbody:
   m_ObjectHideFlags: 0
@@ -4762,6 +4764,7 @@ MonoBehaviour:
   sphereMaterial: {fileID: 2100001, guid: 2ec66658b9de135428647d5bb59c198f, type: 2}
   bulletPrefab: {fileID: 2151867230420632495, guid: e3dba13aa9f886149b125c3506185898, type: 3}
   deathEffect: {fileID: 1890581295539120, guid: 0e1c7fb597c927a41893518fb7dc7472, type: 3}
+  deathClip: {fileID: 0}
 --- !u!54 &315347700
 Rigidbody:
   m_ObjectHideFlags: 0
@@ -5144,7 +5147,6 @@ MonoBehaviour:
   entryParent: {fileID: 1210998741}
   addButton: {fileID: 1620942173}
   setDeleteButton: {fileID: 282711814}
-  serverUrl: http://127.0.0.1:8000
   deleteButtonsActive: 0
 --- !u!114 &336206255
 MonoBehaviour:
@@ -6750,6 +6752,7 @@ MonoBehaviour:
   sphereMaterial: {fileID: 2100001, guid: 2ec66658b9de135428647d5bb59c198f, type: 2}
   bulletPrefab: {fileID: 2151867230420632495, guid: e3dba13aa9f886149b125c3506185898, type: 3}
   deathEffect: {fileID: 1890581295539120, guid: 0e1c7fb597c927a41893518fb7dc7472, type: 3}
+  deathClip: {fileID: 0}
 --- !u!54 &493419405
 Rigidbody:
   m_ObjectHideFlags: 0
@@ -8460,6 +8463,7 @@ MonoBehaviour:
   sphereMaterial: {fileID: 2100001, guid: 2ec66658b9de135428647d5bb59c198f, type: 2}
   bulletPrefab: {fileID: 2151867230420632495, guid: e3dba13aa9f886149b125c3506185898, type: 3}
   deathEffect: {fileID: 1890581295539120, guid: 0e1c7fb597c927a41893518fb7dc7472, type: 3}
+  deathClip: {fileID: 0}
 --- !u!54 &595202256
 Rigidbody:
   m_ObjectHideFlags: 0
@@ -9050,6 +9054,7 @@ MonoBehaviour:
   sphereMaterial: {fileID: 2100001, guid: 2ec66658b9de135428647d5bb59c198f, type: 2}
   bulletPrefab: {fileID: 2151867230420632495, guid: e3dba13aa9f886149b125c3506185898, type: 3}
   deathEffect: {fileID: 1890581295539120, guid: 0e1c7fb597c927a41893518fb7dc7472, type: 3}
+  deathClip: {fileID: 0}
 --- !u!54 &649218230
 Rigidbody:
   m_ObjectHideFlags: 0
@@ -10834,6 +10839,7 @@ MonoBehaviour:
   sphereMaterial: {fileID: 2100001, guid: 2ec66658b9de135428647d5bb59c198f, type: 2}
   bulletPrefab: {fileID: 2151867230420632495, guid: e3dba13aa9f886149b125c3506185898, type: 3}
   deathEffect: {fileID: 1890581295539120, guid: 0e1c7fb597c927a41893518fb7dc7472, type: 3}
+  deathClip: {fileID: 0}
 --- !u!54 &840194896
 Rigidbody:
   m_ObjectHideFlags: 0
@@ -18593,7 +18599,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 7258774575352017434, guid: d7863cc1900e0824986c67cc2d98e60d, type: 3}
       propertyPath: m_IsActive
-      value: 0
+      value: 1
       objectReference: {fileID: 0}
     - target: {fileID: 7436228879840365595, guid: d7863cc1900e0824986c67cc2d98e60d, type: 3}
       propertyPath: m_LocalPosition.x
@@ -21613,6 +21619,7 @@ MonoBehaviour:
   sphereMaterial: {fileID: 2100001, guid: 2ec66658b9de135428647d5bb59c198f, type: 2}
   bulletPrefab: {fileID: 2151867230420632495, guid: e3dba13aa9f886149b125c3506185898, type: 3}
   deathEffect: {fileID: 1890581295539120, guid: 0e1c7fb597c927a41893518fb7dc7472, type: 3}
+  deathClip: {fileID: 0}
 --- !u!54 &2023651799
 Rigidbody:
   m_ObjectHideFlags: 0
@@ -33523,6 +33530,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   activeTabColor: {r: 1, g: 1, b: 1, a: 1}
   inactiveTabColor: {r: 0.5, g: 0.5, b: 0.5, a: 1}
+  tabSwitchSound: {fileID: 0}
 --- !u!114 &3990998127908362425
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -68238,6 +68246,10 @@ MonoBehaviour:
   centerPositionSmoothSpeed: 10
   centerRotationSmoothSpeed: 15
   centerFreezeYaxis: 1
+  audioSource: {fileID: 0}
+  copySound: {fileID: 0}
+  selectSound: {fileID: 0}
+  deleteSound: {fileID: 0}
 --- !u!114 &9167095900856961749
 MonoBehaviour:
   m_ObjectHideFlags: 0
