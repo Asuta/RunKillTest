@@ -20,7 +20,7 @@ public class SaveUI : AutoCleanupBehaviour
     public bool deleteButtonsActive = true;
 
     // Start is called once before the first execution of Update after the MonoBehaviour is created
-    void Start()
+    IEnumerator Start()
     {
         // 注册全局事件监听器
         RegisterEvent(GlobalEvent.OnSaveComplete, OnSaveComplete);
@@ -63,6 +63,12 @@ public class SaveUI : AutoCleanupBehaviour
         {
             Debug.LogError("setDeleteButton未设置");
         }
+
+        // 等待一帧，确保所有 Manager 的 Awake 都已经执行完毕并初始化
+        yield return null;
+        
+        // 初始刷新列表
+        RefreshList();
     }
 
     /// <summary>
@@ -73,7 +79,7 @@ public class SaveUI : AutoCleanupBehaviour
     {
         Debug.Log($"收到保存完成事件，档位: {slotName}，刷新UI列表");
         // 刷新存档列表显示
-        OnEnable();
+        RefreshList();
     }
 
     /// <summary>
@@ -91,7 +97,7 @@ public class SaveUI : AutoCleanupBehaviour
         }
 
         // 刷新存档列表显示以更新高亮
-        OnEnable();
+        RefreshList();
     }
 
     protected override void OnDestroy()
@@ -105,6 +111,21 @@ public class SaveUI : AutoCleanupBehaviour
     /// </summary>
     void OnEnable()
     {
+        // 如果不是第一次加载（Start 之后），则在 OnEnable 时刷新
+        // 第一次加载由 Start 协程负责
+        if (SaveLoadManager.Instance != null)
+        {
+            RefreshList();
+        }
+    }
+
+    /// <summary>
+    /// 刷新存档列表
+    /// </summary>
+    public void RefreshList()
+    {
+        if (SaveLoadManager.Instance == null) return;
+
         // 清空现有的存档条目
         ClearExistingEntries();
 
@@ -404,9 +425,9 @@ public class SaveUI : AutoCleanupBehaviour
     {
         Debug.Log($"保存到档位: {slotName}");
         SaveLoadManager.Instance.SaveSceneObjects(slotName);
-
+        
         // 保存后刷新UI
-        OnEnable();
+        RefreshList();
     }
 
     /// <summary>
@@ -423,7 +444,7 @@ public class SaveUI : AutoCleanupBehaviour
         SaveLoadManager.Instance.DeleteSaveSlotByFileName(slotInfo.fileName, slotInfo.subFolder);
 
         // 删除后刷新UI
-        OnEnable();
+        RefreshList();
     }
 
     /// <summary>
@@ -450,7 +471,7 @@ public class SaveUI : AutoCleanupBehaviour
     /// </summary>
     private void OnAddButtonClicked()
     {
-        Debug.Log("添加新档位按钮被点击");
+        Debug.Log("添加新档位按钮 be 点击");
         
         // 生成新的档位名称
         string newSlotName = GenerateNewSlotName();
@@ -459,7 +480,7 @@ public class SaveUI : AutoCleanupBehaviour
         SaveLoadManager.Instance.CreateEmptySaveSlot(newSlotName);
         
         // 刷新列表显示
-        OnEnable();
+        RefreshList();
     }
 
     /// <summary>
@@ -531,7 +552,7 @@ public class SaveUI : AutoCleanupBehaviour
         // 如果SaveEntrys为空，尝试重新初始化
         if (SaveEntrys.Count == 0)
         {
-            OnEnable();
+            RefreshList();
         }
         
         // 切换删除按钮状态

@@ -27,6 +27,14 @@ public class SaveLoadManager : MonoBehaviour
         
         _instance = this;
         DontDestroyOnLoad(gameObject); // 保持跨场景存在
+
+        // 初始化管理器
+        fileManager = new FileSaveManager(enableDebugLog);
+        objectManager = GetComponent<ObjectSaveManager>();
+        if (objectManager == null)
+        {
+            objectManager = gameObject.AddComponent<ObjectSaveManager>();
+        }
     }
 
     [Header("保存设置")]
@@ -54,10 +62,6 @@ public class SaveLoadManager : MonoBehaviour
     
     private void Start()
     {
-        // 初始化管理器
-        fileManager = new FileSaveManager(enableDebugLog);
-        objectManager = gameObject.AddComponent<ObjectSaveManager>();
-        
         if (autoSaveOnStart)
         {
             SaveSceneObjects();
