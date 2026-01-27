@@ -73290,9 +73290,17 @@ PrefabInstance:
     serializedVersion: 3
     m_TransformParent: {fileID: 2252825841013129588}
     m_Modifications:
+    - target: {fileID: 684338547297630879, guid: c60c7d46238a6fd4ca2dba310cee6650, type: 3}
+      propertyPath: m_StaticEditorFlags
+      value: 0
+      objectReference: {fileID: 0}
     - target: {fileID: 4692967860873401226, guid: c60c7d46238a6fd4ca2dba310cee6650, type: 3}
       propertyPath: m_Name
       value: (Prb)Katana 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 4692967860873401226, guid: c60c7d46238a6fd4ca2dba310cee6650, type: 3}
+      propertyPath: m_StaticEditorFlags
+      value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 5362403743660722480, guid: c60c7d46238a6fd4ca2dba310cee6650, type: 3}
       propertyPath: m_LocalScale.x

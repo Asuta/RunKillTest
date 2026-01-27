@@ -11457,6 +11457,10 @@ PrefabInstance:
       propertyPath: m_IsActive
       value: 0
       objectReference: {fileID: 0}
+    - target: {fileID: 4484608967760083146, guid: 623706c30620a894f8c5b47692a475c8, type: 3}
+      propertyPath: m_StaticEditorFlags
+      value: 0
+      objectReference: {fileID: 0}
     - target: {fileID: 6506961581752954803, guid: 623706c30620a894f8c5b47692a475c8, type: 3}
       propertyPath: m_LocalPosition.x
       value: 0
@@ -11499,6 +11503,10 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 7915517341115364528, guid: 623706c30620a894f8c5b47692a475c8, type: 3}
       propertyPath: m_IsActive
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 8530678851284095455, guid: 623706c30620a894f8c5b47692a475c8, type: 3}
+      propertyPath: m_StaticEditorFlags
       value: 0
       objectReference: {fileID: 0}
     m_RemovedComponents: []
@@ -25557,6 +25565,7 @@ MonoBehaviour:
   audioSource: {fileID: 0}
   wallDashSound: {fileID: 0}
   playerLandSound: {fileID: 0}
+  dashSound: {fileID: 0}
 --- !u!114 &1525856501
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -64840,6 +64849,11 @@ MonoBehaviour:
   centerPositionSmoothSpeed: 10
   centerRotationSmoothSpeed: 15
   centerFreezeYaxis: 0
+  audioSource: {fileID: 0}
+  copySound: {fileID: 0}
+  selectSound: {fileID: 0}
+  deleteSound: {fileID: 0}
+  grabSound: {fileID: 0}
 --- !u!114 &9167095900856961748
 MonoBehaviour:
   m_ObjectHideFlags: 0
