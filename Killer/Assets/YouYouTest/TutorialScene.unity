@@ -3208,6 +3208,10 @@ PrefabInstance:
       value: 15.7763815
       objectReference: {fileID: 0}
     - target: {fileID: 2595073849659947652, guid: fa80558bd7d29374da33cbfd8099dba7, type: 3}
+      propertyPath: videoClip
+      value: 
+      objectReference: {fileID: 32900000, guid: e81796213522ee44186bea4dbe3cd04f, type: 3}
+    - target: {fileID: 2595073849659947652, guid: fa80558bd7d29374da33cbfd8099dba7, type: 3}
       propertyPath: tutorialControl
       value: 
       objectReference: {fileID: 1764721576}
@@ -9558,6 +9562,10 @@ PrefabInstance:
     m_TransformParent: {fileID: 1857791495}
     m_Modifications:
     - target: {fileID: 2595073849659947652, guid: fa80558bd7d29374da33cbfd8099dba7, type: 3}
+      propertyPath: videoClip
+      value: 
+      objectReference: {fileID: 32900000, guid: c199632841dafd146a2e5008c672a87c, type: 3}
+    - target: {fileID: 2595073849659947652, guid: fa80558bd7d29374da33cbfd8099dba7, type: 3}
       propertyPath: tutorialControl
       value: 
       objectReference: {fileID: 1764721576}
@@ -9695,6 +9703,10 @@ PrefabInstance:
       propertyPath: m_LocalPosition.z
       value: -3.04
       objectReference: {fileID: 0}
+    - target: {fileID: 2595073849659947652, guid: fa80558bd7d29374da33cbfd8099dba7, type: 3}
+      propertyPath: videoClip
+      value: 
+      objectReference: {fileID: 32900000, guid: 3e0d6eb15f5fa6e49bbf70ec09fbebfd, type: 3}
     - target: {fileID: 2595073849659947652, guid: fa80558bd7d29374da33cbfd8099dba7, type: 3}
       propertyPath: tutorialControl
       value: 
@@ -9975,6 +9987,10 @@ PrefabInstance:
       propertyPath: m_LocalPosition.z
       value: -7.6302
       objectReference: {fileID: 0}
+    - target: {fileID: 2595073849659947652, guid: fa80558bd7d29374da33cbfd8099dba7, type: 3}
+      propertyPath: videoClip
+      value: 
+      objectReference: {fileID: 32900000, guid: c183eb3a9f9b59940b928b7a147721da, type: 3}
     - target: {fileID: 2595073849659947652, guid: fa80558bd7d29374da33cbfd8099dba7, type: 3}
       propertyPath: tutorialControl
       value: 
@@ -13108,6 +13124,10 @@ PrefabInstance:
       value: 2.4
       objectReference: {fileID: 0}
     - target: {fileID: 2595073849659947652, guid: fa80558bd7d29374da33cbfd8099dba7, type: 3}
+      propertyPath: videoClip
+      value: 
+      objectReference: {fileID: 32900000, guid: 358058227a2083b459d774024993f400, type: 3}
+    - target: {fileID: 2595073849659947652, guid: fa80558bd7d29374da33cbfd8099dba7, type: 3}
       propertyPath: tutorialControl
       value: 
       objectReference: {fileID: 1764721576}
@@ -14153,6 +14173,10 @@ PrefabInstance:
       propertyPath: m_LocalEulerAnglesHint.y
       value: -1.797
       objectReference: {fileID: 0}
+    - target: {fileID: 2595073849659947652, guid: fa80558bd7d29374da33cbfd8099dba7, type: 3}
+      propertyPath: videoClip
+      value: 
+      objectReference: {fileID: 32900000, guid: dc7dd2f618aa21a41951d9eb41d82316, type: 3}
     - target: {fileID: 2595073849659947652, guid: fa80558bd7d29374da33cbfd8099dba7, type: 3}
       propertyPath: tutorialControl
       value: 
@@ -16564,6 +16588,10 @@ PrefabInstance:
       propertyPath: m_LocalScale.z
       value: 14.27912
       objectReference: {fileID: 0}
+    - target: {fileID: 2595073849659947652, guid: fa80558bd7d29374da33cbfd8099dba7, type: 3}
+      propertyPath: videoClip
+      value: 
+      objectReference: {fileID: 32900000, guid: 1e1fd574c42327144b3acf5e2fcf7fa4, type: 3}
     - target: {fileID: 2595073849659947652, guid: fa80558bd7d29374da33cbfd8099dba7, type: 3}
       propertyPath: tutorialControl
       value: 
@@ -21387,6 +21415,10 @@ PrefabInstance:
       propertyPath: m_LocalPosition.z
       value: -3.04
       objectReference: {fileID: 0}
+    - target: {fileID: 2595073849659947652, guid: fa80558bd7d29374da33cbfd8099dba7, type: 3}
+      propertyPath: videoClip
+      value: 
+      objectReference: {fileID: 32900000, guid: 9c9fb97ca9882224e81acd158e1646e3, type: 3}
     - target: {fileID: 2595073849659947652, guid: fa80558bd7d29374da33cbfd8099dba7, type: 3}
       propertyPath: tutorialControl
       value: 
@@ -66983,6 +67015,10 @@ PrefabInstance:
       propertyPath: m_LocalPosition.z
       value: 6.4
       objectReference: {fileID: 0}
+    - target: {fileID: 2595073849659947652, guid: fa80558bd7d29374da33cbfd8099dba7, type: 3}
+      propertyPath: videoClip
+      value: 
+      objectReference: {fileID: 32900000, guid: dbc892b5deaf2ef42adf9a7750076a90, type: 3}
     - target: {fileID: 2595073849659947652, guid: fa80558bd7d29374da33cbfd8099dba7, type: 3}
       propertyPath: tutorialControl
       value: 
