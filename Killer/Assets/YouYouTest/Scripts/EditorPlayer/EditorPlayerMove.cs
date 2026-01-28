@@ -151,7 +151,7 @@ public class EditorPlayerMove : MonoBehaviour
     }
 
     /// <summary>
-    /// 双手缩放功能 - 同时按住双手的扳机键和握键进行缩放
+    /// 双手缩放功能 - 同时按住双手的 Grab 键进行缩放
     /// </summary>
     private bool HandleScaleGesture()
     {
@@ -284,8 +284,8 @@ public class EditorPlayerMove : MonoBehaviour
         public Vector3 DragHandLocalPosition;
         public Vector3 DragRigWorldPosition;
 
-        public bool ComboPressed => TriggerPressed && GripPressed;
-        public bool ComboStartedThisFrame => (GripDown && TriggerPressed) || (TriggerDown && GripPressed);
+        public bool ComboPressed => GripPressed;
+        public bool ComboStartedThisFrame => GripDown;
 
         public void ResetDrag()
         {
@@ -304,7 +304,7 @@ public class EditorPlayerMove : MonoBehaviour
                 return;
             }
 
-            if (!TriggerPressed && !GripPressed)
+            if (!GripPressed)
             {
                 LockedUntilRelease = false;
             }
