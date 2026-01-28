@@ -171,6 +171,9 @@ public class VRPlayer : MonoBehaviour, ICanBeHit
 
     private void Respawn()
     {
+        // 如果有正在等待的死亡重置计时，先取消它
+        CancelInvoke(nameof(TriggerCheckPointReset));
+
         // 获取Rigidbody组件
         Rigidbody rb = this.GetComponent<Rigidbody>();
 
