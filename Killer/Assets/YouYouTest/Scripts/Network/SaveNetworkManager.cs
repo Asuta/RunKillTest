@@ -4,6 +4,8 @@ using System.Collections;
 using System.Collections.Generic;
 using System.IO;
 using UnityEngine.Events;
+using System.Security.Cryptography;
+using System.Text;
 
 [System.Serializable]
 public class LevelItem
@@ -50,6 +52,30 @@ public class SaveNetworkManager : MonoBehaviour
 {
     private static SaveNetworkManager _instance;
     public string ServerUrl = "http://192.168.5.236:8080";
+    public string PrivateKey = "abcdef";
+
+    private ulong GetTimestamp()
+    {
+        // 毫秒级时间戳 + 5分钟 (300,000 毫秒)
+        return (ulong)(System.DateTimeOffset.UtcNow.ToUnixTimeMilliseconds() + 300000);
+    }
+
+    private string GenerateToken(ulong ts, string parameter)
+    {
+        // Token 生成规则: MD5(TS + PrivateKey + Parameter)
+        string input = ts.ToString() + PrivateKey + parameter;
+        using (MD5 md5 = MD5.Create())
+        {
+            byte[] inputBytes = Encoding.UTF8.GetBytes(input);
+            byte[] hashBytes = md5.ComputeHash(inputBytes);
+            StringBuilder sb = new StringBuilder();
+            for (int i = 0; i < hashBytes.Length; i++)
+            {
+                sb.Append(hashBytes[i].ToString("X2"));
+            }
+            return sb.ToString();
+        }
+    }
 
     public static SaveNetworkManager Instance
     {
@@ -126,9 +152,12 @@ public class SaveNetworkManager : MonoBehaviour
         string encodedName = UnityWebRequest.EscapeURL(levelName).Replace("+", "%20");
         string encodedDesc = UnityWebRequest.EscapeURL(description).Replace("+", "%20");
 
-        // 接口格式: /up?uid=%s&PLength=%d&JLength=%d&Name=%s&ObNum=%d&Desc=%s
-        string url = string.Format("{0}/up?uid={1}&PLength={2}&JLength={3}&Name={4}&ObNum={5}&Desc={6}",
-            ServerUrl.TrimEnd('/'), uid, pLength, jLength, encodedName, objectCount, encodedDesc);
+        ulong ts = GetTimestamp();
+        string token = GenerateToken(ts, uid);
+
+        // 接口格式: /up?uid=%s&PLength=%d&JLength=%d&Name=%s&ObNum=%d&Desc=%s&ts=%llu&token=%s
+        string url = string.Format("{0}/up?uid={1}&PLength={2}&JLength={3}&Name={4}&ObNum={5}&Desc={6}&ts={7}&token={8}",
+            ServerUrl.TrimEnd('/'), uid, pLength, jLength, encodedName, objectCount, encodedDesc, ts, token);
 
         // 2. 构建二进制包体：Json 字节流 + 图片字节流
         byte[] bodyData = new byte[jsonBytes.Length + imageBytes.Length];
@@ -167,7 +196,9 @@ public class SaveNetworkManager : MonoBehaviour
 
     private IEnumerator GetListRoutine(int page, int pageSize, UnityAction<LevelListResponse> callback)
     {
-        string url = $"{ServerUrl.TrimEnd('/')}/get_all_tasks/?page={page}&size={pageSize}";
+        ulong ts = GetTimestamp();
+        string token = GenerateToken(ts, page.ToString());
+        string url = $"{ServerUrl.TrimEnd('/')}/get_all_tasks/?page={page}&size={pageSize}&ts={ts}&token={token}";
         using (UnityWebRequest www = UnityWebRequest.Get(url))
         {
             yield return www.SendWebRequest();
@@ -210,8 +241,11 @@ public class SaveNetworkManager : MonoBehaviour
         }
 
         bool jsonSuccess = false;
+        ulong ts = GetTimestamp();
+        string token = GenerateToken(ts, id);
+
         // 1. 下载 JSON
-        string jsonUrl = $"{ServerUrl.TrimEnd('/')}/get_json?id={id}";
+        string jsonUrl = $"{ServerUrl.TrimEnd('/')}/get_json?id={id}&ts={ts}&token={token}";
         using (UnityWebRequest wwwJson = UnityWebRequest.Get(jsonUrl))
         {
             yield return wwwJson.SendWebRequest();
@@ -236,7 +270,7 @@ public class SaveNetworkManager : MonoBehaviour
         }
 
         // 2. 下载 图片
-        string imgUrl = $"{ServerUrl.TrimEnd('/')}/get_image?id={id}";
+        string imgUrl = $"{ServerUrl.TrimEnd('/')}/get_image?id={id}&ts={ts}&token={token}";
         using (UnityWebRequest wwwImg = UnityWebRequestTexture.GetTexture(imgUrl))
         {
             yield return wwwImg.SendWebRequest();
@@ -279,7 +313,31 @@ public class SaveNetworkManager : MonoBehaviour
 
     private IEnumerator DownloadThumbnailRoutine(string url)
     {
-        using (UnityWebRequest www = UnityWebRequestTexture.GetTexture(url))
+        string finalUrl = url;
+        if (!finalUrl.StartsWith("http"))
+        {
+            finalUrl = $"{ServerUrl.TrimEnd('/')}/{finalUrl.TrimStart('/')}";
+        }
+
+        // 提取 ID 用于生成 Token
+        string id = "";
+        if (finalUrl.Contains("id="))
+        {
+            int startIndex = finalUrl.IndexOf("id=") + 3;
+            int endIndex = finalUrl.IndexOf('&', startIndex);
+            if (endIndex == -1) endIndex = finalUrl.Length;
+            id = finalUrl.Substring(startIndex, endIndex - startIndex);
+        }
+
+        ulong ts = GetTimestamp();
+        string token = GenerateToken(ts, id);
+
+        if (finalUrl.Contains("?"))
+            finalUrl += $"&ts={ts}&token={token}";
+        else
+            finalUrl += $"?ts={ts}&token={token}";
+
+        using (UnityWebRequest www = UnityWebRequestTexture.GetTexture(finalUrl))
         {
             www.timeout = 5; // 增加到 5 秒超时
             yield return www.SendWebRequest();
