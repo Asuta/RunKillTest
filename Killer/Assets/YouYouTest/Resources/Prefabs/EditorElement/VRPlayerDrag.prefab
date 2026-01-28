@@ -13536,8 +13536,10 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   bladeMeshRenderer: {fileID: 1953362329872059178}
   speedThreshold: 15
+  minTrailDuration: 0.38
   playerHit: {fileID: 5635364425204364575}
   playerDefense: {fileID: 5212854881548429937}
+  trailObject: {fileID: 4766986025249716017}
 --- !u!54 &5691561621052701478
 Rigidbody:
   m_ObjectHideFlags: 0
