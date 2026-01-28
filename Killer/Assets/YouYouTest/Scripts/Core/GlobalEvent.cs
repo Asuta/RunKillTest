@@ -121,5 +121,11 @@ public static class GlobalEvent
     public static readonly UnityEvent<Transform> PlayerCameraChange = new UnityEvent<Transform>();
 
 
+    /// <summary>
+    /// 切换mode失败事件
+    /// </summary>
+    public static readonly UnityEvent ModeChangeFailed = new UnityEvent();
+
+
 }
 

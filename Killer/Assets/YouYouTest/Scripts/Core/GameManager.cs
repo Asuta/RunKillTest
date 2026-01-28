@@ -532,6 +532,16 @@ public class GameManager : MonoBehaviour
             _menuButtonPressTime += Time.deltaTime;
             if (_menuButtonPressTime >= 0.7f)
             {
+                // 检查场景中是否存在Player脚本
+                if (FindFirstObjectByType<VRPlayer>() == null)
+                {
+                    CustomLog.LogWarning(needLog, "场景中不存在VRPlayer脚本，无法切换模式");
+                    // 触发切换mode失败事件
+                    GlobalEvent.ModeChangeFailed.Invoke();
+                    _menuButtonPressTime = 0f;
+                    return;
+                }
+
                 OnModeButtonPoke();
                 _menuButtonPressTime = 0f; // Reset time after triggering
             }
