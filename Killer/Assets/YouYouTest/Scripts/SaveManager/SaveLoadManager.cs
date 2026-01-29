@@ -1,7 +1,9 @@
 using UnityEngine;
+using System.Collections;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using UnityEngine.Networking;
 using YouYouTest.CommandFramework;
 using YouYouTest;
 #if UNITY_EDITOR
@@ -62,9 +64,100 @@ public class SaveLoadManager : MonoBehaviour
     
     private void Start()
     {
+        StartCoroutine(InitializeWebData());
+
         if (autoSaveOnStart)
         {
             SaveSceneObjects();
+        }
+    }
+
+    /// <summary>
+    /// 初始化默认的Web存档数据（将StreamingAssets中的数据复制到persistentDataPath）
+    /// </summary>
+    private IEnumerator InitializeWebData()
+    {
+        // 确保目标文件夹存在
+        string userFolderPath = fileManager.GetUserFolderPath();
+        string targetFolder = Path.Combine(userFolderPath, "WebSaveData");
+        
+        if (!Directory.Exists(targetFolder))
+        {
+            Directory.CreateDirectory(targetFolder);
+        }
+
+        // 获取源文件列表路径
+        string fileListPath = Path.Combine(Application.streamingAssetsPath, "DefaultWebSaveData", "file_list.txt");
+        string fileListContent = null;
+
+        // Android平台下streamingAssetsPath以jar:file://开头，必须使用UnityWebRequest读取
+        if (fileListPath.Contains("://"))
+        {
+            using (UnityWebRequest www = UnityWebRequest.Get(fileListPath))
+            {
+                yield return www.SendWebRequest();
+                if (www.result == UnityWebRequest.Result.Success)
+                {
+                    fileListContent = www.downloadHandler.text;
+                }
+            }
+        }
+        else
+        {
+            // PC/Editor平台可以直接使用文件IO
+            if (File.Exists(fileListPath))
+            {
+                fileListContent = File.ReadAllText(fileListPath);
+            }
+        }
+
+        if (string.IsNullOrEmpty(fileListContent))
+        {
+            yield break;
+        }
+
+        // 解析文件列表并逐个复制
+        string[] files = fileListContent.Split(new[] { '\r', '\n' }, System.StringSplitOptions.RemoveEmptyEntries);
+        foreach (string fileName in files)
+        {
+            string targetPath = Path.Combine(targetFolder, fileName);
+            
+            // 如果目标文件已存在，跳过（避免覆盖玩家数据）
+            if (File.Exists(targetPath))
+            {
+                continue;
+            }
+
+            string sourcePath = Path.Combine(Application.streamingAssetsPath, "DefaultWebSaveData", fileName);
+            string fileContent = null;
+
+            if (sourcePath.Contains("://"))
+            {
+                using (UnityWebRequest www = UnityWebRequest.Get(sourcePath))
+                {
+                    yield return www.SendWebRequest();
+                    if (www.result == UnityWebRequest.Result.Success)
+                    {
+                        fileContent = www.downloadHandler.text;
+                    }
+                }
+            }
+            else
+            {
+                if (File.Exists(sourcePath))
+                {
+                    fileContent = File.ReadAllText(sourcePath);
+                }
+            }
+
+            if (!string.IsNullOrEmpty(fileContent))
+            {
+                File.WriteAllText(targetPath, fileContent);
+                if (enableDebugLog)
+                {
+                    Debug.Log($"[SaveLoadManager] 已初始化默认存档: {fileName}");
+                }
+            }
         }
     }
     
