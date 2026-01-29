@@ -1341,6 +1341,19 @@ PrefabInstance:
       propertyPath: m_LocalEulerAnglesHint.y
       value: -89.023
       objectReference: {fileID: 0}
+    - target: {fileID: 8381672385267073614, guid: fa80558bd7d29374da33cbfd8099dba7, type: 3}
+      propertyPath: m_text
+      value: Good Human !
+      objectReference: {fileID: 0}
+    - target: {fileID: 8381672385267073614, guid: fa80558bd7d29374da33cbfd8099dba7, type: 3}
+      propertyPath: m_HorizontalAlignment
+      value: 2
+      objectReference: {fileID: 0}
+    - target: {fileID: 8905460408001538149, guid: fa80558bd7d29374da33cbfd8099dba7, type: 3}
+      propertyPath: m_text
+      value: Congratulations, the tutorial is complete! You will now return to the
+        lobby!
+      objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
@@ -3306,6 +3319,18 @@ PrefabInstance:
     - target: {fileID: 7133273854839850069, guid: fa80558bd7d29374da33cbfd8099dba7, type: 3}
       propertyPath: m_LocalEulerAnglesHint.y
       value: -270
+      objectReference: {fileID: 0}
+    - target: {fileID: 8381672385267073614, guid: fa80558bd7d29374da33cbfd8099dba7, type: 3}
+      propertyPath: m_text
+      value: Turning
+      objectReference: {fileID: 0}
+    - target: {fileID: 8381672385267073614, guid: fa80558bd7d29374da33cbfd8099dba7, type: 3}
+      propertyPath: m_HorizontalAlignment
+      value: 2
+      objectReference: {fileID: 0}
+    - target: {fileID: 8905460408001538149, guid: fa80558bd7d29374da33cbfd8099dba7, type: 3}
+      propertyPath: m_text
+      value: Use the right analog stick to turn.
       objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
@@ -9673,6 +9698,19 @@ PrefabInstance:
       propertyPath: m_LocalEulerAnglesHint.y
       value: 131.623
       objectReference: {fileID: 0}
+    - target: {fileID: 8381672385267073614, guid: fa80558bd7d29374da33cbfd8099dba7, type: 3}
+      propertyPath: m_text
+      value: Dashing
+      objectReference: {fileID: 0}
+    - target: {fileID: 8381672385267073614, guid: fa80558bd7d29374da33cbfd8099dba7, type: 3}
+      propertyPath: m_HorizontalAlignment
+      value: 2
+      objectReference: {fileID: 0}
+    - target: {fileID: 8905460408001538149, guid: fa80558bd7d29374da33cbfd8099dba7, type: 3}
+      propertyPath: m_text
+      value: Press and hold the "A" button on the right controller, then swing quickly
+        to dash.
+      objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
@@ -9802,6 +9840,20 @@ PrefabInstance:
     - target: {fileID: 7133273854839850069, guid: fa80558bd7d29374da33cbfd8099dba7, type: 3}
       propertyPath: m_LocalEulerAnglesHint.y
       value: 49.811
+      objectReference: {fileID: 0}
+    - target: {fileID: 8381672385267073614, guid: fa80558bd7d29374da33cbfd8099dba7, type: 3}
+      propertyPath: m_text
+      value: Wall Running
+      objectReference: {fileID: 0}
+    - target: {fileID: 8381672385267073614, guid: fa80558bd7d29374da33cbfd8099dba7, type: 3}
+      propertyPath: m_HorizontalAlignment
+      value: 2
+      objectReference: {fileID: 0}
+    - target: {fileID: 8905460408001538149, guid: fa80558bd7d29374da33cbfd8099dba7, type: 3}
+      propertyPath: m_text
+      value: While in the wall running state, you can exit the wall running state
+        at any time by performing a "jump action," allowing for continuous jumps
+        between walls.
       objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
@@ -10086,6 +10138,20 @@ PrefabInstance:
     - target: {fileID: 7133273854839850069, guid: fa80558bd7d29374da33cbfd8099dba7, type: 3}
       propertyPath: m_LocalEulerAnglesHint.y
       value: 59.09
+      objectReference: {fileID: 0}
+    - target: {fileID: 8381672385267073614, guid: fa80558bd7d29374da33cbfd8099dba7, type: 3}
+      propertyPath: m_text
+      value: "Hook\t"
+      objectReference: {fileID: 0}
+    - target: {fileID: 8381672385267073614, guid: fa80558bd7d29374da33cbfd8099dba7, type: 3}
+      propertyPath: m_HorizontalAlignment
+      value: 2
+      objectReference: {fileID: 0}
+    - target: {fileID: 8905460408001538149, guid: fa80558bd7d29374da33cbfd8099dba7, type: 3}
+      propertyPath: m_text
+      value: Approach a hookable unit until the hook core turns blue, then press
+        and hold the left trigger button and pull backward to dash towards the hook
+        target.
       objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
@@ -13223,6 +13289,19 @@ PrefabInstance:
       propertyPath: m_LocalEulerAnglesHint.y
       value: -306.274
       objectReference: {fileID: 0}
+    - target: {fileID: 8381672385267073614, guid: fa80558bd7d29374da33cbfd8099dba7, type: 3}
+      propertyPath: m_text
+      value: Jumping
+      objectReference: {fileID: 0}
+    - target: {fileID: 8381672385267073614, guid: fa80558bd7d29374da33cbfd8099dba7, type: 3}
+      propertyPath: m_HorizontalAlignment
+      value: 2
+      objectReference: {fileID: 0}
+    - target: {fileID: 8905460408001538149, guid: fa80558bd7d29374da33cbfd8099dba7, type: 3}
+      propertyPath: m_text
+      value: Press and hold the side grip button and the trigger button simultaneously,
+        then quickly swing downwards to jump (you can perform a second jump in mid-air).
+      objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
@@ -14272,6 +14351,18 @@ PrefabInstance:
     - target: {fileID: 7133273854839850069, guid: fa80558bd7d29374da33cbfd8099dba7, type: 3}
       propertyPath: m_LocalEulerAnglesHint.y
       value: 43.244
+      objectReference: {fileID: 0}
+    - target: {fileID: 8381672385267073614, guid: fa80558bd7d29374da33cbfd8099dba7, type: 3}
+      propertyPath: m_text
+      value: Bouncing Pad
+      objectReference: {fileID: 0}
+    - target: {fileID: 8381672385267073614, guid: fa80558bd7d29374da33cbfd8099dba7, type: 3}
+      propertyPath: m_HorizontalAlignment
+      value: 2
+      objectReference: {fileID: 0}
+    - target: {fileID: 8905460408001538149, guid: fa80558bd7d29374da33cbfd8099dba7, type: 3}
+      propertyPath: m_text
+      value: Contact with a bouncing pad will launch you.
       objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
@@ -16687,6 +16778,22 @@ PrefabInstance:
     - target: {fileID: 7133273854839850069, guid: fa80558bd7d29374da33cbfd8099dba7, type: 3}
       propertyPath: m_LocalEulerAnglesHint.y
       value: -127.303
+      objectReference: {fileID: 0}
+    - target: {fileID: 8381672385267073614, guid: fa80558bd7d29374da33cbfd8099dba7, type: 3}
+      propertyPath: m_text
+      value: Enemies
+      objectReference: {fileID: 0}
+    - target: {fileID: 8381672385267073614, guid: fa80558bd7d29374da33cbfd8099dba7, type: 3}
+      propertyPath: m_HorizontalAlignment
+      value: 2
+      objectReference: {fileID: 0}
+    - target: {fileID: 8905460408001538149, guid: fa80558bd7d29374da33cbfd8099dba7, type: 3}
+      propertyPath: m_text
+      value: ' Blades can be used to defend against ranged attacks. Quickly swinging
+        your blade to hit bullets will reflect them back to kill enemies.
+
+        You
+        can also directly hit enemies with your blade to kill them.'
       objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
@@ -21514,6 +21621,21 @@ PrefabInstance:
     - target: {fileID: 7133273854839850069, guid: fa80558bd7d29374da33cbfd8099dba7, type: 3}
       propertyPath: m_LocalEulerAnglesHint.y
       value: 111.028
+      objectReference: {fileID: 0}
+    - target: {fileID: 8381672385267073614, guid: fa80558bd7d29374da33cbfd8099dba7, type: 3}
+      propertyPath: m_text
+      value: Wall Running
+      objectReference: {fileID: 0}
+    - target: {fileID: 8381672385267073614, guid: fa80558bd7d29374da33cbfd8099dba7, type: 3}
+      propertyPath: m_HorizontalAlignment
+      value: 2
+      objectReference: {fileID: 0}
+    - target: {fileID: 8905460408001538149, guid: fa80558bd7d29374da33cbfd8099dba7, type: 3}
+      propertyPath: m_text
+      value: 'Jump onto a wall to automatically enter the "wall running" state.
+
+        Continuous
+        Wall Running (with a mid-air jump)'
       objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
@@ -67115,6 +67237,19 @@ PrefabInstance:
       propertyPath: m_LocalEulerAnglesHint.y
       value: -226.737
       objectReference: {fileID: 0}
+    - target: {fileID: 8381672385267073614, guid: fa80558bd7d29374da33cbfd8099dba7, type: 3}
+      propertyPath: m_text
+      value: Movement
+      objectReference: {fileID: 0}
+    - target: {fileID: 8381672385267073614, guid: fa80558bd7d29374da33cbfd8099dba7, type: 3}
+      propertyPath: m_HorizontalAlignment
+      value: 2
+      objectReference: {fileID: 0}
+    - target: {fileID: 8905460408001538149, guid: fa80558bd7d29374da33cbfd8099dba7, type: 3}
+      propertyPath: m_text
+      value: Press and hold the side grip button on the handle and drag horizontally
+        to move.
+      objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
@@ -68315,6 +68450,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: ac90346e38fcc2648873fab8c7577a0a, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  playerCamera: {fileID: 0}
   UITarget: {fileID: 7806253678738950290}
   leftHand: {fileID: 6192473740211445770}
   leftCheckSphere: {fileID: 1071562453528316187}
@@ -68331,6 +68467,7 @@ MonoBehaviour:
   selectSound: {fileID: 0}
   deleteSound: {fileID: 0}
   grabSound: {fileID: 0}
+  warnTextUI: {fileID: 0}
 --- !u!114 &9167095900856961749
 MonoBehaviour:
   m_ObjectHideFlags: 0
