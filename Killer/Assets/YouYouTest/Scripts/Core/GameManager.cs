@@ -147,6 +147,15 @@ public class GameManager : MonoBehaviour
             return;
         }
 
+        // 如果尝试进入游戏模式，检查场景中是否存在Player脚本
+        if (isPlayMode && FindFirstObjectByType<VRPlayer>() == null)
+        {
+            CustomLog.LogWarning(needLog, "场景中不存在VRPlayer脚本，无法切换到游戏模式");
+            // 触发切换mode失败事件
+            GlobalEvent.ModeChangeFailed.Invoke();
+            return;
+        }
+
         _isPlayMode = isPlayMode;
         CustomLog.Log(needLog, $"设置模式: {(_isPlayMode ? "PlayMode" : "EditMode")}");
 
@@ -446,32 +455,8 @@ public class GameManager : MonoBehaviour
             return;
         }
 
-        // 切换PlayMode状态
-        _isPlayMode = !_isPlayMode;
-        CustomLog.Log(needLog, $"切换模式: {(_isPlayMode ? "PlayMode" : "EditMode")}");
-
-        // 触发播放状态改变事件
-        GlobalEvent.IsPlayChange.Invoke(_isPlayMode);
-
-        // 根据状态激活/禁用对应的Rig
-        if (_isPlayMode)
-        {
-            // PlayMode: 激活VR Player，禁用VR Editor
-            if (_vrEditorRig != null)
-            {
-                _vrEditorRig.gameObject.SetActive(false);
-                CustomLog.Log(needLog, "VR Editor Rig 已禁用");
-            }
-        }
-        else
-        {
-            // EditMode: 激活VR Editor，禁用VR Player
-            if (_vrEditorRig != null)
-            {
-                _vrEditorRig.gameObject.SetActive(true);
-                CustomLog.Log(needLog, "VR Editor Rig 已激活");
-            }
-        }
+        // 使用 SetPlayMode 统一处理切换逻辑（包含校验）
+        SetPlayMode(!_isPlayMode);
     }
 
     private void OnDestroy()
@@ -532,16 +517,7 @@ public class GameManager : MonoBehaviour
             _menuButtonPressTime += Time.deltaTime;
             if (_menuButtonPressTime >= 0.7f)
             {
-                // 检查场景中是否存在Player脚本
-                if (FindFirstObjectByType<VRPlayer>() == null)
-                {
-                    CustomLog.LogWarning(needLog, "场景中不存在VRPlayer脚本，无法切换模式");
-                    // 触发切换mode失败事件
-                    GlobalEvent.ModeChangeFailed.Invoke();
-                    _menuButtonPressTime = 0f;
-                    return;
-                }
-
+                // 直接调用 OnModeButtonPoke，它现在内部使用 SetPlayMode 并包含校验
                 OnModeButtonPoke();
                 _menuButtonPressTime = 0f; // Reset time after triggering
             }

@@ -7,6 +7,7 @@ using System.Collections.Generic;
 public class EditorPlayer : MonoBehaviour
 {
     #region 字段和属性
+    public Transform playerCamera;
     public GameObject UITarget;
     public Transform leftHand;
     public Transform leftCheckSphere;
@@ -86,6 +87,10 @@ public class EditorPlayer : MonoBehaviour
     public AudioClip selectSound; // 选择音效
     public AudioClip deleteSound; // 删除音效
     public AudioClip grabSound; // 抓取音效
+
+    //其他
+    public GameObject warnTextUI;
+    
     
 
     // public AudioClip selectCompleteSound; // 选择完成音效（这个还是和UI一起出现吧，不在这里控制了）
@@ -110,6 +115,36 @@ public class EditorPlayer : MonoBehaviour
         // 注册全局事件监听
         GlobalEvent.OnLoadObjectsSetSelected.AddListener(SetObjectsAsSelected);
         GlobalEvent.OnSaveSelectedObjects.AddListener(SaveSelectedObjects);
+        GlobalEvent.ModeChangeFailed.AddListener(HandleModeChangeFailed);
+    }
+
+    /// <summary>
+    /// 处理切换模式失败事件
+    /// </summary>
+    private void HandleModeChangeFailed()
+    {
+        Debug.Log("haahah");
+
+        if (warnTextUI != null && playerCamera != null)
+        {
+            // 复制一个warntextUI
+            GameObject warnUI = Instantiate(warnTextUI);
+            warnUI.SetActive(true);
+
+            // 在camera面前生成出来 (1.5米处)
+            warnUI.transform.position = playerCamera.position + playerCamera.forward * 1.5f*playerCamera.lossyScale.z;
+            warnUI.transform.localScale = Vector3.one * 0.015f*playerCamera.lossyScale.z;
+
+            // 设置旋转，使其面向相机 (通常直接同步相机的旋转即可)
+            warnUI.transform.rotation = playerCamera.rotation;
+
+            Debug.Log($"已在相机前生成 warnTextUI: {warnUI.name}");
+        }
+        else
+        {
+            if (warnTextUI == null) Debug.LogWarning("warnTextUI 为空，无法生成");
+            if (playerCamera == null) Debug.LogWarning("playerCamera 为空，无法确定生成位置");
+        }
     }
 
     // Update is called once per frame
@@ -1112,6 +1147,7 @@ public class EditorPlayer : MonoBehaviour
         // 移除全局事件监听
         GlobalEvent.OnLoadObjectsSetSelected.RemoveListener(SetObjectsAsSelected);
         GlobalEvent.OnSaveSelectedObjects.RemoveListener(SaveSelectedObjects);
+        GlobalEvent.ModeChangeFailed.RemoveListener(HandleModeChangeFailed);
     }
     #endregion
 
