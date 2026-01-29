@@ -1,5 +1,6 @@
 using UnityEngine;
 using UnityEngine.Video;
+using VInspector;
 
 public class TutorialTrigger : MonoBehaviour
 {
@@ -26,5 +27,11 @@ public class TutorialTrigger : MonoBehaviour
             Debug.Log("hahaha");
             tutorialControl.ShowTutorialPanel(tutorialPanel, videoClip);
         }
+    }
+
+    [Button]
+    public void ShowTutorial()
+    {
+        tutorialControl.ShowTutorialPanel(tutorialPanel, videoClip);
     }
 }

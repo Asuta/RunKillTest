@@ -1249,6 +1249,10 @@ PrefabInstance:
       propertyPath: tutorialControl
       value: 
       objectReference: {fileID: 1764721576}
+    - target: {fileID: 3699852219711292426, guid: fa80558bd7d29374da33cbfd8099dba7, type: 3}
+      propertyPath: m_IsActive
+      value: 0
+      objectReference: {fileID: 0}
     - target: {fileID: 4803323193923678453, guid: fa80558bd7d29374da33cbfd8099dba7, type: 3}
       propertyPath: m_IsActive
       value: 0
