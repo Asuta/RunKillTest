@@ -19,6 +19,13 @@
       },
       "hash": "25f1b97fedb6cf7b4b566c4a83ec8311b68d3e82"
     },
+    "com.meta.xr.sdk.core": {
+      "version": "83.0.3",
+      "depth": 0,
+      "source": "registry",
+      "dependencies": {},
+      "url": "https://packages.unity.com"
+    },
     "com.singularitygroup.hotreload": {
       "version": "file:com.singularitygroup.hotreload",
       "depth": 0,
