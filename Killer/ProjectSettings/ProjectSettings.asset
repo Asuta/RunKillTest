@@ -144,8 +144,7 @@ PlayerSettings:
   preloadedAssets:
   - {fileID: -944628639613478452, guid: c348712bda248c246b8c49b3db54643f, type: 3}
   - {fileID: 11400000, guid: 81dec38bfa07bfd46a2a00c9cb12aa97, type: 2}
-  - {fileID: 535379156250199245, guid: 67857a59558b0a7458c17cf161d74c32, type: 2}
-  - {fileID: -6096092104114036795, guid: 9a185598a96f6b64f9a8d29c6d0962d0, type: 2}
+  - {fileID: 11400000, guid: 8f680c564d6cd324ca7dd7fbd3830e4c, type: 2}
   metroInputSource: 0
   wsaTransparentSwapchain: 0
   m_HolographicPauseOnTrackingLoss: 1
@@ -167,7 +166,7 @@ PlayerSettings:
   androidMaxAspectRatio: 2.4
   androidMinAspectRatio: 1
   applicationIdentifier:
-    Android: com.UnityTechnologies.com.unity.template.urpblank
+    Android: com.happykiller.visonheart
     Standalone: com.Unity-Technologies.com.unity.template.urp-blank
     iPhone: com.Unity-Technologies.com.unity.template.urp-blank
   buildNumber:
