@@ -130,18 +130,17 @@ public class BeGrabobject  : MonoBehaviour, IGrabable
     public void UnifiedGrab(Transform handTransform)
     {
         if (handTransform == null) return;
-        
-        // 设置抓取状态
-        if (!isGrabbed)
+
+        isIndirectGrabbing = false;
+        indirectTarget = null;
+
+        if (indirectRotationTarget != null)
         {
-            isGrabbed = true;
-            grabHand = handTransform;
+            Destroy(indirectRotationTarget.gameObject);
+            indirectRotationTarget = null;
         }
-        
-        // 执行批量间接抓取（使用自身作为中心点）
-        BatchIndirectGrab(handTransform, transform);
-        
-        Debug.Log($"{gameObject.name} 被 {GetHandName(handTransform)} 统一抓取（间接抓取）");
+
+        OnGrabbed(handTransform);
     }
     
     /// <summary>

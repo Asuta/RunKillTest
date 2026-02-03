@@ -653,6 +653,27 @@ public class EditorPlayer : MonoBehaviour
             PlayGrabSound(hand);
         }
 
+        if (grabbedAny && targetMultiGrabbedObjects.Count == 1)
+        {
+            var single = targetMultiGrabbedObjects[0];
+            targetMultiGrabbedObjects.Clear();
+
+            if (isLeftHand)
+            {
+                leftGrabbedObject = single;
+                leftCurrentGrabCommand = null;
+            }
+            else
+            {
+                rightGrabbedObject = single;
+                rightCurrentGrabCommand = null;
+            }
+
+            single.OnGrabbed(hand);
+            handOutlineController?.UpdateTarget(isLeftHand, null, null, single);
+            return;
+        }
+
         // 如果是多抓取，创建中心点对象并初始化中心点跟随
         if (grabbedAny && targetMultiGrabbedObjects.Count > 1)
         {
@@ -1270,12 +1291,38 @@ public class EditorPlayer : MonoBehaviour
             RightHandRelease();
         }
 
-        // 将所有对象添加到多选列表中
+        if (objects.Count == 1)
+        {
+            var obj = objects[0];
+            if (obj == null)
+            {
+                Debug.LogWarning("对象为空，无法设置选中状态");
+                return;
+            }
+
+            var grabable = EditorPlayerHelpers.GetGrabableFromGameObject(obj);
+            if (grabable == null)
+            {
+                Debug.LogWarning($"对象 {obj.name} 上没有找到IGrabable组件");
+                return;
+            }
+
+            handOutlineController.SetSelectedForCurrentHold(false, grabable);
+
+            rightMultiGrabbedObjects.Clear();
+            rightCurrentGrabCommand = null;
+            rightGrabbedObject = grabable;
+            grabable.OnGrabbed(rightHand);
+            handOutlineController.UpdateTarget(false, null, null, rightGrabbedObject);
+
+            Debug.Log($"已将 {obj.name} 设置为单选并抓取");
+            return;
+        }
+
         foreach (var obj in objects)
         {
             if (obj == null) continue;
 
-            // 获取OutlineReceiver组件
             OutlineReceiver outlineReceiver = obj.GetComponentInParent<OutlineReceiver>();
             if (outlineReceiver != null)
             {
@@ -1319,12 +1366,14 @@ public class EditorPlayer : MonoBehaviour
             }
             else if (selectedGrabables != null && selectedGrabables.Count == 1)
             {
-                // 单选时使用普通抓取
                 var grabable = selectedGrabables[0];
                 if (grabable != null)
                 {
-                    grabable.UnifiedGrab(rightHand);
-                    rightMultiGrabbedObjects.Add(grabable);
+                    rightMultiGrabbedObjects.Clear();
+                    rightCurrentGrabCommand = null;
+                    rightGrabbedObject = grabable;
+                    grabable.OnGrabbed(rightHand);
+                    handOutlineController.UpdateTarget(false, null, null, rightGrabbedObject);
                 }
             }
             Debug.Log($"已将 {selectedGrabables?.Count ?? 0} 个选中的对象设置为正在被右手抓住的状态");
