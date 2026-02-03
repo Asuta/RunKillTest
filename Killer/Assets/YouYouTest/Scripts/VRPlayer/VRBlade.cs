@@ -1,5 +1,6 @@
 using UnityEngine;
 using Drakkar;
+using Drakkar.GameUtils;
 
 public class VRBlade : MonoBehaviour
 {
@@ -9,7 +10,7 @@ public class VRBlade : MonoBehaviour
     public float minTrailDuration = 1.0f; // 拖尾最小显示时间
     public GameObject playerHit;
     public GameObject playerDefense;
-    public GameObject trailObject;
+    public DrakkarTrail drakkarTrail;
     #endregion
 
     #region 私有变量
@@ -26,7 +27,7 @@ public class VRBlade : MonoBehaviour
         bladeMeshRenderer = GetComponent<MeshRenderer>();
         // 使用父物体的本地坐标初始化，如果没有父物体则使用自身坐标
         previousPosition = transform.parent != null ? transform.parent.localPosition : transform.localPosition;
-        if (trailObject != null) trailObject.SetActive(false);
+        if (drakkarTrail != null) drakkarTrail.IsEmitting = false;
     }
 
     // Update is called once per frame
@@ -101,7 +102,7 @@ public class VRBlade : MonoBehaviour
         bladeMeshRenderer.material.color = Color.red;
         playerHit.SetActive(true);
         playerDefense.SetActive(false);
-        if (trailObject != null) trailObject.SetActive(true);
+        if (drakkarTrail != null) drakkarTrail.IsEmitting = true;
     }
     
     public void SetBladeBlack()
@@ -109,7 +110,7 @@ public class VRBlade : MonoBehaviour
         bladeMeshRenderer.material.color = Color.black;
         playerHit.SetActive(false);
         playerDefense.SetActive(true);
-        if (trailObject != null) trailObject.SetActive(false);
+        if (drakkarTrail != null) drakkarTrail.IsEmitting = false;
     }
     #endregion
 }

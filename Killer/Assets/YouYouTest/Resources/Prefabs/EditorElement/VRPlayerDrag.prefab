@@ -13575,7 +13575,7 @@ MonoBehaviour:
   minTrailDuration: 0.38
   playerHit: {fileID: 5635364425204364575}
   playerDefense: {fileID: 5212854881548429937}
-  trailObject: {fileID: 4766986025249716017}
+  drakkarTrail: {fileID: 7401340686718574095}
 --- !u!54 &5691561621052701478
 Rigidbody:
   m_ObjectHideFlags: 0
@@ -34371,6 +34371,7 @@ MonoBehaviour:
   Edge2: 0.27
   TrailMaterial: {fileID: 2100000, guid: dbd10b2e6f8662d4ba820adc07e5e569, type: 2}
   Layer: 0
+  IsVisible: 1
 --- !u!114 &5354313876723424968
 MonoBehaviour:
   m_ObjectHideFlags: 0

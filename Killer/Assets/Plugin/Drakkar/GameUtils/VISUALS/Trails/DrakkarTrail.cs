@@ -69,6 +69,16 @@ namespace Drakkar.GameUtils
 	#if DRAKKAR_EVENTS
 		public DrakkarEvent[] OnBegin=null,OnEnd=null,OnClear=null;
 	#endif
+		public bool IsVisible = true;
+		public bool IsEmitting
+		{
+			get => active && !dying;
+			set
+			{
+				if (value) Resume();
+				else End();
+			}
+		}
 	#endregion
 		#region INTERNALS
 		internal bool active,dying,added;
@@ -146,6 +156,24 @@ namespace Drakkar.GameUtils
 		#if DRAKKAR_EVENTS
 			DrakkarEvent.Execute(OnBegin);
 		#endif
+		}
+		public void Resume()
+		{
+			if (!active)
+			{
+				Begin();
+			}
+			else if (dying)
+			{
+				dying=false;
+			#if DRAKKAR_VFX
+				if (Vfx.hasRoot)
+					VFXMaster.PlayVFX(Vfx,true);
+			#endif
+			#if DRAKKAR_EVENTS
+				DrakkarEvent.Execute(OnBegin);
+			#endif
+			}
 		}
 		[MethodImpl(MethodImplOptions.AggressiveInlining)]
 		[Il2CppSetOption(Option.ArrayBoundsChecks,false)]
@@ -478,7 +506,8 @@ namespace Drakkar.GameUtils
 			_mesh.SetVertices(vertices,0,edgesOffset+steps*edges,MeshUpdateFlags.DontValidateIndices|MeshUpdateFlags.DontRecalculateBounds);
 			bounds.center=lastPos;
 			_mesh.bounds=bounds;
-			Graphics.DrawMesh(_mesh,feed.identity,feed.TrailMaterial,feed.Layer,null,0,null,false,false,false);
+			if (feed.IsVisible)
+				Graphics.DrawMesh(_mesh,feed.identity,feed.TrailMaterial,feed.Layer,null,0,null,false,false,false);
 		}
 
 		[MethodImpl(MethodImplOptions.AggressiveInlining)]
@@ -821,6 +850,10 @@ namespace Drakkar.GameUtils
 				EditorGUILayout.BeginHorizontal();
 					DrakkarEditor.DrakkarPropertyInspector(serializedObject,"Bounds");
 					DrakkarEditor.DrakkarPropertyInspector(serializedObject,"Length");
+				EditorGUILayout.EndHorizontal();
+				EditorGUILayout.BeginHorizontal();
+					t.IsVisible = EditorGUILayout.Toggle("Is Visible", t.IsVisible);
+					t.IsEmitting = EditorGUILayout.Toggle("Is Emitting", t.IsEmitting);
 				EditorGUILayout.EndHorizontal();
 				t.EndingSpeed=EditorGUILayout.IntSlider("End Speed",t.EndingSpeed,1,50);
 				EditorGUILayout.BeginHorizontal();
