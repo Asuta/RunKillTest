@@ -24,7 +24,8 @@ public class VRBlade : MonoBehaviour
     void Start()
     {
         bladeMeshRenderer = GetComponent<MeshRenderer>();
-        previousPosition = transform.position;
+        // 使用父物体的本地坐标初始化，如果没有父物体则使用自身坐标
+        previousPosition = transform.parent != null ? transform.parent.localPosition : transform.localPosition;
         if (trailObject != null) trailObject.SetActive(false);
     }
 
@@ -58,13 +59,15 @@ public class VRBlade : MonoBehaviour
     
     private void UpdateBladeColorBasedOnSpeed()
     {
-        // 计算当前速度
-        Vector3 currentPosition = transform.position;
+        // 计算当前速度 (使用父物体的本地坐标)
+        Vector3 currentPosition = transform.parent != null ? transform.parent.localPosition : transform.localPosition;
         float distance = Vector3.Distance(currentPosition, previousPosition);
         float currentSpeed = distance / Time.deltaTime;
         
         // 更新上一帧位置
         previousPosition = currentPosition;
+
+        Debug.Log($"当前速度: {currentSpeed:F4}");
 
         // 如果速度超过阈值，刷新计时器并设为红色状态
         if (currentSpeed > speedThreshold)
