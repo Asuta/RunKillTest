@@ -25293,6 +25293,56 @@ CanvasRenderer:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1504415686}
   m_CullTransparentMesh: 1
+--- !u!1 &1507893899
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 1507893901}
+  - component: {fileID: 1507893900}
+  m_Layer: 0
+  m_Name: SaveLoadManager
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!114 &1507893900
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1507893899}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 355c2219323355d40a0326b77cf52325, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  saveFileName: SceneObjects.json
+  autoSaveOnStart: 0
+  enableDebugLog: 1
+  defaultSlotName: Default
+  useProgressiveLoading: 1
+  progressiveLoadingDuration: 0.5
+--- !u!4 &1507893901
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1507893899}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 140.83353, y: 139.8071, z: 55.124573}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 0}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &1510283213
 GameObject:
   m_ObjectHideFlags: 0
@@ -49562,6 +49612,7 @@ SceneRoots:
   - {fileID: 4226674471386617843}
   - {fileID: 515694639}
   - {fileID: 1052136197}
+  - {fileID: 1507893901}
   - {fileID: 617440885}
   - {fileID: 1754109959}
   - {fileID: 7292269551075545132}
