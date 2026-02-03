@@ -2,7 +2,7 @@
   "dependencies": {
     "com.coplaydev.coplay": "https://github.com/CoplayDev/coplay-unity-plugin.git#beta",
     "com.maligan.unity-zed": "https://github.com/maligan/unity-zed.git",
-    "com.meta.xr.sdk.core": "83.0.3",
+    "com.meta.xr.sdk.core": "78.0.0",
     "com.unity.ai.navigation": "2.0.9",
     "com.unity.collab-proxy": "2.11.2",
     "com.unity.ide.rider": "3.0.38",
