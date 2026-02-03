@@ -7,7 +7,7 @@ public class VRBlade : MonoBehaviour
     #region 公共变量
     public MeshRenderer bladeMeshRenderer;
     public float speedThreshold = 2.0f; // 速度阈值，大于此值时变红
-    public float minTrailDuration = 1.0f; // 拖尾最小显示时间
+    public float minTrailDuration = 0.35f; // 拖尾最小显示时间
     public GameObject playerHit;
     public GameObject playerDefense;
     public DrakkarTrail drakkarTrail;
