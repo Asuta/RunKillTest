@@ -179,4 +179,77 @@ namespace YouYouTest.CommandFramework
         /// </summary>
         public bool CanRedo => _redoList.Count > 0;
     }
+
+    public class LoadSelectedObjectsCommand : IDisposableCommand
+    {
+        private readonly string _jsonFileName;
+        private readonly Vector3 _createCenterPosition;
+        private List<GameObject> _loadedObjects;
+
+        public LoadSelectedObjectsCommand(string jsonFileName, Vector3 createCenterPosition)
+        {
+            _jsonFileName = jsonFileName;
+            _createCenterPosition = createCenterPosition;
+            _loadedObjects = new List<GameObject>();
+        }
+
+        public void Execute()
+        {
+            if (_loadedObjects == null)
+            {
+                _loadedObjects = new List<GameObject>();
+            }
+
+            _loadedObjects.RemoveAll(o => o == null);
+
+            if (_loadedObjects.Count == 0)
+            {
+                _loadedObjects = SaveLoadManager.Instance.LoadSelectedObjectsByFileName(_jsonFileName, _createCenterPosition) ?? new List<GameObject>();
+                _loadedObjects.RemoveAll(o => o == null);
+            }
+            else
+            {
+                foreach (var obj in _loadedObjects)
+                {
+                    if (obj != null)
+                    {
+                        obj.SetActive(true);
+                    }
+                }
+            }
+
+            if (_loadedObjects.Count > 0)
+            {
+                GlobalEvent.OnLoadObjectsSetSelected.Invoke(_loadedObjects);
+            }
+        }
+
+        public void Undo()
+        {
+            if (_loadedObjects == null || _loadedObjects.Count == 0) return;
+
+            foreach (var obj in _loadedObjects)
+            {
+                if (obj != null)
+                {
+                    obj.SetActive(false);
+                }
+            }
+        }
+
+        public void Dispose()
+        {
+            if (_loadedObjects == null) return;
+
+            foreach (var obj in _loadedObjects)
+            {
+                if (obj != null)
+                {
+                    Object.DestroyImmediate(obj);
+                }
+            }
+
+            _loadedObjects.Clear();
+        }
+    }
 }

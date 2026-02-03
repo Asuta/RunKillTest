@@ -1352,6 +1352,64 @@ public class SaveLoadManager : MonoBehaviour
         return loadedObjects;
     }
 
+    public List<GameObject> LoadSelectedObjectsByFileName(string jsonFileName, Vector3 createCenterPosition)
+    {
+        List<GameObject> loadedObjects = new List<GameObject>();
+
+        if (string.IsNullOrEmpty(jsonFileName))
+        {
+            Debug.LogError("JSON文件名不能为空");
+            return loadedObjects;
+        }
+
+        string folderPath = GetSelectedObjectsFolderPath();
+        if (!Directory.Exists(folderPath))
+        {
+            Debug.LogError("选中对象存档文件夹不存在");
+            return loadedObjects;
+        }
+
+        if (!jsonFileName.EndsWith(".json"))
+        {
+            jsonFileName += ".json";
+        }
+
+        string filePath = Path.Combine(folderPath, jsonFileName);
+
+        if (!File.Exists(filePath))
+        {
+            Debug.LogError($"选中对象存档文件不存在: {filePath}");
+            return loadedObjects;
+        }
+
+        try
+        {
+            string jsonContent = File.ReadAllText(filePath);
+            SelectedObjectsSaveData saveData = JsonUtility.FromJson<SelectedObjectsSaveData>(jsonContent);
+
+            if (saveData == null || saveData.objects == null || saveData.objects.Count == 0)
+            {
+                Debug.LogError("存档数据为空或格式错误");
+                return loadedObjects;
+            }
+
+            Debug.Log($"开始加载选中对象存档，共 {saveData.objectCount} 个对象");
+            Debug.Log($"存档时间: {saveData.saveTime}");
+            Debug.Log($"原始中心位置: {saveData.centerPosition}");
+            Debug.Log($"新的创建中心位置: {createCenterPosition}");
+
+            loadedObjects = LoadSelectedObjects(saveData, createCenterPosition);
+
+            Debug.Log("选中对象存档加载完成");
+        }
+        catch (System.Exception e)
+        {
+            Debug.LogError($"加载选中对象存档失败: {e.Message}");
+        }
+
+        return loadedObjects;
+    }
+
     /// <summary>
     /// 读取第一个选中对象存档
     /// </summary>
