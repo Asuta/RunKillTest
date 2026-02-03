@@ -51,7 +51,7 @@ public static class JsonHelper
 public class SaveNetworkManager : MonoBehaviour
 {
     private static SaveNetworkManager _instance;
-    public string ServerUrl = "http://akashic.funshion.com:8080";
+    public string ServerUrl = "https://akashic_test.funshion.com";
     public string PrivateKey = "M8^cV1*nJ4";
 
     private ulong GetTimestamp()
