@@ -2029,6 +2029,7 @@ MonoBehaviour:
   Edge2: 0.27
   TrailMaterial: {fileID: 2100000, guid: dbd10b2e6f8662d4ba820adc07e5e569, type: 2}
   Layer: 0
+  IsVisible: 1
 --- !u!65 &136160249
 BoxCollider:
   m_ObjectHideFlags: 0
@@ -6061,6 +6062,8 @@ MonoBehaviour:
   entryParent: {fileID: 1210998741}
   addButton: {fileID: 1620942173}
   setDeleteButton: {fileID: 282711814}
+  confirmUI: {fileID: 0}
+  confirmUIComponent: {fileID: 0}
   deleteButtonsActive: 0
 --- !u!114 &336206255
 MonoBehaviour:
@@ -6956,6 +6959,17 @@ MeshFilter:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 410994413}
   m_Mesh: {fileID: 10208, guid: 0000000000000000e000000000000000, type: 0}
+--- !u!114 &418834332 stripped
+MonoBehaviour:
+  m_CorrespondingSourceObject: {fileID: 107268400271688611, guid: bc0155a13853fc8419232c25bf05f6ba, type: 3}
+  m_PrefabInstance: {fileID: 507458213}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 4e29b1a8efbd4b44bb3f3716e73f07ff, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
 --- !u!1 &442827697
 GameObject:
   m_ObjectHideFlags: 0
@@ -7663,9 +7677,17 @@ PrefabInstance:
     m_TransformParent: {fileID: 2116952119}
     m_Modifications:
     - target: {fileID: 373460693574776707, guid: bc0155a13853fc8419232c25bf05f6ba, type: 3}
+      propertyPath: confirmUI
+      value: 
+      objectReference: {fileID: 1043527207}
+    - target: {fileID: 373460693574776707, guid: bc0155a13853fc8419232c25bf05f6ba, type: 3}
       propertyPath: serverUrl
       value: http://192.168.5.236:8080
       objectReference: {fileID: 0}
+    - target: {fileID: 373460693574776707, guid: bc0155a13853fc8419232c25bf05f6ba, type: 3}
+      propertyPath: confirmUIComponent
+      value: 
+      objectReference: {fileID: 1043527212}
     - target: {fileID: 490244850749621306, guid: bc0155a13853fc8419232c25bf05f6ba, type: 3}
       propertyPath: m_IsActive
       value: 0
@@ -7963,7 +7985,13 @@ PrefabInstance:
     - targetCorrespondingSourceObject: {fileID: 6882466730588209075, guid: bc0155a13853fc8419232c25bf05f6ba, type: 3}
       insertIndex: -1
       addedObject: {fileID: 1488135190}
-    m_AddedComponents: []
+    m_AddedComponents:
+    - targetCorrespondingSourceObject: {fileID: 3585769256105777677, guid: bc0155a13853fc8419232c25bf05f6ba, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 1043527212}
+    - targetCorrespondingSourceObject: {fileID: 3585769256105777677, guid: bc0155a13853fc8419232c25bf05f6ba, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 1043527213}
   m_SourcePrefab: {fileID: 100100000, guid: bc0155a13853fc8419232c25bf05f6ba, type: 3}
 --- !u!224 &507458214 stripped
 RectTransform:
@@ -8366,6 +8394,17 @@ CanvasRenderer:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 524268625}
   m_CullTransparentMesh: 1
+--- !u!114 &524335266 stripped
+MonoBehaviour:
+  m_CorrespondingSourceObject: {fileID: 6407518758951249494, guid: bc0155a13853fc8419232c25bf05f6ba, type: 3}
+  m_PrefabInstance: {fileID: 507458213}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 4e29b1a8efbd4b44bb3f3716e73f07ff, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
 --- !u!1 &531675006
 GameObject:
   m_ObjectHideFlags: 0
@@ -18354,6 +18393,57 @@ MeshFilter:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1037802482}
   m_Mesh: {fileID: 10207, guid: 0000000000000000e000000000000000, type: 0}
+--- !u!1 &1043527206 stripped
+GameObject:
+  m_CorrespondingSourceObject: {fileID: 3585769256105777677, guid: bc0155a13853fc8419232c25bf05f6ba, type: 3}
+  m_PrefabInstance: {fileID: 507458213}
+  m_PrefabAsset: {fileID: 0}
+--- !u!224 &1043527207 stripped
+RectTransform:
+  m_CorrespondingSourceObject: {fileID: 1250868793233785662, guid: bc0155a13853fc8419232c25bf05f6ba, type: 3}
+  m_PrefabInstance: {fileID: 507458213}
+  m_PrefabAsset: {fileID: 0}
+--- !u!114 &1043527212
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1043527206}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 756ad94b942f25c4b9efd3a9ebc4cf71, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  currentSaveSlot:
+    slotName: 
+    fileName: 
+    saveTime: 
+    LevelName: 
+    objectCount: 0
+    fileSize: 0
+    subFolder: 
+  confirmUploadButton: {fileID: 418834332}
+  cancelButton: {fileID: 524335266}
+--- !u!114 &1043527213
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1043527206}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 7951c64acb0fa62458bf30a60089fe2d, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  m_IgnoreReversedGraphics: 0
+  m_CheckFor2DOcclusion: 0
+  m_CheckFor3DOcclusion: 0
+  m_BlockingMask:
+    serializedVersion: 2
+    m_Bits: 4294967295
+  m_RaycastTriggerInteraction: 1
 --- !u!1 &1052136195
 GameObject:
   m_ObjectHideFlags: 0
@@ -27762,7 +27852,7 @@ MonoBehaviour:
   minTrailDuration: 1
   playerHit: {fileID: 940845831}
   playerDefense: {fileID: 1124029557}
-  trailObject: {fileID: 0}
+  drakkarTrail: {fileID: 0}
 --- !u!65 &1576218102
 BoxCollider:
   m_ObjectHideFlags: 0

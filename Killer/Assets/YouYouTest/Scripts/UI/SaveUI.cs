@@ -7,6 +7,7 @@ using UnityEngine.Networking;
 using System.Collections;
 using UnityEngine.SceneManagement;
 using UnityEngine.Events;
+using System;
 
 public class SaveUI : AutoCleanupBehaviour
 {
@@ -15,6 +16,8 @@ public class SaveUI : AutoCleanupBehaviour
     public Transform entryParent;
     public Transform addButton;
     public Transform setDeleteButton;
+    public Transform confirmUI;
+    public ConfirmUI confirmUIComponent;
 
     [Header("删除按钮控制")]
     public bool deleteButtonsActive = true;
@@ -25,7 +28,7 @@ public class SaveUI : AutoCleanupBehaviour
         // 注册全局事件监听器
         RegisterEvent(GlobalEvent.OnSaveComplete, OnSaveComplete);
         GlobalEvent.OnLoadSaveChange.AddListener(OnLoadSaveChangeInternal);
-        
+
         // 为addButton添加点击事件监听器
         if (addButton != null)
         {
@@ -44,7 +47,7 @@ public class SaveUI : AutoCleanupBehaviour
         {
             Debug.LogError("addButton未设置");
         }
-        
+
         // 为setDeleteButton添加点击事件监听器
         if (setDeleteButton != null)
         {
@@ -66,9 +69,15 @@ public class SaveUI : AutoCleanupBehaviour
 
         // 等待一帧，确保所有 Manager 的 Awake 都已经执行完毕并初始化
         yield return null;
-        
+
         // 初始刷新列表
         RefreshList();
+
+        // 确保确认UI初始状态为关闭
+        if (confirmUI != null)
+        {
+            confirmUI.gameObject.SetActive(false);
+        }
     }
 
     /// <summary>
@@ -89,7 +98,7 @@ public class SaveUI : AutoCleanupBehaviour
     private void OnLoadSaveChangeInternal(string saveKey)
     {
         Debug.Log($"收到存档加载变更事件: {saveKey}，刷新UI列表以更新高亮状态");
-        
+
         // 显式更新 GameManager 中的状态，确保后续逻辑一致
         if (GameManager.Instance != null)
         {
@@ -318,7 +327,7 @@ public class SaveUI : AutoCleanupBehaviour
             {
                 button.onClick.RemoveAllListeners();
                 button.onClick.AddListener(() => OnDeleteButtonClicked(slotInfo));
-                
+
                 // 设置删除按钮的初始状态
                 button.gameObject.SetActive(deleteButtonsActive);
             }
@@ -376,13 +385,13 @@ public class SaveUI : AutoCleanupBehaviour
                     // 读取图片文件
                     byte[] fileData = File.ReadAllBytes(imagePath);
                     Texture2D texture = new Texture2D(2, 2);
-                    
+
                     if (texture.LoadImage(fileData))
                     {
                         // 创建Sprite并赋值给Image组件
                         Sprite sprite = Sprite.Create(texture, new Rect(0, 0, texture.width, texture.height), new Vector2(0.5f, 0.5f));
                         imageComponent.sprite = sprite;
-                        
+
                         Debug.Log($"成功加载截图: {Path.GetFileName(imagePath)} (来自: {slotInfo.subFolder})");
                     }
                     else
@@ -425,7 +434,7 @@ public class SaveUI : AutoCleanupBehaviour
     {
         Debug.Log($"保存到档位: {slotName}");
         SaveLoadManager.Instance.SaveSceneObjects(slotName);
-        
+
         // 保存后刷新UI
         RefreshList();
     }
@@ -439,7 +448,7 @@ public class SaveUI : AutoCleanupBehaviour
         if (slotInfo == null) return;
 
         Debug.Log($"删除存档(精确): {slotInfo.subFolder}/{slotInfo.fileName}");
-        
+
         // 精确删除存档数据（同时删除对应的图片）
         SaveLoadManager.Instance.DeleteSaveSlotByFileName(slotInfo.fileName, slotInfo.subFolder);
 
@@ -447,23 +456,42 @@ public class SaveUI : AutoCleanupBehaviour
         RefreshList();
     }
 
+    // /// <summary>
+    // /// 上传按钮点击事件
+    // /// </summary>
+    // private void OnUploadButtonClicked(SaveSlotInfo slotInfo)
+    // {
+    //     if (slotInfo == null) return;
+    //     Debug.Log($"开始上传存档: {slotInfo.LevelName}");
+    //     SaveNetworkManager.Instance.UploadLevel(slotInfo, "", (success, message) => {
+    //         if (success)
+    //         {
+    //             Debug.Log($"<color=green>上传成功!</color> {message}");
+    //         }
+    //         else
+    //         {
+    //             Debug.LogError($"上传失败: {message}");
+    //         }
+    //     });
+    // }
+
+
     /// <summary>
     /// 上传按钮点击事件
     /// </summary>
     private void OnUploadButtonClicked(SaveSlotInfo slotInfo)
     {
         if (slotInfo == null) return;
-        Debug.Log($"开始上传存档: {slotInfo.LevelName}");
-        SaveNetworkManager.Instance.UploadLevel(slotInfo, "", (success, message) => {
-            if (success)
-            {
-                Debug.Log($"<color=green>上传成功!</color> {message}");
-            }
-            else
-            {
-                Debug.LogError($"上传失败: {message}");
-            }
-        });
+        // 显示确认弹窗
+        if (confirmUI != null && confirmUIComponent != null)
+        {
+            confirmUIComponent.currentSaveSlot = slotInfo;
+            confirmUI.gameObject.SetActive(true);
+        }
+        else
+        {
+            Debug.LogError("confirmUI or confirmUIComponent is not assigned in SaveUI.");
+        }
     }
 
     /// <summary>
@@ -472,13 +500,13 @@ public class SaveUI : AutoCleanupBehaviour
     private void OnAddButtonClicked()
     {
         Debug.Log("添加新档位按钮 be 点击");
-        
+
         // 生成新的档位名称
         string newSlotName = GenerateNewSlotName();
-        
+
         // 创建空档位（不包含任何对象）
         SaveLoadManager.Instance.CreateEmptySaveSlot(newSlotName);
-        
+
         // 刷新列表显示
         RefreshList();
     }
@@ -491,16 +519,16 @@ public class SaveUI : AutoCleanupBehaviour
     {
         // 获取所有现有存档档位
         List<SaveSlotInfo> existingSlots = SaveLoadManager.Instance.GetAllSaveSlots();
-        
+
         // 基础名称
         string baseName = "slot One";
-        
+
         // 如果没有存档，直接返回基础名称
         if (existingSlots.Count == 0)
         {
             return baseName;
         }
-        
+
         // 检查基础名称是否已存在
         bool baseNameExists = false;
         foreach (var slot in existingSlots)
@@ -511,13 +539,13 @@ public class SaveUI : AutoCleanupBehaviour
                 break;
             }
         }
-        
+
         // 如果基础名称不存在，直接返回基础名称
         if (!baseNameExists)
         {
             return baseName;
         }
-        
+
         // 基础名称已存在，查找最大的数字后缀
         int maxNumber = 1;
         foreach (var slot in existingSlots)
@@ -535,7 +563,7 @@ public class SaveUI : AutoCleanupBehaviour
                 }
             }
         }
-        
+
         // 返回新的名称（数字+1）
         return $"{baseName} {maxNumber + 1}";
     }
@@ -554,17 +582,17 @@ public class SaveUI : AutoCleanupBehaviour
         {
             RefreshList();
         }
-        
+
         // 切换删除按钮状态
         deleteButtonsActive = !deleteButtonsActive;
-        
+
         // 遍历所有存档条目，设置删除按钮状态
         foreach (GameObject entry in SaveEntrys)
         {
             if (entry != null)
             {
                 UnityEngine.UI.Button[] buttons = entry.GetComponentsInChildren<UnityEngine.UI.Button>(true);
-                
+
                 foreach (UnityEngine.UI.Button button in buttons)
                 {
                     // 检查是否为删除按钮
