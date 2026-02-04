@@ -1,7 +1,4 @@
 using UnityEngine;
-#if UNITY_STANDALONE_WIN
-using Microsoft.Win32; // 引用 Windows 注册表命名空间
-#endif
 
 public class DeviceIDManager
 {
@@ -13,7 +10,7 @@ public class DeviceIDManager
 #if UNITY_ANDROID && !UNITY_EDITOR
         deviceId = GetAndroidID();
 #elif UNITY_STANDALONE_WIN && !UNITY_EDITOR
-        deviceId = GetWindowsMachineGuid();
+        deviceId = GetWindowsPersistentGuid();
 #else
         // 编辑器模式下返回测试ID
         deviceId = "EDITOR_TEST_ID_123456"; 
@@ -28,31 +25,31 @@ public class DeviceIDManager
         return deviceId;
     }
 
-    // --- Windows 平台实现 ---
-    private static string GetWindowsMachineGuid()
+    // --- Windows 平台实现（使用持久化 GUID 文件，避免注册表依赖） ---
+    private static string GetWindowsPersistentGuid()
     {
 #if UNITY_STANDALONE_WIN
         try
         {
-            // 打开注册表项：HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Cryptography
-            using (RegistryKey key = Registry.LocalMachine.OpenSubKey(@"SOFTWARE\Microsoft\Cryptography"))
+            var path = System.IO.Path.Combine(Application.persistentDataPath, "device_id.txt");
+            if (System.IO.File.Exists(path))
             {
-                if (key != null)
-                {
-                    object val = key.GetValue("MachineGuid");
-                    if (val != null)
-                    {
-                        return val.ToString();
-                    }
-                }
+                var existing = System.IO.File.ReadAllText(path);
+                if (!string.IsNullOrEmpty(existing)) return existing;
             }
+
+            var guid = System.Guid.NewGuid().ToString("N");
+            System.IO.File.WriteAllText(path, guid);
+            return guid;
         }
         catch (System.Exception e)
         {
-            Debug.LogError("获取 Windows GUID 失败: " + e.Message);
+            Debug.LogError("生成/读取持久化设备ID失败: " + e.Message);
+            return null;
         }
-#endif
+#else
         return null;
+#endif
     }
 
     // --- Android 平台实现 (上一条回复的内容) ---
