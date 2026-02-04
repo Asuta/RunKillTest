@@ -7,6 +7,7 @@ public class ConfirmUI : MonoBehaviour
     public SaveSlotInfo currentSaveSlot;
     public Button confirmUploadButton;
     public Button cancelButton;
+    public Transform successPanel;
 
     // Start is called once before the first execution of Update after the MonoBehaviour is created
     void Start()
@@ -29,15 +30,19 @@ public class ConfirmUI : MonoBehaviour
             if (success)
             {
                 Debug.Log($"<color=green>上传成功!</color> {message}");
+                if (successPanel != null)
+                {
+                    successPanel.gameObject.SetActive(true);
+                    gameObject.SetActive(false);
+                }
             }
             else
             {
                 Debug.LogError($"上传失败: {message}");
+                // 关闭确认UI
+                gameObject.SetActive(false);
             }
         });
-
-        // 关闭确认UI
-        gameObject.SetActive(false);
     }
 
     // Update is called once per frame
