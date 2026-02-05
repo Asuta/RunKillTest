@@ -4518,6 +4518,8 @@ MonoBehaviour:
   entryParent: {fileID: 7438948055500604610}
   addButton: {fileID: 4181307288220045250}
   setDeleteButton: {fileID: 2678308030131572821}
+  confirmUI: {fileID: 0}
+  confirmUIComponent: {fileID: 0}
   deleteButtonsActive: 0
 --- !u!1 &722022880836929961
 GameObject:
@@ -40695,6 +40697,8 @@ MonoBehaviour:
   entryParent: {fileID: 8504063620915094180}
   addButton: {fileID: 7862130746182485729}
   setDeleteButton: {fileID: 6407457086560070565}
+  confirmUI: {fileID: 0}
+  confirmUIComponent: {fileID: 0}
   deleteButtonsActive: 0
 --- !u!1 &5517546084095507281
 GameObject:
@@ -54004,6 +54008,8 @@ MonoBehaviour:
   entryParent: {fileID: 7720264947454877903}
   addButton: {fileID: 8125467424379260423}
   setDeleteButton: {fileID: 562905112787165805}
+  confirmUI: {fileID: 0}
+  confirmUIComponent: {fileID: 0}
   deleteButtonsActive: 0
 --- !u!1 &7256092948370112998
 GameObject:
@@ -71208,6 +71214,8 @@ MonoBehaviour:
   entryParent: {fileID: 1760330460912951836}
   addButton: {fileID: 1225599500579910358}
   setDeleteButton: {fileID: 3149281314834498820}
+  confirmUI: {fileID: 0}
+  confirmUIComponent: {fileID: 0}
   deleteButtonsActive: 0
 --- !u!1 &9094167913485265829
 GameObject:
@@ -73527,6 +73535,10 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 5362403743660722480, guid: c60c7d46238a6fd4ca2dba310cee6650, type: 3}
       propertyPath: m_LocalEulerAnglesHint.z
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 7597809781630400718, guid: c60c7d46238a6fd4ca2dba310cee6650, type: 3}
+      propertyPath: m_Enabled
       value: 0
       objectReference: {fileID: 0}
     m_RemovedComponents: []
