@@ -118,18 +118,47 @@ public class SaveLoadManager : MonoBehaviour
 
         // 解析文件列表并逐个复制
         string[] files = fileListContent.Split(new[] { '\r', '\n' }, System.StringSplitOptions.RemoveEmptyEntries);
-        foreach (string fileName in files)
+        
+        // 构建需要复制的文件完整列表（包括自动检测的图片）
+        List<string> filesToCopy = new List<string>();
+        foreach (string rawFileName in files)
+        {
+            string fileName = rawFileName.Trim();
+            if (string.IsNullOrEmpty(fileName)) continue;
+
+            if (!filesToCopy.Contains(fileName))
+            {
+                filesToCopy.Add(fileName);
+            }
+
+            if (fileName.EndsWith(".json"))
+            {
+                // 自动尝试复制同名的 .png 文件
+                string pngFileName = fileName.Replace(".json", ".png");
+                if (!filesToCopy.Contains(pngFileName))
+                {
+                    filesToCopy.Add(pngFileName);
+                }
+            }
+        }
+
+        foreach (string fileName in filesToCopy)
         {
             string targetPath = Path.Combine(targetFolder, fileName);
             
             // 如果目标文件已存在，跳过（避免覆盖玩家数据）
             if (File.Exists(targetPath))
             {
-                continue;
+                // 如果是图片且大小为0，可能之前复制失败了，尝试重新复制
+                FileInfo info = new FileInfo(targetPath);
+                if (info.Length > 0)
+                {
+                    continue;
+                }
             }
 
             string sourcePath = Path.Combine(Application.streamingAssetsPath, "DefaultWebSaveData", fileName);
-            string fileContent = null;
+            byte[] fileData = null;
 
             if (sourcePath.Contains("://"))
             {
@@ -138,7 +167,11 @@ public class SaveLoadManager : MonoBehaviour
                     yield return www.SendWebRequest();
                     if (www.result == UnityWebRequest.Result.Success)
                     {
-                        fileContent = www.downloadHandler.text;
+                        fileData = www.downloadHandler.data;
+                    }
+                    else if (enableDebugLog && !fileName.EndsWith(".png")) // 图片找不到不报错，因为是自动检测的
+                    {
+                        Debug.LogWarning($"[SaveLoadManager] 无法从 StreamingAssets 读取文件 (Web): {fileName}, Error: {www.error}");
                     }
                 }
             }
@@ -146,16 +179,27 @@ public class SaveLoadManager : MonoBehaviour
             {
                 if (File.Exists(sourcePath))
                 {
-                    fileContent = File.ReadAllText(sourcePath);
+                    fileData = File.ReadAllBytes(sourcePath);
+                }
+                else if (enableDebugLog && !fileName.EndsWith(".png"))
+                {
+                    Debug.LogWarning($"[SaveLoadManager] 源文件不存在: {sourcePath}");
                 }
             }
 
-            if (!string.IsNullOrEmpty(fileContent))
+            if (fileData != null && fileData.Length > 0)
             {
-                File.WriteAllText(targetPath, fileContent);
-                if (enableDebugLog)
+                try
                 {
-                    Debug.Log($"[SaveLoadManager] 已初始化默认存档: {fileName}");
+                    File.WriteAllBytes(targetPath, fileData);
+                    if (enableDebugLog)
+                    {
+                        Debug.Log($"[SaveLoadManager] 已初始化默认存档/资源: {fileName} ({fileData.Length} bytes)");
+                    }
+                }
+                catch (System.Exception e)
+                {
+                    Debug.LogError($"[SaveLoadManager] 写入文件失败: {targetPath}, Error: {e.Message}");
                 }
             }
         }
