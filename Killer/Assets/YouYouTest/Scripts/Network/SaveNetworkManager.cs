@@ -48,12 +48,26 @@ public static class JsonHelper
     }
 }
 
+public enum UploadResult
+{
+    Success,
+    LimitReached,
+    FileMissing,
+    NetworkError,
+    ServerError,
+    Unknown
+}
+
 public class SaveNetworkManager : MonoBehaviour
 {
     private static SaveNetworkManager _instance;
     public string ServerUrl = "https://akashic.funshion.com:8443";
     // public string ServerUrl = "http://192.168.5.236:8080";
     public string PrivateKey = "M8^cV1*nJ4";
+    
+    [Header("上传限制设置")]
+    public int MaxUploadLimit = 30;
+    private const string UPLOAD_COUNT_KEY = "LocalUploadSuccessCount";
 
     private ulong GetTimestamp()
     {
@@ -95,8 +109,18 @@ public class SaveNetworkManager : MonoBehaviour
     /// <summary>
     /// 上传存档到服务器
     /// </summary>
-    public void UploadLevel(SaveSlotInfo slotInfo, string description = "", UnityAction<bool, string> callback = null)
+    public void UploadLevel(SaveSlotInfo slotInfo, string description = "", UnityAction<UploadResult, string> callback = null)
     {
+        // 检查本地上传限制
+        int currentCount = PlayerPrefs.GetInt(UPLOAD_COUNT_KEY, 0);
+        if (currentCount >= MaxUploadLimit)
+        {
+            string limitError = $"上传失败：已达到本地上传上限({currentCount}/{MaxUploadLimit})";
+            Debug.LogWarning(limitError);
+            callback?.Invoke(UploadResult.LimitReached, limitError);
+            return;
+        }
+
         string userFolderPath = SaveLoadManager.Instance.GetUserFolderPath();
         
         // 1. 准备 JSON 文件
@@ -105,7 +129,7 @@ public class SaveNetworkManager : MonoBehaviour
         {
             string error = $"上传失败，找不到JSON文件: {jsonPath}";
             Debug.LogError(error);
-            callback?.Invoke(false, error);
+            callback?.Invoke(UploadResult.FileMissing, error);
             return;
         }
         byte[] jsonBytes = File.ReadAllBytes(jsonPath);
@@ -128,7 +152,7 @@ public class SaveNetworkManager : MonoBehaviour
         {
             string error = $"上传失败，找不到图片文件: {imagePath}";
             Debug.LogError(error);
-            callback?.Invoke(false, error);
+            callback?.Invoke(UploadResult.FileMissing, error);
             return;
         }
         byte[] imageBytes = File.ReadAllBytes(imagePath);
@@ -139,12 +163,12 @@ public class SaveNetworkManager : MonoBehaviour
     /// <summary>
     /// 通用上传接口
     /// </summary>
-    public void UploadLevelRaw(string levelName, string jsonFileName, byte[] jsonBytes, string imageFileName, byte[] imageBytes, int objectCount, string description, UnityAction<bool, string> callback = null)
+    public void UploadLevelRaw(string levelName, string jsonFileName, byte[] jsonBytes, string imageFileName, byte[] imageBytes, int objectCount, string description, UnityAction<UploadResult, string> callback = null)
     {
         StartCoroutine(UploadRawRoutine(levelName, jsonFileName, jsonBytes, imageFileName, imageBytes, objectCount, description, callback));
     }
 
-    private IEnumerator UploadRawRoutine(string levelName, string jsonFileName, byte[] jsonBytes, string imageFileName, byte[] imageBytes, int objectCount, string description, UnityAction<bool, string> callback)
+    private IEnumerator UploadRawRoutine(string levelName, string jsonFileName, byte[] jsonBytes, string imageFileName, byte[] imageBytes, int objectCount, string description, UnityAction<UploadResult, string> callback)
     {
         // 1. 构建 URL 和参数
         string uid = DeviceIDManager.GetDeviceID();
@@ -177,12 +201,17 @@ public class SaveNetworkManager : MonoBehaviour
             if (www.result != UnityWebRequest.Result.Success)
             {
                 Debug.LogError($"上传失败: {www.error}");
-                callback?.Invoke(false, www.error);
+                callback?.Invoke(UploadResult.NetworkError, www.error);
             }
             else
             {
-                Debug.Log($"<color=green>上传成功!</color> 服务器返回: {www.downloadHandler.text}");
-                callback?.Invoke(true, www.downloadHandler.text);
+                // 增加本地成功计数
+                int currentCount = PlayerPrefs.GetInt(UPLOAD_COUNT_KEY, 0);
+                PlayerPrefs.SetInt(UPLOAD_COUNT_KEY, currentCount + 1);
+                PlayerPrefs.Save();
+
+                Debug.Log($"<color=green>上传成功!</color> 本地已累计上传: {currentCount + 1} 次。服务器返回: {www.downloadHandler.text}");
+                callback?.Invoke(UploadResult.Success, www.downloadHandler.text);
             }
         }
     }

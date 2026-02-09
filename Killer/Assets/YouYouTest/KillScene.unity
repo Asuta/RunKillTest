@@ -9225,26 +9225,6 @@ PrefabInstance:
       propertyPath: m_Name
       value: SaveUI (1)
       objectReference: {fileID: 0}
-    - target: {fileID: 953932366052701770, guid: bc0155a13853fc8419232c25bf05f6ba, type: 3}
-      propertyPath: m_SizeDelta.y
-      value: 10
-      objectReference: {fileID: 0}
-    - target: {fileID: 1250868793233785662, guid: bc0155a13853fc8419232c25bf05f6ba, type: 3}
-      propertyPath: m_AnchoredPosition.x
-      value: -4.600006
-      objectReference: {fileID: 0}
-    - target: {fileID: 2329346382923249789, guid: bc0155a13853fc8419232c25bf05f6ba, type: 3}
-      propertyPath: m_AnchorMax.x
-      value: 1
-      objectReference: {fileID: 0}
-    - target: {fileID: 2329346382923249789, guid: bc0155a13853fc8419232c25bf05f6ba, type: 3}
-      propertyPath: m_AnchorMax.y
-      value: 1
-      objectReference: {fileID: 0}
-    - target: {fileID: 2876277413883849137, guid: bc0155a13853fc8419232c25bf05f6ba, type: 3}
-      propertyPath: m_AnchoredPosition.x
-      value: -4.600006
-      objectReference: {fileID: 0}
     - target: {fileID: 3398844212183336450, guid: bc0155a13853fc8419232c25bf05f6ba, type: 3}
       propertyPath: m_Pivot.x
       value: 0.5
@@ -9324,18 +9304,6 @@ PrefabInstance:
     - target: {fileID: 3398844212183336450, guid: bc0155a13853fc8419232c25bf05f6ba, type: 3}
       propertyPath: m_LocalEulerAnglesHint.z
       value: 0
-      objectReference: {fileID: 0}
-    - target: {fileID: 7996209517111199810, guid: bc0155a13853fc8419232c25bf05f6ba, type: 3}
-      propertyPath: m_AnchorMax.x
-      value: 1
-      objectReference: {fileID: 0}
-    - target: {fileID: 7996209517111199810, guid: bc0155a13853fc8419232c25bf05f6ba, type: 3}
-      propertyPath: m_AnchorMax.y
-      value: 1
-      objectReference: {fileID: 0}
-    - target: {fileID: 7996209517111199810, guid: bc0155a13853fc8419232c25bf05f6ba, type: 3}
-      propertyPath: m_SizeDelta.x
-      value: -17
       objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []

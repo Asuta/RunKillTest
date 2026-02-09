@@ -51,9 +51,9 @@ public class NetworkTest : MonoBehaviour
             imageBytes, 
             0, // 测试数据默认传 0
             "这是通过 NetworkTest 发送的测试描述", 
-            (success, message) => {
-                if (success) Debug.Log("上传成功! 服务器返回: " + message);
-                else Debug.LogError("上传失败: " + message);
+            (result, message) => {
+                if (result == UploadResult.Success) Debug.Log("上传成功! 服务器返回: " + message);
+                else Debug.LogError($"上传失败 [{result}]: " + message);
             }
         );
     }

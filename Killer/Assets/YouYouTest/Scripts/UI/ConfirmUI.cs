@@ -8,6 +8,7 @@ public class ConfirmUI : MonoBehaviour
     public Button confirmUploadButton;
     public Button cancelButton;
     public Transform successPanel;
+    public Transform limitPanel;
 
     // Start is called once before the first execution of Update after the MonoBehaviour is created
     void Start()
@@ -25,9 +26,9 @@ public class ConfirmUI : MonoBehaviour
     private void OnConfirmUploadButtonClicked()
     {
         // 确认上传当前存档
-        SaveNetworkManager.Instance.UploadLevel(currentSaveSlot, "", (success, message) =>
+        SaveNetworkManager.Instance.UploadLevel(currentSaveSlot, "", (result, message) =>
         {
-            if (success)
+            if (result == UploadResult.Success)
             {
                 Debug.Log($"<color=green>上传成功!</color> {message}");
                 if (successPanel != null)
@@ -36,9 +37,21 @@ public class ConfirmUI : MonoBehaviour
                     gameObject.SetActive(false);
                 }
             }
+            else if (result == UploadResult.LimitReached)
+            {
+                Debug.LogWarning($"<color=orange>上传受限:</color> {message}");
+                // 这里可以弹出专门的提示框，或者在 log 中用不同的颜色
+                if (limitPanel != null)
+                {
+                    limitPanel.gameObject.SetActive(true);
+                    // gameObject.SetActive(false);
+                }
+                // 也可以根据需要不关闭 UI，让玩家知道原因
+                // gameObject.SetActive(false);
+            }
             else
             {
-                Debug.LogError($"上传失败: {message}");
+                Debug.LogError($"上传失败 [{result}]: {message}");
                 // 关闭确认UI
                 gameObject.SetActive(false);
             }
