@@ -9221,6 +9221,10 @@ PrefabInstance:
     serializedVersion: 3
     m_TransformParent: {fileID: 4145761038070927137}
     m_Modifications:
+    - target: {fileID: 687289631812488984, guid: bc0155a13853fc8419232c25bf05f6ba, type: 3}
+      propertyPath: m_IsActive
+      value: 1
+      objectReference: {fileID: 0}
     - target: {fileID: 867595057710363060, guid: bc0155a13853fc8419232c25bf05f6ba, type: 3}
       propertyPath: m_Name
       value: SaveUI (1)
@@ -9304,6 +9308,10 @@ PrefabInstance:
     - target: {fileID: 3398844212183336450, guid: bc0155a13853fc8419232c25bf05f6ba, type: 3}
       propertyPath: m_LocalEulerAnglesHint.z
       value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 8723903476617102812, guid: bc0155a13853fc8419232c25bf05f6ba, type: 3}
+      propertyPath: m_IsActive
+      value: 1
       objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
