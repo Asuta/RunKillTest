@@ -51,7 +51,7 @@ public static class JsonHelper
 public class SaveNetworkManager : MonoBehaviour
 {
     private static SaveNetworkManager _instance;
-    public string ServerUrl = "https://akashic_test.funshion.com";
+    public string ServerUrl = "https://akashic.funshion.com:8443";
     // public string ServerUrl = "http://192.168.5.236:8080";
     public string PrivateKey = "M8^cV1*nJ4";
 
