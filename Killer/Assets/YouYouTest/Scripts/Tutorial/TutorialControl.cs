@@ -6,6 +6,8 @@ public class TutorialControl : MonoBehaviour
     public GameObject TutorialPanel;
     public VideoPlayer videoPlayer;
 
+    
+
     public void ShowTutorialPanel(GameObject newPanel, VideoClip videoClip)
     {
         if (TutorialPanel == newPanel)
