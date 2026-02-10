@@ -42,17 +42,26 @@ public class VRHandPullHook : MonoBehaviour
             float distance = Vector3.Distance(handT.position, recordedPosition);
             Debug.Log("当前距离: " + distance);
 
-            // 如果距离大于0.3，结束计算并log hahaha
+            // 如果距离大于0.3，结束计算并检查是否有钩子目标
             if (distance > 0.3f)
             {
                 isRecording = false;
                 hasTriggered = true; // 标记已触发
-                Debug.Log("hahaha");
-                if (HeadAudioSource != null && HookGoClip != null)
+
+                // 只有当存在钩子目标时，才触发音效和冲刺逻辑
+                if (GameManager.Instance != null && GameManager.Instance.ClosestAngleHook != null)
                 {
-                    HeadAudioSource.PlayOneShot(HookGoClip);
+                    Debug.Log("触发钩子拉取");
+                    if (HeadAudioSource != null && HookGoClip != null)
+                    {
+                        HeadAudioSource.PlayOneShot(HookGoClip);
+                    }
+                    hookDashProvider.OutHandleHookDash();
                 }
-                hookDashProvider.OutHandleHookDash();
+                else
+                {
+                    Debug.Log("挥动手臂但未锁定钩子，不触发逻辑");
+                }
             }
         }
 
