@@ -10,6 +10,7 @@ public class ShowcaseCarousel : MonoBehaviour
     [SerializeField] private RectTransform contentContainer;
     [SerializeField] private Button prevButton;
     [SerializeField] private Button nextButton;
+    [SerializeField] private Button closeButton;
 
     [Header("Settings")]
     [SerializeField] private float scrollDuration = 0.5f;
@@ -30,6 +31,11 @@ public class ShowcaseCarousel : MonoBehaviour
         TryAutoWireReferences();
     }
 
+    void OnEnable()
+    {
+        TriggerCurrentTutorial();
+    }
+
     private void Start()
     {
         TryAutoWireReferences();
@@ -45,6 +51,12 @@ public class ShowcaseCarousel : MonoBehaviour
         {
             nextButton.onClick.RemoveListener(OnNextClick);
             nextButton.onClick.AddListener(OnNextClick);
+        }
+
+        if (closeButton != null)
+        {
+            closeButton.onClick.RemoveListener(OnCloseClick);
+            closeButton.onClick.AddListener(OnCloseClick);
         }
 
         UpdateButtons();
@@ -249,6 +261,11 @@ public class ShowcaseCarousel : MonoBehaviour
         {
             ScrollTo(currentIndex + 1);
         }
+    }
+
+    private void OnCloseClick()
+    {
+        gameObject.SetActive(false);
     }
 
     public void ScrollTo(int index)
