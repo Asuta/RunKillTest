@@ -6235,7 +6235,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   tutorialControl: {fileID: 8668273494694365982}
   tutorialPanel: {fileID: 1771822686}
-  videoClip: {fileID: 32900000, guid: 1e1fd574c42327144b3acf5e2fcf7fa4, type: 3}
+  videoClip: {fileID: 32900000, guid: 39cd00c76264bd9408467dc2aefc0f8c, type: 3}
 --- !u!114 &451301096
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -6757,7 +6757,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   tutorialControl: {fileID: 8668273494694365982}
   tutorialPanel: {fileID: 902482826}
-  videoClip: {fileID: 32900000, guid: 1e1fd574c42327144b3acf5e2fcf7fa4, type: 3}
+  videoClip: {fileID: 32900000, guid: 3e17f6ebed6222046be9b971a5c77a21, type: 3}
 --- !u!114 &490030740
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -8750,7 +8750,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   tutorialControl: {fileID: 8668273494694365982}
   tutorialPanel: {fileID: 990070273}
-  videoClip: {fileID: 32900000, guid: 1e1fd574c42327144b3acf5e2fcf7fa4, type: 3}
+  videoClip: {fileID: 32900000, guid: 6a65e3f0999f740429a82d89ac284af7, type: 3}
 --- !u!114 &594184811
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -12087,7 +12087,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   tutorialControl: {fileID: 8668273494694365982}
   tutorialPanel: {fileID: 1718483378}
-  videoClip: {fileID: 32900000, guid: 1e1fd574c42327144b3acf5e2fcf7fa4, type: 3}
+  videoClip: {fileID: 32900000, guid: cae0486fdd9523c46be6e15bc9cd4dba, type: 3}
 --- !u!114 &884548567
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -13968,7 +13968,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   tutorialControl: {fileID: 8668273494694365982}
   tutorialPanel: {fileID: 760886555}
-  videoClip: {fileID: 32900000, guid: 1e1fd574c42327144b3acf5e2fcf7fa4, type: 3}
+  videoClip: {fileID: 32900000, guid: 48c13086b62c75b44983d6a9bf499156, type: 3}
 --- !u!114 &1045769930
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -16497,7 +16497,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   tutorialControl: {fileID: 8668273494694365982}
   tutorialPanel: {fileID: 753903676}
-  videoClip: {fileID: 32900000, guid: 1e1fd574c42327144b3acf5e2fcf7fa4, type: 3}
+  videoClip: {fileID: 32900000, guid: 637cc91da48493049b2fc85ed17dc570, type: 3}
 --- !u!114 &1298754330
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -17242,7 +17242,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   tutorialControl: {fileID: 8668273494694365982}
   tutorialPanel: {fileID: 953640688}
-  videoClip: {fileID: 32900000, guid: 1e1fd574c42327144b3acf5e2fcf7fa4, type: 3}
+  videoClip: {fileID: 32900000, guid: cb54a3373501f624d978d1cb50e78280, type: 3}
 --- !u!114 &1368131027
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -18395,7 +18395,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   tutorialControl: {fileID: 8668273494694365982}
   tutorialPanel: {fileID: 1691488180}
-  videoClip: {fileID: 32900000, guid: 1e1fd574c42327144b3acf5e2fcf7fa4, type: 3}
+  videoClip: {fileID: 32900000, guid: 0deb19d7bdf4d724ca961a5ed8491d52, type: 3}
 --- !u!114 &1480697808
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -18560,7 +18560,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   tutorialControl: {fileID: 8668273494694365982}
   tutorialPanel: {fileID: 1213199009}
-  videoClip: {fileID: 32900000, guid: 1e1fd574c42327144b3acf5e2fcf7fa4, type: 3}
+  videoClip: {fileID: 32900000, guid: fb97876d1a6b13948852bf1778f3839e, type: 3}
 --- !u!114 &1488221027
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -23587,7 +23587,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   tutorialControl: {fileID: 8668273494694365982}
   tutorialPanel: {fileID: 1020614474}
-  videoClip: {fileID: 32900000, guid: 1e1fd574c42327144b3acf5e2fcf7fa4, type: 3}
+  videoClip: {fileID: 32900000, guid: 04f85997e21db0d4b8b03df54f50cfb7, type: 3}
 --- !u!114 &2092602092
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -62411,7 +62411,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   tutorialControl: {fileID: 8668273494694365982}
   tutorialPanel: {fileID: 3699852219830645968}
-  videoClip: {fileID: 32900000, guid: 1e1fd574c42327144b3acf5e2fcf7fa4, type: 3}
+  videoClip: {fileID: 32900000, guid: 269553f18a5a93c43b4abef8a52f6600, type: 3}
 --- !u!224 &5832607134337482701
 RectTransform:
   m_ObjectHideFlags: 0
