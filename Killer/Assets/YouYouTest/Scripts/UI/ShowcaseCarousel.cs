@@ -257,6 +257,9 @@ public class ShowcaseCarousel : MonoBehaviour
 
         currentIndex = index;
 
+        // Trigger tutorial for the new item
+        TriggerCurrentTutorial();
+
         // Calculate target position
         // Moving content to the LEFT (negative x) reveals items on the RIGHT.
         float targetX = -1 * (currentIndex * itemWidth);
@@ -266,6 +269,22 @@ public class ShowcaseCarousel : MonoBehaviour
         contentContainer.DOAnchorPosX(targetX, scrollDuration).SetEase(scrollEase);
 
         UpdateButtons();
+    }
+
+    private void TriggerCurrentTutorial()
+    {
+        if (contentContainer == null || currentIndex < 0 || currentIndex >= contentContainer.childCount)
+            return;
+
+        Transform child = contentContainer.GetChild(currentIndex);
+        if (child != null)
+        {
+            EditorTutorialTrigger trigger = child.GetComponent<EditorTutorialTrigger>();
+            if (trigger != null)
+            {
+                trigger.ShowTutorial();
+            }
+        }
     }
 
     private void UpdateButtons()
