@@ -14,6 +14,10 @@ public class BeGrabobject  : MonoBehaviour, IGrabable
     [Header("平滑设置")]
     [SerializeField] private float positionSmoothSpeed = 10f; // 位置平滑速度
     [SerializeField] private float rotationSmoothSpeed = 15f; // 旋转平滑速度
+
+    [Header("角度对齐")]
+    [SerializeField] private RotationSnapMode rotationSnapMode = RotationSnapMode.Off;
+    [SerializeField, Min(0f)] private float rotationSnapHysteresis = 4f;
     
     [Header("跟随设置")]
     public bool freezeYaxis = false;
@@ -27,6 +31,15 @@ public class BeGrabobject  : MonoBehaviour, IGrabable
     private Quaternion indirectGrabRotationOffset;
     private bool isIndirectGrabbing = false;
     private Transform indirectRotationTarget; // 间接旋转跟随的目标
+
+    // 角度对齐状态（用于抑制在临界角附近来回跳）
+    private bool snapStateInitialized = false;
+    private int snapIndexX;
+    private int snapIndexY;
+    private int snapIndexZ;
+    private float snapRawX;
+    private float snapRawY;
+    private float snapRawZ;
 
     // 实现接口属性
     public Transform ObjectTransform => transform;
@@ -87,6 +100,15 @@ public class BeGrabobject  : MonoBehaviour, IGrabable
             // 只使用目标的Y轴旋转，保持当前的X和Z轴旋转
             targetRotation = Quaternion.Euler(currentEuler.x, targetEuler.y, currentEuler.z);
         }
+
+        if (rotationSnapMode != RotationSnapMode.Off)
+        {
+            targetRotation = SnapRotation(targetRotation, freezeYaxis);
+        }
+        else
+        {
+            snapStateInitialized = false;
+        }
         
         // 使用Lerp进行平滑移动
         transform.position = Vector3.Lerp(transform.position, targetPosition, positionSmoothSpeed * Time.deltaTime);
@@ -118,6 +140,8 @@ public class BeGrabobject  : MonoBehaviour, IGrabable
         {
             rb.interpolation = RigidbodyInterpolation.None;
         }
+
+        snapStateInitialized = false;
         
         Debug.Log($"{gameObject.name} 被 {GetHandName(handTransform)} 抓住了");
     }
@@ -200,6 +224,7 @@ public class BeGrabobject  : MonoBehaviour, IGrabable
         // 真正被完全释放
         isGrabbed = false;
         grabHand = null;
+        snapStateInitialized = false;
         
         // 释放时恢复插值
         if (rb != null)
@@ -255,6 +280,96 @@ public class BeGrabobject  : MonoBehaviour, IGrabable
     #endregion
     
     #region 工具方法
+
+    private Quaternion SnapRotation(Quaternion rotation, bool yOnly)
+    {
+        float snapStep = GetRotationSnapStep();
+        Vector3 euler = rotation.eulerAngles;
+
+        if (!snapStateInitialized)
+        {
+            snapRawX = euler.x;
+            snapRawY = euler.y;
+            snapRawZ = euler.z;
+            snapIndexX = Mathf.RoundToInt(snapRawX / snapStep);
+            snapIndexY = Mathf.RoundToInt(snapRawY / snapStep);
+            snapIndexZ = Mathf.RoundToInt(snapRawZ / snapStep);
+            snapStateInitialized = true;
+        }
+
+        if (yOnly)
+        {
+            snapRawY = UnwrapAngle(snapRawY, euler.y);
+            snapIndexY = UpdateSnapIndexSchmitt(snapIndexY, snapRawY, snapStep, rotationSnapHysteresis);
+            euler.y = NormalizeAngle(snapIndexY * snapStep);
+        }
+        else
+        {
+            snapRawX = UnwrapAngle(snapRawX, euler.x);
+            snapRawY = UnwrapAngle(snapRawY, euler.y);
+            snapRawZ = UnwrapAngle(snapRawZ, euler.z);
+
+            snapIndexX = UpdateSnapIndexSchmitt(snapIndexX, snapRawX, snapStep, rotationSnapHysteresis);
+            snapIndexY = UpdateSnapIndexSchmitt(snapIndexY, snapRawY, snapStep, rotationSnapHysteresis);
+            snapIndexZ = UpdateSnapIndexSchmitt(snapIndexZ, snapRawZ, snapStep, rotationSnapHysteresis);
+            euler.x = NormalizeAngle(snapIndexX * snapStep);
+            euler.y = NormalizeAngle(snapIndexY * snapStep);
+            euler.z = NormalizeAngle(snapIndexZ * snapStep);
+        }
+
+        return Quaternion.Euler(euler);
+    }
+
+    private float GetRotationSnapStep()
+    {
+        return rotationSnapMode == RotationSnapMode.Snap15 ? 15f : 30f;
+    }
+
+    private int UpdateSnapIndexSchmitt(int currentIndex, float rawAngle, float step, float hysteresis)
+    {
+        float halfStep = step * 0.5f;
+        float hysteresisValue = Mathf.Clamp(Mathf.Max(0f, hysteresis), 0f, halfStep - 0.0001f);
+        float threshold = halfStep + hysteresisValue;
+
+        int guard = 0;
+        while (guard < 12)
+        {
+            float snappedAngle = currentIndex * step;
+            float delta = rawAngle - snappedAngle;
+
+            if (delta > threshold)
+            {
+                currentIndex++;
+                guard++;
+                continue;
+            }
+
+            if (delta < -threshold)
+            {
+                currentIndex--;
+                guard++;
+                continue;
+            }
+
+            break;
+        }
+
+        return currentIndex;
+    }
+
+    private float UnwrapAngle(float previousRaw, float currentWrapped)
+    {
+        float previousWrapped = NormalizeAngle(previousRaw);
+        float delta = Mathf.DeltaAngle(previousWrapped, currentWrapped);
+        return previousRaw + delta;
+    }
+
+    private float NormalizeAngle(float angle)
+    {
+        angle %= 360f;
+        if (angle < 0f) angle += 360f;
+        return angle;
+    }
     
     /// <summary>
     /// 获取手部名称用于调试

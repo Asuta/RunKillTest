@@ -42,6 +42,7 @@ public class BeGrabAndScaleobject : MonoBehaviour, IGrabable
 
     [Header("角度对齐")]
     [SerializeField] private RotationSnapMode rotationSnapMode = RotationSnapMode.Off;
+    [SerializeField, Min(0f)] private float rotationSnapHysteresis = 4f;
 
     [Header("跟随设置")]
     public bool freezeYaxis = false;
@@ -88,6 +89,15 @@ public class BeGrabAndScaleobject : MonoBehaviour, IGrabable
     // 命令系统相关
     private ScaleCommand currentScaleCommand; // 当前缩放命令
     private bool isCommandActive = false; // 是否有活跃的命令
+
+    // 角度对齐状态（用于抑制在临界角附近来回跳）
+    private bool snapStateInitialized = false;
+    private int snapIndexX;
+    private int snapIndexY;
+    private int snapIndexZ;
+    private float snapRawX;
+    private float snapRawY;
+    private float snapRawZ;
 
     private void Awake()
     {
@@ -200,6 +210,10 @@ public class BeGrabAndScaleobject : MonoBehaviour, IGrabable
         {
             targetRot = SnapRotation(targetRot, freezeYaxis);
         }
+        else
+        {
+            snapStateInitialized = false;
+        }
     
         float posAlpha = 1f - Mathf.Exp(-positionSmoothSpeed * Time.deltaTime);
         float rotAlpha = 1f - Mathf.Exp(-rotationSmoothSpeed * Time.deltaTime);
@@ -218,15 +232,35 @@ public class BeGrabAndScaleobject : MonoBehaviour, IGrabable
         float snapStep = GetRotationSnapStep();
         Vector3 euler = rotation.eulerAngles;
 
+        if (!snapStateInitialized)
+        {
+            snapRawX = euler.x;
+            snapRawY = euler.y;
+            snapRawZ = euler.z;
+            snapIndexX = Mathf.RoundToInt(snapRawX / snapStep);
+            snapIndexY = Mathf.RoundToInt(snapRawY / snapStep);
+            snapIndexZ = Mathf.RoundToInt(snapRawZ / snapStep);
+            snapStateInitialized = true;
+        }
+
         if (yOnly)
         {
-            euler.y = SnapAngle(euler.y, snapStep);
+            snapRawY = UnwrapAngle(snapRawY, euler.y);
+            snapIndexY = UpdateSnapIndexSchmitt(snapIndexY, snapRawY, snapStep, rotationSnapHysteresis);
+            euler.y = NormalizeAngle(snapIndexY * snapStep);
         }
         else
         {
-            euler.x = SnapAngle(euler.x, snapStep);
-            euler.y = SnapAngle(euler.y, snapStep);
-            euler.z = SnapAngle(euler.z, snapStep);
+            snapRawX = UnwrapAngle(snapRawX, euler.x);
+            snapRawY = UnwrapAngle(snapRawY, euler.y);
+            snapRawZ = UnwrapAngle(snapRawZ, euler.z);
+
+            snapIndexX = UpdateSnapIndexSchmitt(snapIndexX, snapRawX, snapStep, rotationSnapHysteresis);
+            snapIndexY = UpdateSnapIndexSchmitt(snapIndexY, snapRawY, snapStep, rotationSnapHysteresis);
+            snapIndexZ = UpdateSnapIndexSchmitt(snapIndexZ, snapRawZ, snapStep, rotationSnapHysteresis);
+            euler.x = NormalizeAngle(snapIndexX * snapStep);
+            euler.y = NormalizeAngle(snapIndexY * snapStep);
+            euler.z = NormalizeAngle(snapIndexZ * snapStep);
         }
 
         return Quaternion.Euler(euler);
@@ -237,9 +271,50 @@ public class BeGrabAndScaleobject : MonoBehaviour, IGrabable
         return rotationSnapMode == RotationSnapMode.Snap15 ? 15f : 30f;
     }
 
-    private float SnapAngle(float angle, float step)
+    private int UpdateSnapIndexSchmitt(int currentIndex, float rawAngle, float step, float hysteresis)
     {
-        return Mathf.Round(angle / step) * step;
+        float halfStep = step * 0.5f;
+        float hysteresisValue = Mathf.Clamp(Mathf.Max(0f, hysteresis), 0f, halfStep - 0.0001f);
+        float threshold = halfStep + hysteresisValue;
+
+        int guard = 0;
+        while (guard < 12)
+        {
+            float snappedAngle = currentIndex * step;
+            float delta = rawAngle - snappedAngle;
+
+            if (delta > threshold)
+            {
+                currentIndex++;
+                guard++;
+                continue;
+            }
+
+            if (delta < -threshold)
+            {
+                currentIndex--;
+                guard++;
+                continue;
+            }
+
+            break;
+        }
+
+        return currentIndex;
+    }
+
+    private float UnwrapAngle(float previousRaw, float currentWrapped)
+    {
+        float previousWrapped = NormalizeAngle(previousRaw);
+        float delta = Mathf.DeltaAngle(previousWrapped, currentWrapped);
+        return previousRaw + delta;
+    }
+
+    private float NormalizeAngle(float angle)
+    {
+        angle %= 360f;
+        if (angle < 0f) angle += 360f;
+        return angle;
     }
     
     /// <summary>
@@ -342,6 +417,7 @@ public class BeGrabAndScaleobject : MonoBehaviour, IGrabable
             primaryHand = handTransform;
             secondaryHand = null;
             isTwoHandScaling = false;
+            snapStateInitialized = false;
 
             offsetFromPrimary = Quaternion.Inverse(handTransform.rotation) * (transform.position - handTransform.position);
             rotationOffsetFromPrimary = Quaternion.Inverse(handTransform.rotation) * transform.rotation;
@@ -431,6 +507,7 @@ public class BeGrabAndScaleobject : MonoBehaviour, IGrabable
             isTwoHandScaling = false;
             primaryHand = null;
             secondaryHand = null;
+            snapStateInitialized = false;
             
             // 清理命令状态
             CleanupCommand();
@@ -458,6 +535,7 @@ public class BeGrabAndScaleobject : MonoBehaviour, IGrabable
             isTwoHandScaling = false;
             primaryHand = null;
             secondaryHand = null;
+            snapStateInitialized = false;
             
             // 清理命令状态
             CleanupCommand();
