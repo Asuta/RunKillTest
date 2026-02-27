@@ -12,6 +12,16 @@ public enum ScaleAxis
 }
 
 /// <summary>
+/// 旋转对齐模式
+/// </summary>
+public enum RotationSnapMode
+{
+    Off,
+    Snap15,
+    Snap30
+}
+
+/// <summary>
 /// 缩放轴数据类
 /// </summary>
 public class ScaleAxisData
@@ -29,6 +39,9 @@ public class BeGrabAndScaleobject : MonoBehaviour, IGrabable
     [Header("平滑设置")]
     [SerializeField] private float positionSmoothSpeed = 10f;
     [SerializeField] private float rotationSmoothSpeed = 15f;
+
+    [Header("角度对齐")]
+    [SerializeField] private RotationSnapMode rotationSnapMode = RotationSnapMode.Off;
 
     [Header("跟随设置")]
     public bool freezeYaxis = false;
@@ -181,6 +194,12 @@ public class BeGrabAndScaleobject : MonoBehaviour, IGrabable
             Vector3 targetEuler = targetRot.eulerAngles;
             targetRot = Quaternion.Euler(curEuler.x, targetEuler.y, curEuler.z);
         }
+
+        // 按配置进行角度对齐（15° 或 30° 的倍数）
+        if (rotationSnapMode != RotationSnapMode.Off)
+        {
+            targetRot = SnapRotation(targetRot, freezeYaxis);
+        }
     
         float posAlpha = 1f - Mathf.Exp(-positionSmoothSpeed * Time.deltaTime);
         float rotAlpha = 1f - Mathf.Exp(-rotationSmoothSpeed * Time.deltaTime);
@@ -192,6 +211,35 @@ public class BeGrabAndScaleobject : MonoBehaviour, IGrabable
         {
             PerformSingleAxisScaling();
         }
+    }
+
+    private Quaternion SnapRotation(Quaternion rotation, bool yOnly)
+    {
+        float snapStep = GetRotationSnapStep();
+        Vector3 euler = rotation.eulerAngles;
+
+        if (yOnly)
+        {
+            euler.y = SnapAngle(euler.y, snapStep);
+        }
+        else
+        {
+            euler.x = SnapAngle(euler.x, snapStep);
+            euler.y = SnapAngle(euler.y, snapStep);
+            euler.z = SnapAngle(euler.z, snapStep);
+        }
+
+        return Quaternion.Euler(euler);
+    }
+
+    private float GetRotationSnapStep()
+    {
+        return rotationSnapMode == RotationSnapMode.Snap15 ? 15f : 30f;
+    }
+
+    private float SnapAngle(float angle, float step)
+    {
+        return Mathf.Round(angle / step) * step;
     }
     
     /// <summary>

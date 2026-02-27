@@ -343,6 +343,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   positionSmoothSpeed: 10
   rotationSmoothSpeed: 15
+  rotationSnapMode: 1
   freezeYaxis: 1
   scaleControlEnabled: 0
 --- !u!1 &5294326535517076037

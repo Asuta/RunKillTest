@@ -1,0 +1,21 @@
+﻿<Solution>
+  <Project Path="Assembly-CSharp.csproj" />
+  <Project Path="SingularityGroup.HotReload.Editor.csproj" />
+  <Project Path="EPO.csproj" />
+  <Project Path="VInspector.csproj" />
+  <Project Path="SingularityGroup.HotReload.Runtime.csproj" />
+  <Project Path="Unity.XR.Interaction.Toolkit.Samples.StarterAssets.csproj" />
+  <Project Path="VHierarchy.csproj" />
+  <Project Path="GameUtils.csproj" />
+  <Project Path="Assembly-CSharp-firstpass.csproj" />
+  <Project Path="Assembly-CSharp-Editor.csproj" />
+  <Project Path="SingularityGroup.HotReload.Runtime.Public.csproj" />
+  <Project Path="EPOUtilities.csproj" />
+  <Project Path="EPOEditor.csproj" />
+  <Project Path="VFavorites.csproj" />
+  <Project Path="Drakkar.csproj" />
+  <Project Path="Unity.XR.Interaction.Toolkit.Samples.StarterAssets.Editor.csproj" />
+  <Project Path="AudioClipEditor.csproj" />
+  <Project Path="EPOURP.csproj" />
+  <Project Path="EPOHDRP.csproj" />
+</Solution>
