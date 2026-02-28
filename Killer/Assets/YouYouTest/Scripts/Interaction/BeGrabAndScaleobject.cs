@@ -32,6 +32,8 @@ public class BeGrabAndScaleobject : MonoBehaviour, IGrabable
 
     [Header("角度对齐")]
     [SerializeField, Min(0f)] private float rotationSnapHysteresis = 4f;
+    private const float PositionSnapStep = 0.1f;
+    private const float ScaleSnapStep = 0.1f;
 
     [Header("跟随设置")]
     public bool freezeYaxis = false;
@@ -104,7 +106,14 @@ public class BeGrabAndScaleobject : MonoBehaviour, IGrabable
         if (isIndirectGrabbing && indirectTarget != null)
         {
             // 立即跟随中心点，不使用插值
-            transform.position = indirectTarget.position + indirectTarget.rotation * indirectGrabOffset;
+            Vector3 targetPosition = indirectTarget.position + indirectTarget.rotation * indirectGrabOffset;
+            bool enablePositionSnapForIndirect = gameManager != null && gameManager.EnableGrabPositionSnap;
+            if (enablePositionSnapForIndirect)
+            {
+                targetPosition = SnapPosition(targetPosition);
+            }
+
+            transform.position = targetPosition;
             transform.rotation = indirectTarget.rotation * indirectGrabRotationOffset;
             
             // 中断后续普通抓取逻辑
@@ -179,12 +188,22 @@ public class BeGrabAndScaleobject : MonoBehaviour, IGrabable
         // 单手/主手 跟随位置和旋转（与 BeGrabobject 一致）
         Vector3 targetPos = primaryHand.position + primaryHand.rotation * offsetFromPrimary;
         Quaternion targetRot = primaryHand.rotation * rotationOffsetFromPrimary;
+
+        bool enablePositionSnap = gameManager != null && gameManager.EnableGrabPositionSnap;
+        if (enablePositionSnap)
+        {
+            targetPos = SnapPosition(targetPos);
+        }
     
         // 双手时，位置保持与主手的相对位置，旋转跟随两手平均朝向（保持进入时的相对旋转偏移）
         if (isTwoHandScaling && editorPlayer != null && editorPlayer.leftHand != null && editorPlayer.rightHand != null)
         {
             // 保持与主手的相对位置，不移动到两手中心
             targetPos = primaryHand.position + primaryHand.rotation * offsetFromPrimary;
+            if (enablePositionSnap)
+            {
+                targetPos = SnapPosition(targetPos);
+            }
             Quaternion avgRot = Quaternion.Slerp(editorPlayer.leftHand.rotation, editorPlayer.rightHand.rotation, 0.5f);
             targetRot = avgRot * twoHandRotationOffset;
         }
@@ -308,6 +327,15 @@ public class BeGrabAndScaleobject : MonoBehaviour, IGrabable
         if (angle < 0f) angle += 360f;
         return angle;
     }
+
+    private Vector3 SnapPosition(Vector3 position)
+    {
+        float step = PositionSnapStep;
+        position.x = Mathf.Round(position.x / step) * step;
+        position.y = Mathf.Round(position.y / step) * step;
+        position.z = Mathf.Round(position.z / step) * step;
+        return position;
+    }
     
     /// <summary>
     /// 执行单轴缩放
@@ -370,12 +398,21 @@ public class BeGrabAndScaleobject : MonoBehaviour, IGrabable
         {
             float scaleRate = currentHandDistance / recordHandDistance;
             Vector3 currentScale = transform.localScale;
+            bool enableScaleSnap = gameManager != null && gameManager.EnableGrabScaleSnap;
+            float targetScaleValue = recordScale * scaleRate;
+
+            if (enableScaleSnap)
+            {
+                targetScaleValue = SnapScaleValue(targetScaleValue);
+            }
+
+            targetScaleValue = Mathf.Max(0.001f, targetScaleValue);
             
             switch (currentScaleAxis)
             {
                 case ScaleAxis.X:
                     transform.localScale = new Vector3(
-                        recordScale * scaleRate,
+                        targetScaleValue,
                         currentScale.y,
                         currentScale.z
                     );
@@ -383,7 +420,7 @@ public class BeGrabAndScaleobject : MonoBehaviour, IGrabable
                 case ScaleAxis.Y:
                     transform.localScale = new Vector3(
                         currentScale.x,
-                        recordScale * scaleRate,
+                        targetScaleValue,
                         currentScale.z
                     );
                     break;
@@ -391,11 +428,16 @@ public class BeGrabAndScaleobject : MonoBehaviour, IGrabable
                     transform.localScale = new Vector3(
                         currentScale.x,
                         currentScale.y,
-                        recordScale * scaleRate
+                        targetScaleValue
                     );
                     break;
             }
         }
+    }
+
+    private float SnapScaleValue(float scaleValue)
+    {
+        return Mathf.Round(scaleValue / ScaleSnapStep) * ScaleSnapStep;
     }
 
     // 抓取：单手逻辑与 BeGrabobject 一致；第二只手抓取将进入双手缩放

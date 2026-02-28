@@ -18,6 +18,24 @@ public class GameManager : MonoBehaviour
         set => _enableGrabRotationSnap = value;
     }
 
+    [SerializeField]
+    [Tooltip("是否启用抓取位置贴合")]
+    private bool _enableGrabPositionSnap = false;
+    public bool EnableGrabPositionSnap
+    {
+        get => _enableGrabPositionSnap;
+        set => _enableGrabPositionSnap = value;
+    }
+
+    [SerializeField]
+    [Tooltip("是否启用缩放贴合")]
+    private bool _enableGrabScaleSnap = false;
+    public bool EnableGrabScaleSnap
+    {
+        get => _enableGrabScaleSnap;
+        set => _enableGrabScaleSnap = value;
+    }
+
     private float _menuButtonPressTime = 0f;
 
     /// <summary>

@@ -18,6 +18,7 @@ public class BeGrabobject  : MonoBehaviour, IGrabable
 
     [Header("角度对齐")]
     [SerializeField, Min(0f)] private float rotationSnapHysteresis = 4f;
+    private const float PositionSnapStep = 0.1f;
     
     [Header("跟随设置")]
     public bool freezeYaxis = false;
@@ -66,7 +67,14 @@ public class BeGrabobject  : MonoBehaviour, IGrabable
         if (isIndirectGrabbing && indirectTarget != null)
         {
             // 立即跟随中心点，不使用插值
-            transform.position = indirectTarget.position + indirectTarget.rotation * indirectGrabOffset;
+            Vector3 targetPosition = indirectTarget.position + indirectTarget.rotation * indirectGrabOffset;
+            bool enablePositionSnap = gameManager != null && gameManager.EnableGrabPositionSnap;
+            if (enablePositionSnap)
+            {
+                targetPosition = SnapPosition(targetPosition);
+            }
+
+            transform.position = targetPosition;
             transform.rotation = indirectTarget.rotation * indirectGrabRotationOffset;
             return;
         }
@@ -90,6 +98,12 @@ public class BeGrabobject  : MonoBehaviour, IGrabable
         // 计算目标位置和旋转
         Vector3 targetPosition = grabHand.position + grabHand.rotation * offsetFromHand;
         Quaternion targetRotation = grabHand.rotation * initialRotationOffset;
+
+        bool enablePositionSnap = gameManager != null && gameManager.EnableGrabPositionSnap;
+        if (enablePositionSnap)
+        {
+            targetPosition = SnapPosition(targetPosition);
+        }
         
         // 如果冻结Y轴，只保留Y轴旋转
         if (freezeYaxis)
@@ -371,6 +385,15 @@ public class BeGrabobject  : MonoBehaviour, IGrabable
         angle %= 360f;
         if (angle < 0f) angle += 360f;
         return angle;
+    }
+
+    private Vector3 SnapPosition(Vector3 position)
+    {
+        float step = PositionSnapStep;
+        position.x = Mathf.Round(position.x / step) * step;
+        position.y = Mathf.Round(position.y / step) * step;
+        position.z = Mathf.Round(position.z / step) * step;
+        return position;
     }
     
     /// <summary>
