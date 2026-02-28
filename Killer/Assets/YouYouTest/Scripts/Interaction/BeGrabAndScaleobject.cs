@@ -12,15 +12,6 @@ public enum ScaleAxis
 }
 
 /// <summary>
-/// 旋转对齐模式
-/// </summary>
-public enum RotationSnapMode
-{
-    Off,
-    Snap15
-}
-
-/// <summary>
 /// 缩放轴数据类
 /// </summary>
 public class ScaleAxisData
@@ -40,7 +31,6 @@ public class BeGrabAndScaleobject : MonoBehaviour, IGrabable
     [SerializeField] private float rotationSmoothSpeed = 15f;
 
     [Header("角度对齐")]
-    [SerializeField] private RotationSnapMode rotationSnapMode = RotationSnapMode.Off;
     [SerializeField, Min(0f)] private float rotationSnapHysteresis = 4f;
 
     [Header("跟随设置")]
@@ -208,7 +198,7 @@ public class BeGrabAndScaleobject : MonoBehaviour, IGrabable
 
         // 按配置进行角度对齐（15° 的倍数）
         bool enableRotationSnap = gameManager == null || gameManager.EnableGrabRotationSnap;
-        if (rotationSnapMode != RotationSnapMode.Off && enableRotationSnap)
+        if (enableRotationSnap)
         {
             targetRot = SnapRotation(targetRot, freezeYaxis);
         }

@@ -17,7 +17,6 @@ public class BeGrabobject  : MonoBehaviour, IGrabable
     [SerializeField] private float rotationSmoothSpeed = 15f; // 旋转平滑速度
 
     [Header("角度对齐")]
-    [SerializeField] private RotationSnapMode rotationSnapMode = RotationSnapMode.Off;
     [SerializeField, Min(0f)] private float rotationSnapHysteresis = 4f;
     
     [Header("跟随设置")]
@@ -104,7 +103,7 @@ public class BeGrabobject  : MonoBehaviour, IGrabable
         }
 
         bool enableRotationSnap = gameManager == null || gameManager.EnableGrabRotationSnap;
-        if (rotationSnapMode != RotationSnapMode.Off && enableRotationSnap)
+        if (enableRotationSnap)
         {
             targetRotation = SnapRotation(targetRotation, freezeYaxis);
         }
