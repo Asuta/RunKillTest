@@ -17,8 +17,7 @@ public enum ScaleAxis
 public enum RotationSnapMode
 {
     Off,
-    Snap15,
-    Snap30
+    Snap15
 }
 
 /// <summary>
@@ -85,6 +84,7 @@ public class BeGrabAndScaleobject : MonoBehaviour, IGrabable
     private ScaleAxis? lastScaleAxis = null; // 上次的缩放轴
 
     private EditorPlayer editorPlayer; // 用于检测当前是否双手都在抓
+    private GameManager gameManager;
     
     // 命令系统相关
     private ScaleCommand currentScaleCommand; // 当前缩放命令
@@ -102,6 +102,7 @@ public class BeGrabAndScaleobject : MonoBehaviour, IGrabable
     private void Awake()
     {
         editorPlayer = FindFirstObjectByType<EditorPlayer>();
+        gameManager = FindFirstObjectByType<GameManager>();
         // 初始化中间数据，保证间接跟随不会因为未初始化而跳变
         middlePosition = transform.position;
         middleRotation = transform.rotation;
@@ -205,8 +206,9 @@ public class BeGrabAndScaleobject : MonoBehaviour, IGrabable
             targetRot = Quaternion.Euler(curEuler.x, targetEuler.y, curEuler.z);
         }
 
-        // 按配置进行角度对齐（15° 或 30° 的倍数）
-        if (rotationSnapMode != RotationSnapMode.Off)
+        // 按配置进行角度对齐（15° 的倍数）
+        bool enableRotationSnap = gameManager == null || gameManager.EnableGrabRotationSnap;
+        if (rotationSnapMode != RotationSnapMode.Off && enableRotationSnap)
         {
             targetRot = SnapRotation(targetRot, freezeYaxis);
         }
@@ -268,7 +270,7 @@ public class BeGrabAndScaleobject : MonoBehaviour, IGrabable
 
     private float GetRotationSnapStep()
     {
-        return rotationSnapMode == RotationSnapMode.Snap15 ? 15f : 30f;
+        return 15f;
     }
 
     private int UpdateSnapIndexSchmitt(int currentIndex, float rawAngle, float step, float hysteresis)

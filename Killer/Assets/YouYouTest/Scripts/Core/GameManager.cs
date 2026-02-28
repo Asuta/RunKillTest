@@ -8,6 +8,16 @@ using Unity.XR.CoreUtils;
 public class GameManager : MonoBehaviour
 {
     public bool needLog;
+
+    [SerializeField]
+    [Tooltip("是否启用抓取旋转角度贴合")]
+    private bool _enableGrabRotationSnap = true;
+    public bool EnableGrabRotationSnap
+    {
+        get => _enableGrabRotationSnap;
+        set => _enableGrabRotationSnap = value;
+    }
+
     private float _menuButtonPressTime = 0f;
 
     /// <summary>

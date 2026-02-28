@@ -10,6 +10,7 @@ public class BeGrabobject  : MonoBehaviour, IGrabable
     private Vector3 offsetFromHand; // 相对于手的偏移
     private Quaternion initialRotationOffset; // 初始旋转偏移
     private Rigidbody rb; // 刚体组件
+    private GameManager gameManager;
     
     [Header("平滑设置")]
     [SerializeField] private float positionSmoothSpeed = 10f; // 位置平滑速度
@@ -53,6 +54,7 @@ public class BeGrabobject  : MonoBehaviour, IGrabable
     void Start()
     {
         rb = GetComponent<Rigidbody>();
+        gameManager = FindFirstObjectByType<GameManager>();
         // 初始化中间数据，保证间接跟随不会因为未初始化而跳变
         middlePosition = transform.position;
         middleRotation = transform.rotation;
@@ -101,7 +103,8 @@ public class BeGrabobject  : MonoBehaviour, IGrabable
             targetRotation = Quaternion.Euler(currentEuler.x, targetEuler.y, currentEuler.z);
         }
 
-        if (rotationSnapMode != RotationSnapMode.Off)
+        bool enableRotationSnap = gameManager == null || gameManager.EnableGrabRotationSnap;
+        if (rotationSnapMode != RotationSnapMode.Off && enableRotationSnap)
         {
             targetRotation = SnapRotation(targetRotation, freezeYaxis);
         }
@@ -322,7 +325,7 @@ public class BeGrabobject  : MonoBehaviour, IGrabable
 
     private float GetRotationSnapStep()
     {
-        return rotationSnapMode == RotationSnapMode.Snap15 ? 15f : 30f;
+        return 15f;
     }
 
     private int UpdateSnapIndexSchmitt(int currentIndex, float rawAngle, float step, float hysteresis)
